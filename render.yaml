@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: aggregatore-news-rss
+    env: node
+    plan: free
+    branch: claude/rss-news-aggregator-dosocy
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20
