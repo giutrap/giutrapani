@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aggregatore News RSS</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1>📰 Aggregatore News</h1>
+      <button id="theme-toggle" class="icon-btn" title="Cambia tema" aria-label="Cambia tema">🌙</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="controls">
+      <input id="search" type="search" placeholder="Cerca per titolo o testo..." aria-label="Cerca" />
+
+      <select id="category-filter" aria-label="Filtra per categoria">
+        <option value="">Tutte le categorie</option>
+      </select>
+
+      <select id="source-filter" aria-label="Filtra per fonte">
+        <option value="">Tutte le fonti</option>
+      </select>
+
+      <button id="refresh-btn" class="primary-btn">Aggiorna</button>
+    </section>
+
+    <p id="status" class="status"></p>
+
+    <section id="articles" class="grid"></section>
+    <p id="empty-state" class="empty-state" hidden>Nessun articolo trovato con i filtri selezionati.</p>
+  </main>
+
+  <footer class="footer">
+    <p>Le fonti non raggiungibili vengono ignorate automaticamente. Aggiornamento automatico ogni 5 minuti.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
