@@ -10,6 +10,8 @@ const el = {
   sourceFilter: document.getElementById('source-filter'),
   refreshBtn: document.getElementById('refresh-btn'),
   status: document.getElementById('status'),
+  errorsDetails: document.getElementById('errors-details'),
+  errorsList: document.getElementById('errors-list'),
   articles: document.getElementById('articles'),
   emptyState: document.getElementById('empty-state'),
   themeToggle: document.getElementById('theme-toggle'),
@@ -109,6 +111,12 @@ async function loadFeeds(forceRefresh = false) {
     let statusText = `${data.count} articoli · ultimo aggiornamento ${updated}`;
     if (data.errors && data.errors.length > 0) {
       statusText += ` · ${data.errors.length} fonte/i non raggiungibile/i`;
+      el.errorsList.innerHTML = data.errors
+        .map((e) => `<li>${escapeHtml(e.source)}: ${escapeHtml(e.message)}</li>`)
+        .join('');
+      el.errorsDetails.hidden = false;
+    } else {
+      el.errorsDetails.hidden = true;
     }
     el.status.textContent = statusText;
   } catch (err) {

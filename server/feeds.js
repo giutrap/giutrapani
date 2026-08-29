@@ -1,19 +1,48 @@
 // Elenco delle fonti RSS aggregate. Aggiungi/rimuovi voci qui per personalizzare l'app.
 // Ogni fonte ha: name (nome visualizzato), url (feed RSS), category (etichetta di filtro).
+// Per ogni testata sono incluse più sezioni (non solo l'homepage/"prima pagina"),
+// così l'aggregazione copre più notizie. Le fonti irraggiungibili vengono ignorate
+// automaticamente: se qualche URL qui sotto non fosse più valido, il resto continua
+// a funzionare (vedi la sezione "Fonti non raggiungibili" nell'interfaccia).
 
 const FEEDS = [
-  // --- Agenzie di stampa e news italiane ---
-  { name: 'ANSA', url: 'https://www.ansa.it/sito/ansait_rss.xml', category: 'Italia' },
+  // --- ANSA ---
+  { name: 'ANSA - Homepage', url: 'https://www.ansa.it/sito/ansait_rss.xml', category: 'Italia' },
+  { name: 'ANSA - Politica', url: 'https://www.ansa.it/sito/notizie/politica/politica_rss.xml', category: 'Italia' },
+  { name: 'ANSA - Cronaca', url: 'https://www.ansa.it/sito/notizie/cronaca/cronaca_rss.xml', category: 'Italia' },
+  { name: 'ANSA - Mondo', url: 'https://www.ansa.it/sito/notizie/mondo/mondo_rss.xml', category: 'Mondo' },
+  { name: 'ANSA - Economia', url: 'https://www.ansa.it/sito/notizie/economia/economia_rss.xml', category: 'Economia' },
+  { name: 'ANSA - Tecnologia', url: 'https://www.ansa.it/sito/notizie/tecnologia/tecnologia_rss.xml', category: 'Tecnologia' },
+  { name: 'ANSA - Sport', url: 'https://www.ansa.it/sito/notizie/sport/sport_rss.xml', category: 'Sport' },
+
+  // --- Altre agenzie/testate italiane ---
   { name: 'AGI', url: 'https://www.agi.it/rss', category: 'Italia' },
   { name: 'Adnkronos', url: 'https://www.adnkronos.com/RSS_Adnkronos_Ultimora.xml', category: 'Italia' },
   { name: 'Rai News', url: 'https://www.rainews.it/rss/tutti', category: 'Italia' },
-  { name: 'Il Fatto Quotidiano', url: 'https://www.ilfattoquotidiano.it/feed/', category: 'Italia' },
-  { name: 'La Repubblica', url: 'https://www.repubblica.it/rss/homepage/rss2.0.xml', category: 'Italia' },
-  { name: 'Corriere della Sera', url: 'https://xml2.corriereobjects.it/rss/homepage.xml', category: 'Italia' },
+
+  // --- Il Fatto Quotidiano ---
+  { name: 'Il Fatto Quotidiano - Homepage', url: 'https://www.ilfattoquotidiano.it/feed/', category: 'Italia' },
+  { name: 'Il Fatto Quotidiano - Politica', url: 'https://www.ilfattoquotidiano.it/politica-palazzo/feed/', category: 'Italia' },
+  { name: 'Il Fatto Quotidiano - Economia', url: 'https://www.ilfattoquotidiano.it/economia-e-lobby/feed/', category: 'Economia' },
+  { name: 'Il Fatto Quotidiano - Esteri', url: 'https://www.ilfattoquotidiano.it/esteri/feed/', category: 'Mondo' },
+
+  // --- La Repubblica ---
+  { name: 'La Repubblica - Homepage', url: 'https://www.repubblica.it/rss/homepage/rss2.0.xml', category: 'Italia' },
+  { name: 'La Repubblica - Politica', url: 'https://www.repubblica.it/rss/politica/rss2.0.xml', category: 'Italia' },
+  { name: 'La Repubblica - Cronaca', url: 'https://www.repubblica.it/rss/cronaca/rss2.0.xml', category: 'Italia' },
+  { name: 'La Repubblica - Esteri', url: 'https://www.repubblica.it/rss/esteri/rss2.0.xml', category: 'Mondo' },
+  { name: 'La Repubblica - Economia', url: 'https://www.repubblica.it/rss/economia/rss2.0.xml', category: 'Economia' },
+  { name: 'La Repubblica - Tecnologia', url: 'https://www.repubblica.it/rss/tecnologia/rss2.0.xml', category: 'Tecnologia' },
+  { name: 'La Repubblica - Sport', url: 'https://www.repubblica.it/rss/sport/rss2.0.xml', category: 'Sport' },
+
+  // --- Corriere della Sera ---
+  { name: 'Corriere della Sera - Homepage', url: 'https://xml2.corriereobjects.it/rss/homepage.xml', category: 'Italia' },
+  { name: 'Corriere della Sera - Politica', url: 'https://xml2.corriereobjects.it/rss/politica.xml', category: 'Italia' },
+  { name: 'Corriere della Sera - Esteri', url: 'https://xml2.corriereobjects.it/rss/esteri.xml', category: 'Mondo' },
+  { name: 'Corriere della Sera - Economia', url: 'https://xml2.corriereobjects.it/rss/economia.xml', category: 'Economia' },
 
   // --- Economia ---
   { name: 'Il Sole 24 Ore', url: 'https://www.ilsole24ore.com/rss/italia--attualita.xml', category: 'Economia' },
-  { name: 'Reuters Business', url: 'https://feeds.reuters.com/reuters/businessNews', category: 'Economia' },
 
   // --- Tecnologia ---
   { name: 'Wired Italia', url: 'https://www.wired.it/feed/rss', category: 'Tecnologia' },

@@ -3,13 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aggregatore News RSS</title>
+  <title>BREAKING</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <h1>📰 Aggregatore News</h1>
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M8 26 L34 14 C36 13 38 14.5 38 17 V47 C38 49.5 36 51 34 50 L8 38 Z" fill="currentColor"/>
+          <rect x="4" y="24" width="6" height="14" rx="2" fill="currentColor"/>
+          <path d="M38 20 C48 20 54 26 54 32 C54 38 48 44 38 44" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+          <rect x="12" y="39" width="6" height="14" rx="2" transform="rotate(15 12 39)" fill="currentColor"/>
+        </svg>
+        <h1>BREAKING<span class="brand-sub">news da tutte le agenzie</span></h1>
+      </div>
       <button id="theme-toggle" class="icon-btn" title="Cambia tema" aria-label="Cambia tema">🌙</button>
     </div>
   </header>
@@ -30,6 +38,10 @@
     </section>
 
     <p id="status" class="status"></p>
+    <details id="errors-details" class="errors-details" hidden>
+      <summary>Fonti non raggiungibili</summary>
+      <ul id="errors-list"></ul>
+    </details>
 
     <section id="articles" class="grid"></section>
     <p id="empty-state" class="empty-state" hidden>Nessun articolo trovato con i filtri selezionati.</p>
