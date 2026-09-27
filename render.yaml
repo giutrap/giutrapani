@@ -3,7 +3,7 @@ services:
     name: aggregatore-news-rss
     env: node
     plan: free
-    branch: claude/rss-news-aggregator-dosocy
+    branch: claude/nice-heisenberg-34l1ab
     buildCommand: npm install
     startCommand: npm start
     envVars:
