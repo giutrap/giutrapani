@@ -103,20 +103,18 @@ function renderArticles() {
   el.articles.innerHTML = filtered
     .map((a) => {
       const priorityClass = a.priority > 0 ? `priority-${a.priority}` : '';
-      const badge = a.priority > 0
-        ? `<span class="priority-badge level-${a.priority}" title="${escapeHtml(a.priorityLabel)}">${a.priorityCrosses} ${escapeHtml(a.priorityLabel)}</span>`
-        : '';
+      const flag = a.priority > 0
+        ? `<span class="row-flag level-${a.priority}" title="${escapeHtml(a.priorityLabel)}">${a.priorityCrosses}</span>`
+        : '<span class="row-flag"></span>';
+      const tooltip = a.summary ? ` title="${escapeHtml(a.summary)}"` : '';
       return `
-      <article class="card ${priorityClass}">
-        ${badge}
-        <div class="card-meta">
-          <span class="card-source">${escapeHtml(a.source)}</span>
-          <span>${formatDate(a.pubDate)}</span>
-        </div>
-        <h2><a href="${escapeHtml(a.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.title)}</a></h2>
-        ${a.summary ? `<p>${escapeHtml(a.summary)}</p>` : ''}
-        <span class="category-tag">${escapeHtml(a.category)}</span>
-      </article>`;
+      <a class="row ${priorityClass}" href="${escapeHtml(a.link)}" target="_blank" rel="noopener noreferrer"${tooltip}>
+        ${flag}
+        <span class="row-time">${formatDate(a.pubDate)}</span>
+        <span class="row-source">${escapeHtml(a.source)}</span>
+        <span class="row-title">${escapeHtml(a.title)}</span>
+        <span class="row-category">${escapeHtml(a.category)}</span>
+      </a>`;
     })
     .join('');
 
