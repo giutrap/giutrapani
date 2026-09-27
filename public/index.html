@@ -34,8 +34,26 @@
         <option value="">Tutte le fonti</option>
       </select>
 
+      <select id="priority-filter" aria-label="Filtra per priorità del lancio">
+        <option value="">Tutti i lanci</option>
+        <option value="3">+++ Massima priorità</option>
+        <option value="2">++ Notizia molto importante</option>
+        <option value="1">+ Rilievo superiore alla media</option>
+      </select>
+
+      <label class="sound-toggle">
+        <input type="checkbox" id="sound-toggle" />
+        🔊 Segnale acustico per i lanci +++
+      </label>
+
       <button id="refresh-btn" class="primary-btn">Aggiorna</button>
     </section>
+
+    <div class="priority-legend">
+      <span class="legend-item level-3">+++ massima priorità</span>
+      <span class="legend-item level-2">++ molto importante</span>
+      <span class="legend-item level-1">+ rilievo superiore alla media</span>
+    </div>
 
     <p id="status" class="status"></p>
     <details id="errors-details" class="errors-details" hidden>
@@ -49,6 +67,7 @@
 
   <footer class="footer">
     <p>Le fonti non raggiungibili vengono ignorate automaticamente. Aggiornamento automatico ogni 5 minuti.</p>
+    <p>Il livello dei lanci (+, ++, +++) è una stima automatica basata su parole chiave: le agenzie non pubblicano nei feed RSS il flag di priorità interno delle redazioni.</p>
   </footer>
 
   <script src="app.js"></script>

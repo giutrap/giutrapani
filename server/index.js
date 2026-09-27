@@ -2,6 +2,7 @@ const path = require('path');
 const express = require('express');
 const Parser = require('rss-parser');
 const { FEEDS } = require('./feeds');
+const { classifyPriority, LEVEL_META } = require('./priority');
 
 const app = express();
 const parser = new Parser({ timeout: 8000 });
@@ -11,13 +12,20 @@ const cache = { timestamp: 0, articles: [], errors: [] };
 
 function normalizeItem(item, source) {
   const rawSummary = item.contentSnippet || item.summary || item.content || '';
+  const title = (item.title || '').trim();
+  const summary = rawSummary.replace(/\s+/g, ' ').trim().slice(0, 280);
+  const priority = classifyPriority({ title, summary, source });
+  const priorityMeta = LEVEL_META[priority];
   return {
-    title: (item.title || '').trim(),
+    title,
     link: item.link || item.guid || '',
     pubDate: item.isoDate || item.pubDate || null,
-    summary: rawSummary.replace(/\s+/g, ' ').trim().slice(0, 280),
+    summary,
     source: source.name,
     category: source.category,
+    priority,
+    priorityCrosses: priorityMeta.crosses,
+    priorityLabel: priorityMeta.label,
   };
 }
 

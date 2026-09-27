@@ -17,8 +17,11 @@ const FEEDS = [
 
   // --- Altre agenzie/testate italiane ---
   { name: 'AGI', url: 'https://www.agi.it/rss', category: 'Italia' },
-  { name: 'Adnkronos', url: 'https://www.adnkronos.com/RSS_Adnkronos_Ultimora.xml', category: 'Italia' },
+  { name: 'Adnkronos - Ultimora', url: 'https://www.adnkronos.com/RSS_Adnkronos_Ultimora.xml', category: 'Italia', isFlash: true },
   { name: 'Rai News', url: 'https://www.rainews.it/rss/tutti', category: 'Italia' },
+  { name: 'La Stampa', url: 'https://www.lastampa.it/rss.xml', category: 'Italia' },
+  { name: 'Sky TG24', url: 'https://tg24.sky.it/rss/tg24.xml', category: 'Italia' },
+  { name: 'Il Messaggero', url: 'https://www.ilmessaggero.it/rss/home.xml', category: 'Italia' },
 
   // --- Il Fatto Quotidiano ---
   { name: 'Il Fatto Quotidiano - Homepage', url: 'https://www.ilfattoquotidiano.it/feed/', category: 'Italia' },
@@ -56,6 +59,10 @@ const FEEDS = [
   { name: 'The Guardian World', url: 'https://www.theguardian.com/world/rss', category: 'Mondo' },
   { name: 'Al Jazeera', url: 'https://www.aljazeera.com/xml/rss/all.xml', category: 'Mondo' },
   { name: 'NYT World', url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', category: 'Mondo' },
+  { name: 'Euronews (IT)', url: 'https://it.euronews.com/rss?level=theme&name=news', category: 'Mondo' },
+  { name: 'France 24 (EN)', url: 'https://www.france24.com/en/rss', category: 'Mondo' },
+  { name: 'Deutsche Welle (EN)', url: 'https://rss.dw.com/rdf/rss-en-all', category: 'Mondo' },
+  { name: 'El País (ES)', url: 'https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada', category: 'Mondo' },
 ];
 
 module.exports = { FEEDS };

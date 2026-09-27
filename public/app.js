@@ -2,12 +2,16 @@ const AUTO_REFRESH_MS = 5 * 60 * 1000;
 
 const state = {
   articles: [],
+  soundEnabled: false,
+  loaded: false,
 };
 
 const el = {
   search: document.getElementById('search'),
   categoryFilter: document.getElementById('category-filter'),
   sourceFilter: document.getElementById('source-filter'),
+  priorityFilter: document.getElementById('priority-filter'),
+  soundToggle: document.getElementById('sound-toggle'),
   refreshBtn: document.getElementById('refresh-btn'),
   status: document.getElementById('status'),
   errorsDetails: document.getElementById('errors-details'),
@@ -16,6 +20,38 @@ const el = {
   emptyState: document.getElementById('empty-state'),
   themeToggle: document.getElementById('theme-toggle'),
 };
+
+function initSound() {
+  state.soundEnabled = localStorage.getItem('soundEnabled') === 'true';
+  el.soundToggle.checked = state.soundEnabled;
+}
+
+el.soundToggle.addEventListener('change', () => {
+  state.soundEnabled = el.soundToggle.checked;
+  localStorage.setItem('soundEnabled', String(state.soundEnabled));
+});
+
+function playBreakingAlert() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const beep = (startAt) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.001, ctx.currentTime + startAt);
+      gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + startAt + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startAt + 0.2);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(ctx.currentTime + startAt);
+      osc.stop(ctx.currentTime + startAt + 0.22);
+    };
+    beep(0);
+    beep(0.28);
+  } catch (err) {
+    console.warn('Segnale acustico non disponibile', err);
+  }
+}
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
@@ -51,10 +87,12 @@ function renderArticles() {
   const query = el.search.value.trim().toLowerCase();
   const category = el.categoryFilter.value;
   const source = el.sourceFilter.value;
+  const priorityMin = el.priorityFilter.value ? Number(el.priorityFilter.value) : null;
 
   const filtered = state.articles.filter((a) => {
     if (category && a.category !== category) return false;
     if (source && a.source !== source) return false;
+    if (priorityMin !== null && a.priority < priorityMin) return false;
     if (query) {
       const haystack = `${a.title} ${a.summary}`.toLowerCase();
       if (!haystack.includes(query)) return false;
@@ -63,9 +101,14 @@ function renderArticles() {
   });
 
   el.articles.innerHTML = filtered
-    .map(
-      (a) => `
-      <article class="card">
+    .map((a) => {
+      const priorityClass = a.priority > 0 ? `priority-${a.priority}` : '';
+      const badge = a.priority > 0
+        ? `<span class="priority-badge level-${a.priority}" title="${escapeHtml(a.priorityLabel)}">${a.priorityCrosses} ${escapeHtml(a.priorityLabel)}</span>`
+        : '';
+      return `
+      <article class="card ${priorityClass}">
+        ${badge}
         <div class="card-meta">
           <span class="card-source">${escapeHtml(a.source)}</span>
           <span>${formatDate(a.pubDate)}</span>
@@ -73,8 +116,8 @@ function renderArticles() {
         <h2><a href="${escapeHtml(a.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(a.title)}</a></h2>
         ${a.summary ? `<p>${escapeHtml(a.summary)}</p>` : ''}
         <span class="category-tag">${escapeHtml(a.category)}</span>
-      </article>`
-    )
+      </article>`;
+    })
     .join('');
 
   el.emptyState.hidden = filtered.length > 0;
@@ -104,7 +147,16 @@ async function loadFeeds(forceRefresh = false) {
   try {
     const res = await fetch(`/api/feeds${forceRefresh ? '?refresh=true' : ''}`);
     const data = await res.json();
-    state.articles = data.articles || [];
+    const newArticles = data.articles || [];
+
+    if (state.loaded && state.soundEnabled) {
+      const previousLinks = new Set(state.articles.map((a) => a.link));
+      const newBreaking = newArticles.filter((a) => a.priority === 3 && !previousLinks.has(a.link));
+      if (newBreaking.length > 0) playBreakingAlert();
+    }
+
+    state.articles = newArticles;
+    state.loaded = true;
     renderArticles();
 
     const updated = data.updatedAt ? new Date(data.updatedAt).toLocaleTimeString('it-IT') : '';
@@ -130,9 +182,11 @@ async function loadFeeds(forceRefresh = false) {
 el.search.addEventListener('input', renderArticles);
 el.categoryFilter.addEventListener('change', renderArticles);
 el.sourceFilter.addEventListener('change', renderArticles);
+el.priorityFilter.addEventListener('change', renderArticles);
 el.refreshBtn.addEventListener('click', () => loadFeeds(true));
 
 initTheme();
+initSound();
 loadSources();
 loadFeeds();
 setInterval(() => loadFeeds(false), AUTO_REFRESH_MS);
