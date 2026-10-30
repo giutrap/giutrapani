@@ -26,6 +26,14 @@ function tm(value) {
     });
 }
 
+// La priorità viene assegnata solo quando il titolo contiene un'indicazione esplicita.
+function urgency(item) {
+  const title = String(item.title || '').toLocaleLowerCase('it');
+  if (/\b(ultim['’ ]ora|breaking|flash news|notizia urgente)\b/.test(title)) return 'urgent';
+  if (/\b(in aggiornamento|aggiornamento|diretta|live|sviluppi)\b/.test(title)) return 'developing';
+  return 'normal';
+}
+
 function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const rows = state.news.filter(item => !query || (
@@ -34,13 +42,20 @@ function render() {
 
   el.articles.innerHTML = rows.map(item => {
     const link = esc(item.link || '#');
-    return '<article class="news-item">'
+    const level = urgency(item);
+    const marker = level === 'urgent'
+      ? '<span class="urgency-label urgency-urgent">ULTIM’ORA</span>'
+      : level === 'developing'
+        ? '<span class="urgency-label urgency-developing">AGGIORNAMENTO</span>'
+        : '';
+    return '<article class="news-item urgency-' + level + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
-      + '<div class="news-main"><span class="source-tag">NEWS</span><h2 class="news-title">'
-      + '<a href="' + link + '" target="_blank" rel="noopener">' + esc(item.title || 'Senza titolo') + '</a>'
-      + '</h2>' + (item.summary ? '<p class="news-summary">' + esc(item.summary) + '</p>' : '') + '</div>'
-      + '<div class="news-source">' + esc(item.source || '')
-      + ' · <a href="' + link + '" target="_blank" rel="noopener">LEGGI ↗</a></div></article>';
+      + '<div class="news-main">' + marker
+      + '<h2 class="news-title"><a href="' + link + '" target="_blank" rel="noopener">'
+      + esc(item.title || 'Senza titolo') + '</a></h2></div>'
+      + '<div class="news-source">' + esc(item.source || '') + '</div>'
+      + '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Leggi la notizia">LEGGI ↗</a>'
+      + '</article>';
   }).join('');
 
   el.emptyState.hidden = rows.length > 0;
@@ -59,8 +74,6 @@ async function load() {
   el.status.textContent = 'Aggiornamento delle fonti…';
   el.refreshBtn.disabled = true;
   try {
-    // Il browser interroga il server ogni minuto; il server gestisce la cache e
-    // aggiorna i feed senza forzare richieste duplicate a tutte le testate.
     const response = await fetch('/api/feeds');
     if (!response.ok) throw new Error('News HTTP ' + response.status);
     const data = await response.json();
