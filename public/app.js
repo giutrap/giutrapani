@@ -30,6 +30,7 @@ function tm(value) {
 // Classificazione editoriale della singola notizia: prima il contenuto, poi la categoria RSS come ripiego.
 function newsCategory(item) {
   // Etichetta editoriale dedicata: identifica sempre gli articoli della testata.
+  if (/giutrapani.*x|@giutrapani/i.test(String(item.source || ''))) return '@giutrapani';
   if (/il riformista/i.test(String(item.source || ''))) return 'IL RIFORMISTA';
   const text = (String(item.title || '') + ' ' + String(item.summary || '')).toLocaleLowerCase('it');
   const rules = [
