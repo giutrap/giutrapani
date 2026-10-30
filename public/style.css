@@ -2,8 +2,8 @@
 :root{color-scheme:light;--bg:#fff;--ink:#17191d;--muted:#707782;--line:#e6e8eb;--red:#c62828;--orange:#b96812}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 'Economica',Arial,sans-serif}
-.topbar{height:104px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:8px max(28px,calc((100% - 1440px)/2));gap:20px}
-.brand-block{display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:0}
+.topbar{height:auto;min-height:116px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:8px max(28px,calc((100% - 1440px)/2));gap:20px}
+.brand-block{display:flex;flex-direction:column;align-items:center;min-width:0;gap:0}
 .brand{display:flex;align-items:center;text-decoration:none;min-width:0}
 .brand-logo{display:block;width:min(360px,42vw);max-height:88px;height:auto;object-fit:contain}
 .brand-credit{margin-top:5px;padding-left:2px;color:var(--muted);font-size:13px;line-height:1.1;letter-spacing:.2px}
