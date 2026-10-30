@@ -98,3 +98,21 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
 .category-filter.category-x-filter.is-active{background:#08679f;border-color:#08679f;color:#fff;box-shadow:0 0 0 2px rgba(22,138,203,.2)}
 
 .news-category-x{border-color:#168acb!important;background:#168acb!important;color:#fff!important;font-weight:700}
+
+/* Mobile: titoli delle notizie leggibili su due righe */
+@media(max-width:760px){
+  .news-main{align-items:flex-start;overflow:visible}
+  .news-title{
+    white-space:normal;
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+    line-clamp:2;
+    overflow:hidden;
+    text-overflow:clip;
+    line-height:1.18;
+  }
+}
+@media(max-width:420px){
+  .news-title{font-size:15px;line-height:1.16}
+}
