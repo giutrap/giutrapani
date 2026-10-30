@@ -3,8 +3,12 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 'Economica',Arial,sans-serif}
 .topbar{height:104px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:8px max(28px,calc((100% - 1440px)/2));gap:20px}
+.brand-block{display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:0}
 .brand{display:flex;align-items:center;text-decoration:none;min-width:0}
 .brand-logo{display:block;width:min(360px,42vw);max-height:88px;height:auto;object-fit:contain}
+.brand-credit{margin-top:-2px;padding-left:2px;color:var(--muted);font-size:13px;line-height:1.1;letter-spacing:.2px}
+.brand-credit a{color:var(--ink);font-weight:700;text-decoration:none}
+.brand-credit a:hover{text-decoration:underline}
 .header-meta{font-size:14px;letter-spacing:1.1px;color:var(--muted);font-weight:700;white-space:nowrap}
 .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#25a45a;margin-right:7px}
 .container{max-width:1440px;margin:0 auto;padding:22px 28px 12px}
