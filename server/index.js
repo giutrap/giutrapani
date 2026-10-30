@@ -104,9 +104,15 @@ app.post('/api/author/login', async (req, res) => {
   if (!process.env.GITHUB_TOKEN) return res.status(503).json({ error: 'Archivio editoriale non configurato: manca la chiave GitHub.' });
   res.json({ ok: true });
 });
-app.get('/api/launches', (req, res) => {
-  try { res.json({ launches: readLaunches() }); }
-  catch (error) { console.error(error); res.status(500).json({ error: 'Archivio lanci non leggibile.' }); }
+app.get('/api/launches', async (req, res) => {
+  try {
+    if (!process.env.GITHUB_TOKEN) return res.json({ launches: [] });
+    const data = await readLaunches();
+    res.json({ launches: data.launches });
+  } catch (error) {
+    console.error('Lettura archivio lanci:', error);
+    res.status(503).json({ error: 'Archivio editoriale temporaneamente non disponibile.' });
+  }
 });
 app.post('/api/launches', requireAuthor, async (req, res) => {
   const title = String(req.body?.title || '').trim();
