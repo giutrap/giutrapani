@@ -31,7 +31,7 @@ function tm(value) {
 
 // Classificazione editoriale della singola notizia: prima il contenuto, poi la categoria RSS come ripiego.
 function newsCategory(item) {
-  if (item.isEditorial) return 'REDAZIONE';
+  if (item.isEditorial) return 'FOCUS';
   // Etichetta editoriale dedicata: identifica sempre gli articoli della testata.
   if (/giutrapani.*x|@giutrapani/i.test(String(item.source || ''))) return '@giutrapani';
   if (/il riformista/i.test(String(item.source || ''))) return 'IL RIFORMISTA';
@@ -76,10 +76,10 @@ function renderCategoryFilters() {
     counts.set(category, (counts.get(category) || 0) + 1);
   }
   const total = state.news.length;
-  const categories = [...counts.entries()].filter(([name]) => name !== 'IL RIFORMISTA' && name !== '@giutrapani' && name !== 'REDAZIONE').sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it'));
-  const buttons = [['TUTTE', total], ['REDAZIONE', counts.get('REDAZIONE') || 0], ['IL RIFORMISTA', counts.get('IL RIFORMISTA') || 0], ['@giutrapani', counts.get('@giutrapani') || 0], ...categories];
+  const categories = [...counts.entries()].filter(([name]) => name !== 'IL RIFORMISTA' && name !== '@giutrapani' && name !== 'FOCUS').sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it'));
+  const buttons = [['TUTTE', total], ['FOCUS', counts.get('FOCUS') || 0], ['IL RIFORMISTA', counts.get('IL RIFORMISTA') || 0], ['@giutrapani', counts.get('@giutrapani') || 0], ...categories];
   el.categoryFilters.innerHTML = buttons.map(([name, count]) =>
-    '<button type="button" class="category-filter' + (name === 'REDAZIONE' ? ' category-redazione-filter' : '') + (name === 'IL RIFORMISTA' ? ' category-riformista-filter' : '') + (name === '@giutrapani' ? ' category-x-filter' : '') + (state.activeCategory === name ? ' is-active' : '')
+    '<button type="button" class="category-filter' + (name === 'FOCUS' ? ' category-redazione-filter' : '') + (name === 'IL RIFORMISTA' ? ' category-riformista-filter' : '') + (name === '@giutrapani' ? ' category-x-filter' : '') + (state.activeCategory === name ? ' is-active' : '')
     + '" data-category="' + esc(name) + '" aria-pressed="' + (state.activeCategory === name ? 'true' : 'false') + '">'
     + esc(name) + '<span class="category-count">' + count + '</span></button>'
   ).join('') + '<a class="category-filter category-social" href="https://x.com/giutrapani" target="_blank" rel="noopener noreferrer" aria-label="Apri il profilo di giutrapani su X">↗ X</a>';
@@ -93,8 +93,8 @@ function render() {
     .sort((a, b) => {
       // Prima gli approfondimenti pubblicati dalla Redazione, dal più recente;
       // subito dopo i post/repost X, poi tutte le altre fonti in ordine cronologico.
-      const aIsEditorial = newsCategory(a) === 'REDAZIONE';
-      const bIsEditorial = newsCategory(b) === 'REDAZIONE';
+      const aIsEditorial = newsCategory(a) === 'FOCUS';
+      const bIsEditorial = newsCategory(b) === 'FOCUS';
       if (aIsEditorial !== bIsEditorial) return aIsEditorial ? -1 : 1;
       const aIsX = newsCategory(a) === '@giutrapani';
       const bIsX = newsCategory(b) === '@giutrapani';
@@ -120,7 +120,7 @@ function render() {
     const category = newsCategory(item);
     return '<article class="news-item urgency-' + level + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
-      + '<span class="news-category' + (category === 'REDAZIONE' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : '') + '">' + esc(category) + '</span>'
+      + '<span class="news-category' + (category === 'FOCUS' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : '') + '">' + esc(category) + '</span>'
       + '<div class="news-main">' + marker
       + '<h2 class="news-title"><a href="' + link + '" ' + (item.isEditorial ? '' : 'target="_blank" rel="noopener"') + '>'
       + esc(item.title || 'Senza titolo') + '</a></h2></div>'
@@ -136,8 +136,8 @@ function render() {
       + '<div class="pagination-controls">'
       + '<button type="button" data-page="prev" ' + (state.currentPage === 1 ? 'disabled' : '') + '>← PRECEDENTE</button>'
       + '<button type="button" data-page="next" ' + (state.currentPage === pageCount ? 'disabled' : '') + '>SUCCESSIVA →</button>'
-      + '</div><button type="button" id="footer-redazione-edit" class="footer-redazione-button">ACCESSO REDAZIONE</button>'
-    : '<button type="button" id="footer-redazione-edit" class="footer-redazione-button">✎ SCRIVI IN REDAZIONE</button>';
+      + '</div><button type="button" id="login-redazione" class="footer-redazione-button">LOGIN REDAZIONE</button>'
+    : '<button type="button" id="login-redazione" class="footer-redazione-button">LOGIN REDAZIONE</button>';
   el.emptyState.textContent = query
     ? 'Nessuna notizia corrisponde alla ricerca.'
     : 'Nessuna notizia disponibile al momento.';
@@ -254,7 +254,7 @@ el.pagination.addEventListener('click', event => {
     document.getElementById('articles').scrollIntoView({ behavior:'smooth', block:'start' });
     return;
   }
-  if (event.target.closest('#footer-redazione-edit')) openRedPanel({});
+  if (event.target.closest('#login-redazione')) openRedPanel({});
 });
 document.addEventListener('click', async event => {
   const open = event.target.closest('.redazione-open');
