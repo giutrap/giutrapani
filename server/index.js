@@ -57,16 +57,34 @@ async function getFeeds() {
 }
 
 
-const LAUNCHES_FILE = process.env.LAUNCHES_FILE || path.join(__dirname, 'data', 'launches.json');
-function readLaunches() {
-  try { return JSON.parse(fs.readFileSync(LAUNCHES_FILE, 'utf8')); }
-  catch (error) { if (error.code === 'ENOENT') return []; throw error; }
+const LAUNCHES_PATH = process.env.LAUNCHES_PATH || 'data/launches.json';
+const GITHUB_REPO = process.env.GITHUB_REPO || 'giutrap/giutrapani';
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'claude/rss-news-aggregator-dosocy';
+async function githubRequest(method, url, body) {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) throw new Error('Archivio non configurato: manca GITHUB_TOKEN.');
+  const response = await fetch(url, {
+    method,
+    headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(body ? {'Content-Type':'application/json'} : {}) },
+    ...(body ? { body: JSON.stringify(body) } : {})
+  });
+  if (!response.ok) throw new Error('Archivio GitHub: HTTP ' + response.status);
+  return response.status === 204 ? null : response.json();
 }
-function writeLaunches(items) {
-  fs.mkdirSync(path.dirname(LAUNCHES_FILE), { recursive: true });
-  const temp = LAUNCHES_FILE + '.tmp';
-  fs.writeFileSync(temp, JSON.stringify(items, null, 2), { mode: 0o600 });
-  fs.renameSync(temp, LAUNCHES_FILE);
+async function readLaunches() {
+  const url = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + LAUNCHES_PATH + '?ref=' + encodeURIComponent(GITHUB_BRANCH);
+  try {
+    const file = await githubRequest('GET', url);
+    return { launches: JSON.parse(Buffer.from(file.content.replace(/\\n/g, ''), 'base64').toString('utf8')), sha: file.sha };
+  } catch (error) {
+    if (String(error.message).includes('HTTP 404')) return { launches: [], sha: null };
+    throw error;
+  }
+}
+async function writeLaunches(launches, sha) {
+  const url = 'https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + LAUNCHES_PATH;
+  const body = { message: 'Aggiorna lanci editoriali BREAKING', branch: GITHUB_BRANCH, content: Buffer.from(JSON.stringify(launches, null, 2)).toString('base64'), ...(sha ? { sha } : {}) };
+  return githubRequest('PUT', url, body);
 }
 function safeEqual(a, b) {
   const aa = Buffer.from(String(a)); const bb = Buffer.from(String(b));
@@ -89,7 +107,7 @@ app.get('/api/launches', (req, res) => {
   try { res.json({ launches: readLaunches() }); }
   catch (error) { console.error(error); res.status(500).json({ error: 'Archivio lanci non leggibile.' }); }
 });
-app.post('/api/launches', requireAuthor, (req, res) => {
+app.post('/api/launches', requireAuthor, async (req, res) => {
   const title = String(req.body?.title || '').trim();
   const body = String(req.body?.body || '').trim();
   const link = String(req.body?.link || '').trim();
@@ -97,28 +115,28 @@ app.post('/api/launches', requireAuthor, (req, res) => {
   if (title.length > 180 || body.length > 5000) return res.status(400).json({ error: 'Testo troppo lungo.' });
   if (link && !/^https?:\/\//i.test(link)) return res.status(400).json({ error: 'Il link deve iniziare con http:// o https://.' });
   try {
-    const launches = readLaunches(); const now = new Date().toISOString();
+    const stored = await readLaunches(); const launches = stored.launches; const now = new Date().toISOString();
     launches.unshift({ id: crypto.randomUUID(), title, body, link, createdAt: now, updatedAt: now });
-    writeLaunches(launches); res.status(201).json({ launches });
+    await writeLaunches(launches, stored.sha); res.status(201).json({ launches });
   } catch (error) { console.error(error); res.status(500).json({ error: 'Impossibile salvare il lancio.' }); }
 });
-app.put('/api/launches/:id', requireAuthor, (req, res) => {
+app.put('/api/launches/:id', requireAuthor, async (req, res) => {
   const title = String(req.body?.title || '').trim(); const body = String(req.body?.body || '').trim(); const link = String(req.body?.link || '').trim();
   if (!title || !body) return res.status(400).json({ error: 'Titolo e testo sono obbligatori.' });
   if (title.length > 180 || body.length > 5000) return res.status(400).json({ error: 'Testo troppo lungo.' });
   if (link && !/^https?:\/\//i.test(link)) return res.status(400).json({ error: 'Il link deve iniziare con http:// o https://.' });
   try {
-    const launches = readLaunches(); const item = launches.find(x => x.id === req.params.id);
+    const stored = await readLaunches(); const launches = stored.launches; const item = launches.find(x => x.id === req.params.id);
     if (!item) return res.status(404).json({ error: 'Lancio non trovato.' });
     Object.assign(item, { title, body, link, updatedAt: new Date().toISOString() });
-    writeLaunches(launches); res.json({ launches });
+    await writeLaunches(launches, stored.sha); res.json({ launches });
   } catch (error) { console.error(error); res.status(500).json({ error: 'Impossibile aggiornare il lancio.' }); }
 });
-app.delete('/api/launches/:id', requireAuthor, (req, res) => {
+app.delete('/api/launches/:id', requireAuthor, async (req, res) => {
   try {
-    const launches = readLaunches(); const remaining = launches.filter(x => x.id !== req.params.id);
+    const stored = await readLaunches(); const launches = stored.launches; const remaining = launches.filter(x => x.id !== req.params.id);
     if (remaining.length === launches.length) return res.status(404).json({ error: 'Lancio non trovato.' });
-    writeLaunches(remaining); res.json({ launches: remaining });
+    await writeLaunches(remaining, stored.sha); res.json({ launches: remaining });
   } catch (error) { console.error(error); res.status(500).json({ error: 'Impossibile eliminare il lancio.' }); }
 });
 
