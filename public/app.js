@@ -73,13 +73,13 @@ function renderCategoryFilters() {
     counts.set(category, (counts.get(category) || 0) + 1);
   }
   const total = state.news.length;
-  const categories = [...counts.entries()].filter(([name]) => name !== 'IL RIFORMISTA').sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it'));
-  const buttons = [['TUTTE', total], ['IL RIFORMISTA', counts.get('IL RIFORMISTA') || 0], ...categories];
+  const categories = [...counts.entries()].filter(([name]) => name !== 'IL RIFORMISTA' && name !== '@giutrapani').sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it'));
+  const buttons = [['TUTTE', total], ['IL RIFORMISTA', counts.get('IL RIFORMISTA') || 0], ['@giutrapani', counts.get('@giutrapani') || 0], ...categories];
   el.categoryFilters.innerHTML = buttons.map(([name, count]) =>
-    '<button type="button" class="category-filter' + (name === 'IL RIFORMISTA' ? ' category-riformista-filter' : '') + (state.activeCategory === name ? ' is-active' : '')
+    '<button type="button" class="category-filter' + (name === 'IL RIFORMISTA' ? ' category-riformista-filter' : '') + (name === '@giutrapani' ? ' category-x-filter' : '') + (state.activeCategory === name ? ' is-active' : '')
     + '" data-category="' + esc(name) + '" aria-pressed="' + (state.activeCategory === name ? 'true' : 'false') + '">'
     + esc(name) + '<span class="category-count">' + count + '</span></button>'
-  ).join('') + '<button type="button" class="category-filter category-x-filter' + (state.activeCategory === "@giutrapani" ? ' is-active' : '') + '" data-category="@giutrapani" aria-pressed="' + (state.activeCategory === "@giutrapani" ? 'true' : 'false') + '">@giutrapani <span class="category-count">' + (counts.get("@giutrapani") || 0) + '</span></button>' + '<a class="category-filter category-social" href="https://x.com/giutrapani" target="_blank" rel="noopener noreferrer" aria-label="Apri il profilo di giutrapani su X">↗ X</a>';
+  ).join('') + '<a class="category-filter category-social" href="https://x.com/giutrapani" target="_blank" rel="noopener noreferrer" aria-label="Apri il profilo di giutrapani su X">↗ X</a>';
 }
 
 function render() {
