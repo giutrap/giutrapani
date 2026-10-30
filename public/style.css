@@ -92,3 +92,6 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
 .category-filter.category-riformista-filter:hover{border-color:#813900;background:#813900;color:#fff}
 .category-filter.category-riformista-filter.is-active{border-color:#713000;background:#713000;color:#fff;box-shadow:0 0 0 2px rgba(168,75,8,.18)}
 .news-category-riformista{border-color:#a84b08!important;background:#a84b08!important;color:#fff!important;font-weight:700}
+
+.category-filter.category-x-filter{background:#17191d;border-color:#17191d;color:#fff}
+.category-filter.category-x-filter:hover{background:#30343a;border-color:#30343a;color:#fff}
