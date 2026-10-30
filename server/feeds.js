@@ -153,6 +153,8 @@ const FEEDS = [
   { name: 'Facta.news - via Google News', url: 'https://news.google.com/rss/search?q=site%3Afacta.news&hl=it&gl=IT&ceid=IT%3Ait', category: 'Italia' },
   { name: 'Reuters - via Google News', url: 'https://news.google.com/rss/search?q=when%3A24h+site%3Areuters.com&ceid=US%3Aen&hl=en-US', category: 'Mondo' },
   { name: 'Associated Press - via Google News', url: 'https://news.google.com/rss/search?q=when%3A24h+site%3Aapnews.com&hl=en-US&gl=US&ceid=US%3Aen', category: 'Mondo' },
+  // Profilo X pubblico di @giutrapani tramite route RSSHub; fonte indipendente dalle NEWS.
+  { name: '@giutrapani · X', url: 'https://rsshub.app/twitter/user/giutrapani', category: 'Social' },
 ];
 
 module.exports = { FEEDS };
