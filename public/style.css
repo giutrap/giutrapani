@@ -96,3 +96,5 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
 .category-filter.category-x-filter{background:#168acb;border-color:#168acb;color:#fff}
 .category-filter.category-x-filter:hover{background:#0874b2;border-color:#0874b2;color:#fff}
 .category-filter.category-x-filter.is-active{background:#08679f;border-color:#08679f;color:#fff;box-shadow:0 0 0 2px rgba(22,138,203,.2)}
+
+.news-category-x{border-color:#168acb!important;background:#168acb!important;color:#fff!important;font-weight:700}
