@@ -85,7 +85,14 @@ function renderCategoryFilters() {
 function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const rows = [...state.news]
-    .sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0))
+    // I contenuti di @giutrapani hanno una corsia editoriale prioritaria:
+    // post e repost restano in testa, ordinati dal più recente, prima delle news.
+    .sort((a, b) => {
+      const aIsX = newsCategory(a) === '@giutrapani';
+      const bIsX = newsCategory(b) === '@giutrapani';
+      if (aIsX !== bIsX) return aIsX ? -1 : 1;
+      return new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
+    })
     .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)
     .filter(item => !query || (
       String(item.title || '') + ' ' + String(item.source || '') + ' ' + String(item.summary || '')
