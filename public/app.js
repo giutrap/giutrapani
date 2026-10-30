@@ -29,6 +29,7 @@ function tm(value) {
 
 // Classificazione editoriale della singola notizia: prima il contenuto, poi la categoria RSS come ripiego.
 function newsCategory(item) {
+  if (item.isEditorial) return 'REDAZIONE';
   // Etichetta editoriale dedicata: identifica sempre gli articoli della testata.
   if (/giutrapani.*x|@giutrapani/i.test(String(item.source || ''))) return '@giutrapani';
   if (/il riformista/i.test(String(item.source || ''))) return 'IL RIFORMISTA';
@@ -74,9 +75,9 @@ function renderCategoryFilters() {
   }
   const total = state.news.length;
   const categories = [...counts.entries()].filter(([name]) => name !== 'IL RIFORMISTA' && name !== '@giutrapani').sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it'));
-  const buttons = [['TUTTE', total], ['IL RIFORMISTA', counts.get('IL RIFORMISTA') || 0], ['@giutrapani', counts.get('@giutrapani') || 0], ...categories];
+  const buttons = [['TUTTE', total], ['REDAZIONE', counts.get('REDAZIONE') || 0], ['IL RIFORMISTA', counts.get('IL RIFORMISTA') || 0], ['@giutrapani', counts.get('@giutrapani') || 0], ...categories];
   el.categoryFilters.innerHTML = buttons.map(([name, count]) =>
-    '<button type="button" class="category-filter' + (name === 'IL RIFORMISTA' ? ' category-riformista-filter' : '') + (name === '@giutrapani' ? ' category-x-filter' : '') + (state.activeCategory === name ? ' is-active' : '')
+    '<button type="button" class="category-filter' + (name === 'REDAZIONE' ? ' category-redazione-filter' : '') + (name === 'IL RIFORMISTA' ? ' category-riformista-filter' : '') + (name === '@giutrapani' ? ' category-x-filter' : '') + (state.activeCategory === name ? ' is-active' : '')
     + '" data-category="' + esc(name) + '" aria-pressed="' + (state.activeCategory === name ? 'true' : 'false') + '">'
     + esc(name) + '<span class="category-count">' + count + '</span></button>'
   ).join('') + '<a class="category-filter category-social" href="https://x.com/giutrapani" target="_blank" rel="noopener noreferrer" aria-label="Apri il profilo di giutrapani su X">↗ X</a>';
@@ -109,12 +110,12 @@ function render() {
     const category = newsCategory(item);
     return '<article class="news-item urgency-' + level + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
-      + '<span class="news-category' + (category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : '') + '">' + esc(category) + '</span>'
+      + '<span class="news-category' + (category === 'REDAZIONE' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : '') + '">' + esc(category) + '</span>'
       + '<div class="news-main">' + marker
-      + '<h2 class="news-title"><a href="' + link + '" target="_blank" rel="noopener">'
+      + '<h2 class="news-title"><a href="' + link + '" ' + (item.isEditorial ? '' : 'target="_blank" rel="noopener"') + '>'
       + esc(item.title || 'Senza titolo') + '</a></h2></div>'
       + '<div class="news-source">' + esc(item.source || '') + '</div>'
-      + '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Leggi la notizia">LEGGI ↗</a>'
+      + (item.isEditorial ? '<a class="news-link" href="' + link + '" aria-label="Apri approfondimento">APRI ↗</a>' : '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Leggi la notizia">LEGGI ↗</a>')
       + (redazione.auth ? '<button type="button" class="redazione-open" data-title="' + esc(item.title || '') + '" data-source="' + esc(item.source || '') + '" data-url="' + link + '">REDAZIONE</button>' : '')
       + '</article>';
   }).join('');
@@ -138,7 +139,10 @@ async function load() {
     const response = await fetch('/api/feeds');
     if (!response.ok) throw new Error('News HTTP ' + response.status);
     const data = await response.json();
-    state.news = data.articles || [];
+    const editorialResponse = await fetch('/api/redazione/published');
+    const editorialData = editorialResponse.ok ? await editorialResponse.json() : { notes:[] };
+    const editorialItems = (editorialData.notes || []).map(note => ({ id:note.id, title:note.title, source:'A cura della Redazione', pubDate:note.published_at, summary:note.notes || '', link:'/redazione.html?id=' + encodeURIComponent(note.id), category:'REDAZIONE', isEditorial:true }));
+    state.news = [...(data.articles || []), ...editorialItems];
     state.newsErrors = data.errors || [];
     if (state.activeCategory !== 'TUTTE' && !state.news.some(item => newsCategory(item) === state.activeCategory)) state.activeCategory = 'TUTTE';
     renderCategoryFilters();
@@ -206,12 +210,12 @@ async function redLogin() {
 function renderRedArchive() {
   if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
   redList.innerHTML = redazione.notes.map(note =>
-    '<article class="redazione-note"><button type="button" class="redazione-note-title" data-edit-note="' + note.id + '">' + esc(note.title || 'Senza titolo') + '</button><span>' + esc(note.source || '') + '</span><button type="button" class="redazione-delete" data-delete-note="' + note.id + '">ELIMINA</button></article>'
+    '<article class="redazione-note"><button type="button" class="redazione-note-title" data-edit-note="' + note.id + '">' + esc(note.title || 'Senza titolo') + '</button><span>' + esc(note.source || '') + (note.published_at ? ' · PUBBLICATA' : ' · BOZZA') + '</span><div class="redazione-note-tools">' + (note.published_at ? '<button type="button" data-unpublish-note="' + note.id + '">RITIRA</button>' : '<button type="button" data-publish-note="' + note.id + '">PUBBLICA</button>') + '<button type="button" class="redazione-delete" data-delete-note="' + note.id + '">ELIMINA</button></div></article>'
   ).join('');
 }
 async function refreshRedArchive() {
   const response = await redRequest('/api/redazione/notes');
-  if (response.ok) { redazione.notes = (await response.json()).notes || []; renderRedArchive(); }
+  if (response.ok) { redazione.notes = (await response.json()).notes || []; renderRedArchive(); load(); }
 }
 function openRedPanel(item) {
   redPanel.classList.add('is-open'); redPanel.setAttribute('aria-hidden','false');
@@ -236,6 +240,15 @@ document.addEventListener('click', async event => {
     rf.url.value = note.original_url; rf.notes.value = note.notes; rf.links.value = note.extra_links;
     redMessage.textContent = 'Nota caricata: puoi modificarla e salvarla.';
     document.querySelector('.redazione-content').scrollTop = 0;
+  }
+  const publish = event.target.closest('[data-publish-note]');
+  const unpublish = event.target.closest('[data-unpublish-note]');
+  if (publish || unpublish) {
+    const id = (publish || unpublish).dataset[publish ? 'publishNote' : 'unpublishNote'];
+    const action = publish ? 'publish' : 'unpublish';
+    const response = await redRequest('/api/redazione/notes/' + id + '/' + action, { method:'POST' });
+    if (response.ok) { redMessage.textContent = publish ? 'Contenuto pubblicato nel flusso.' : 'Contenuto ritirato dal flusso.'; await refreshRedArchive(); }
+    else redMessage.textContent = 'Operazione non riuscita.';
   }
   const del = event.target.closest('[data-delete-note]');
   if (del && confirm('Vuoi eliminare definitivamente questa nota?')) {
