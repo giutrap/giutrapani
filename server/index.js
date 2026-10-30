@@ -24,7 +24,11 @@ function normalizeItem(item, source) {
 async function fetchAllFeeds() {
   const settled = await Promise.allSettled(
     FEEDS.map(async source => {
-      const feed = await parser.parseURL(source.url);
+      // RSS.app può rispondere più lentamente: estendiamo il timeout solo per il feed X.
+      const sourceParser = source.name === '@giutrapani · X'
+        ? new Parser({ timeout: 30000 })
+        : parser;
+      const feed = await sourceParser.parseURL(source.url);
       return (feed.items || []).map(item => normalizeItem(item, source));
     })
   );
