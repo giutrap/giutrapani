@@ -27,8 +27,9 @@ function requireRedazione(req, res, next) {
 }
 async function initDatabase() {
   if (!pool) return;
-  const ddl = `CREATE TABLE IF NOT EXISTS editorial_notes (id BIGSERIAL PRIMARY KEY, title TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '', original_url TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', extra_links TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  const ddl = `CREATE TABLE IF NOT EXISTS editorial_notes (id BIGSERIAL PRIMARY KEY, title TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '', original_url TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', extra_links TEXT NOT NULL DEFAULT '', published_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await pool.query(ddl);
+  await pool.query('ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ');
 }
 function normalizeItem(item, source) {
   const rawSummary = item.contentSnippet || item.summary || item.content || '';
@@ -62,11 +63,27 @@ app.get('/api/feeds', async (req,res) => {
   try { const data = await getFeeds(); res.json({ updatedAt:data.timestamp, count:data.articles.length, articles:data.articles, errors:data.errors }); }
   catch { res.status(500).json({ error:'Impossibile recuperare i feed RSS.' }); }
 });
+// I contenuti pubblicati sono consultabili senza credenziali; le bozze restano private.
+app.get('/api/redazione/published', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const result = await pool.query("SELECT id,title,source,notes,extra_links,published_at FROM editorial_notes WHERE published_at IS NOT NULL ORDER BY published_at DESC");
+    res.json({ notes:result.rows });
+  } catch { res.status(500).json({ error:'Impossibile leggere i contenuti della redazione.' }); }
+});
+app.get('/api/redazione/public/:id', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const result = await pool.query("SELECT id,title,source,original_url,notes,extra_links,published_at FROM editorial_notes WHERE id=$1 AND published_at IS NOT NULL",[req.params.id]);
+    if (!result.rowCount) return res.status(404).json({ error:'Contenuto non trovato.' });
+    res.json({ note:result.rows[0] });
+  } catch { res.status(500).json({ error:'Impossibile leggere il contenuto.' }); }
+});
 app.use('/api/redazione', requireRedazione);
 app.get('/api/redazione/notes', async (req,res) => {
   try {
     if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
-    const result = await pool.query('SELECT id,title,source,original_url,notes,extra_links,created_at,updated_at FROM editorial_notes ORDER BY updated_at DESC');
+    const result = await pool.query('SELECT id,title,source,original_url,notes,extra_links,published_at,created_at,updated_at FROM editorial_notes ORDER BY updated_at DESC');
     res.json({ notes:result.rows });
   } catch { res.status(500).json({ error:'Errore nella lettura dell’archivio.' }); }
 });
@@ -86,6 +103,22 @@ app.put('/api/redazione/notes/:id', async (req,res) => {
     if (!result.rowCount) return res.status(404).json({ error:'Nota non trovata.' });
     res.json({ ok:true });
   } catch { res.status(500).json({ error:'Errore nella modifica.' }); }
+});
+app.post('/api/redazione/notes/:id/publish', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const result = await pool.query("UPDATE editorial_notes SET published_at=COALESCE(published_at,NOW()),updated_at=NOW() WHERE id=$1 RETURNING id,published_at",[req.params.id]);
+    if (!result.rowCount) return res.status(404).json({ error:'Nota non trovata.' });
+    res.json({ ok:true, published_at:result.rows[0].published_at });
+  } catch { res.status(500).json({ error:'Pubblicazione non riuscita.' }); }
+});
+app.post('/api/redazione/notes/:id/unpublish', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const result = await pool.query("UPDATE editorial_notes SET published_at=NULL,updated_at=NOW() WHERE id=$1 RETURNING id",[req.params.id]);
+    if (!result.rowCount) return res.status(404).json({ error:'Nota non trovata.' });
+    res.json({ ok:true });
+  } catch { res.status(500).json({ error:'Operazione non riuscita.' }); }
 });
 app.delete('/api/redazione/notes/:id', async (req,res) => {
   try {
