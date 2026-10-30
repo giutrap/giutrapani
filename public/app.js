@@ -115,7 +115,7 @@ function render() {
       + esc(item.title || 'Senza titolo') + '</a></h2></div>'
       + '<div class="news-source">' + esc(item.source || '') + '</div>'
       + '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Leggi la notizia">LEGGI ↗</a>'
-      + '<button type="button" class="redazione-open" data-title="' + esc(item.title || '') + '" data-source="' + esc(item.source || '') + '" data-url="' + link + '">REDAZIONE</button>'
+      + (redazione.auth ? '<button type="button" class="redazione-open" data-title="' + esc(item.title || '') + '" data-source="' + esc(item.source || '') + '" data-url="' + link + '">REDAZIONE</button>' : '')
       + '</article>';
   }).join('');
 
@@ -201,7 +201,7 @@ async function redLogin() {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { alert(data.error || 'Archivio non disponibile.'); return false; }
-  redazione.notes = data.notes || []; renderRedArchive(); return true;
+  redazione.notes = data.notes || []; renderRedArchive(); render(); return true;
 }
 function renderRedArchive() {
   if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
@@ -223,6 +223,7 @@ function closeRedPanel() {
   redPanel.classList.remove('is-open'); redPanel.setAttribute('aria-hidden','true');
   document.body.classList.remove('redazione-lock');
 }
+document.getElementById('redazione-login').addEventListener('click', () => openRedPanel({}));
 document.addEventListener('click', async event => {
   const open = event.target.closest('.redazione-open');
   if (open) openRedPanel({ title:open.dataset.title, source:open.dataset.source, url:open.dataset.url });
