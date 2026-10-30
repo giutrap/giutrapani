@@ -28,6 +28,8 @@ function tm(value) {
 
 // Classificazione editoriale della singola notizia: prima il contenuto, poi la categoria RSS come ripiego.
 function newsCategory(item) {
+  // Etichetta editoriale dedicata: identifica sempre gli articoli della testata.
+  if (/il riformista/i.test(String(item.source || ''))) return 'IL RIFORMISTA';
   const text = (String(item.title || '') + ' ' + String(item.summary || '')).toLocaleLowerCase('it');
   const rules = [
     ['GEOPOLITICA', /\b(guerra|attacco|missil|truppe|esercito|kiev|ucrain|russia|mosca|putin|israel|gaza|iran|medio oriente|nato|cremlino|trump|dazi|diplomaz|vertice internazionale|sanzion)\b/],
@@ -64,9 +66,11 @@ function urgency(item) {
 
 function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
-  const rows = state.news.filter(item => !query || (
-    String(item.title || '') + ' ' + String(item.source || '') + ' ' + String(item.summary || '')
-  ).toLocaleLowerCase('it').includes(query));
+  const rows = [...state.news]
+    .sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0))
+    .filter(item => !query || (
+      String(item.title || '') + ' ' + String(item.source || '') + ' ' + String(item.summary || '')
+    ).toLocaleLowerCase('it').includes(query));
 
   el.articles.innerHTML = rows.map(item => {
     const link = esc(item.link || '#');
