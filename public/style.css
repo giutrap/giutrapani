@@ -169,3 +169,14 @@ body.redazione-lock{overflow:hidden}
 .editorial-body{font:18px/1.65 Arial,sans-serif;white-space:normal;margin:25px 0;overflow-wrap:anywhere}
 .editorial-links{border-top:1px solid var(--line);padding-top:16px;font:15px Arial,sans-serif;overflow-wrap:anywhere}
 .editorial-links a{color:#176b3b}
+
+/* Paginazione: 50 notizie per pagina e accesso editoriale in fondo al flusso */
+.pagination{max-width:1440px;margin:0 auto;padding:18px 28px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.pagination-info{color:var(--muted);font-size:14px}
+.pagination-controls{display:flex;gap:7px}
+.pagination-controls button,.footer-redazione-button{border:1px solid #d9dde2;background:#fff;color:#17191d;border-radius:3px;padding:8px 12px;font:700 13px 'Economica',Arial,sans-serif;letter-spacing:.4px}
+.pagination-controls button:hover:not(:disabled){background:#17191d;border-color:#17191d;color:#fff}
+.pagination-controls button:disabled{opacity:.35;cursor:not-allowed}
+.footer-redazione-button{border-color:#27834b;background:#27834b;color:#fff}
+.footer-redazione-button:hover{background:#1f6d3e;border-color:#1f6d3e}
+@media(max-width:600px){.pagination{padding:14px 12px 18px;gap:10px}.pagination-info{width:100%}.pagination-controls{flex:1}.pagination-controls button{flex:1;padding:9px 7px}.footer-redazione-button{width:100%}}
