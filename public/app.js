@@ -83,7 +83,7 @@ function render() {
     const category = newsCategory(item);
     return '<article class="news-item urgency-' + level + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
-      + '<span class="news-category">' + esc(category) + '</span>'
+      + '<span class="news-category' + (category === 'IL RIFORMISTA' ? ' news-category-riformista' : '') + '">' + esc(category) + '</span>'
       + '<div class="news-main">' + marker
       + '<h2 class="news-title"><a href="' + link + '" target="_blank" rel="noopener">'
       + esc(item.title || 'Senza titolo') + '</a></h2></div>'
