@@ -26,7 +26,7 @@
   const safeUrl=value=>/^https?:\/\//i.test(value||'')?value:'';
   const original=safeUrl(n.original_url);
   const links=String(n.extra_links||'').split(/\r?\n/).filter(Boolean).map(value=>{const url=safeUrl(value.trim());return url?'<p><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(url)+'</a></p>':''}).join('');
-  root.innerHTML='<div class="editorial-meta"><time>'+stamp+'</time><span class="news-category news-category-redazione">REDAZIONE</span></div><h1 class="editorial-title">'+esc(n.title)+'</h1><div class="editorial-byline">'+esc(n.source||'A cura della Redazione')+'</div><div class="editorial-body">'+esc(n.notes).replace(/\n/g,'<br>')+'</div><div class="editorial-links">'+(original?'<p><a href="'+esc(original)+'" target="_blank" rel="noopener noreferrer">Apri la fonte originale ↗</a></p>':'')+links+'</div>';
+  root.innerHTML='<div class="editorial-meta"><time>'+stamp+'</time><span class="news-category news-category-redazione">FOCUS</span></div><h1 class="editorial-title">'+esc(n.title)+'</h1><div class="editorial-byline">'+esc(n.source||'A cura della Redazione')+'</div><div class="editorial-body">'+esc(n.notes).replace(/\n/g,'<br>')+'</div><div class="editorial-links">'+(original?'<p><a href="'+esc(original)+'" target="_blank" rel="noopener noreferrer">Apri la fonte originale ↗</a></p>':'')+links+'</div>';
  }catch(error){root.textContent=error.message||'Contenuto non disponibile.';}
 })();
 </script>
