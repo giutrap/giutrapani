@@ -81,3 +81,7 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
 .category-filter.is-active{background:#17191d;border-color:#17191d;color:#fff}
 .category-count{font-size:11px;opacity:.72}
 @media(max-width:600px){.category-filters{gap:5px;margin:10px 0 12px}.category-filter{padding:5px 7px;font-size:11px}}
+
+.category-social{color:#17191d;text-decoration:none;border-color:#17191d;font-weight:700}
+.category-social:hover{background:#17191d;color:#fff}
+.category-social span{font-size:15px;line-height:1}
