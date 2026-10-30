@@ -24,7 +24,8 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
 .news-list{border-top:1px solid var(--line)}
 .news-item{display:grid;grid-template-columns:118px 112px minmax(0,1fr) 160px 55px;gap:12px;align-items:center;min-height:43px;padding:7px 5px;border-bottom:1px solid var(--line);border-left:3px solid transparent}
 .news-time{font-size:14px;font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
-.news-category{display:inline-flex;align-items:center;justify-content:center;justify-self:start;max-width:100%;padding:3px 7px;border:1px solid #e2e5e9;border-radius:3px;background:#f7f8f9;color:#626b76;font-size:11px;line-height:1.1;font-weight:700;letter-spacing:.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.news-main{display:flex;align-items:center;gap:9px;min-width:0;overflow:hidden}
+.news-category{display:inline-flex;align-items:center;justify-content:center;justify-self:start;max-width:100%;padding:3px 7px;border:1px solid #e2e5e9;border-radius:3px;background:#f7f8f9;color:#626b76;font-size:11px;line-height:1.1;font-weight:700;letter-spacing:.45px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.news-main{display:flex;align-items:center;gap:9px;min-width:0;overflow:hidden}
 .news-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:19px;line-height:1.2;font-weight:700;margin:0}
 .news-title a{color:var(--ink);text-decoration:none}
 .news-title a:hover{text-decoration:underline}
@@ -54,7 +55,9 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
  .controls input{font-size:16px}
  .controls button{padding:0 13px}
  .news-item{grid-template-columns:80px 92px minmax(0,1fr) 72px 38px;gap:6px;padding:8px 2px}
- .news-time{font-size:11px}\n .news-category{font-size:9px;padding:3px 4px;letter-spacing:.2px}\n .news-title{font-size:15px}
+ .news-time{font-size:11px}
+ .news-category{font-size:9px;padding:3px 4px;letter-spacing:.2px}
+ .news-title{font-size:15px}
  .news-source{font-size:12px}
  .news-link{font-size:11px}
  .urgency-label{font-size:8px;padding:2px 3px}
