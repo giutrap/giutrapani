@@ -78,7 +78,7 @@ function renderCategoryFilters() {
     '<button type="button" class="category-filter' + (state.activeCategory === name ? ' is-active' : '')
     + '" data-category="' + esc(name) + '" aria-pressed="' + (state.activeCategory === name ? 'true' : 'false') + '">'
     + esc(name) + '<span class="category-count">' + count + '</span></button>'
-  ).join('') + '<a class="category-filter category-social" href="https://x.com/giutrapani" target="_blank" rel="noopener noreferrer" aria-label="Apri i post di giutrapani su X">I MIEI POST SU X <span aria-hidden="true">↗</span></a>';
+  ).join('') + '<a class="category-filter category-social" href="https://x.com/giutrapani" target="_blank" rel="noopener noreferrer" aria-label="Apri i post di giutrapani su X">@giutrapani <span aria-hidden="true">↗</span></a>';
 }
 
 function render() {
