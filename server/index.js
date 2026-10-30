@@ -74,7 +74,7 @@ function safeEqual(a, b) {
 }
 function requireAuthor(req, res, next) {
   const expected = process.env.EDITOR_PASSWORD;
-  const supplied = (req.headers.authorization || '').replace(/^Bearer\\s+/i, '');
+  const supplied = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!expected) return res.status(503).json({ error: 'Area autore non ancora configurata: manca EDITOR_PASSWORD.' });
   if (!safeEqual(supplied, expected)) return res.status(401).json({ error: 'Password non valida.' });
   next();
@@ -95,7 +95,7 @@ app.post('/api/launches', requireAuthor, (req, res) => {
   const link = String(req.body?.link || '').trim();
   if (!title || !body) return res.status(400).json({ error: 'Titolo e testo sono obbligatori.' });
   if (title.length > 180 || body.length > 5000) return res.status(400).json({ error: 'Testo troppo lungo.' });
-  if (link && !/^https?:\\/\\//i.test(link)) return res.status(400).json({ error: 'Il link deve iniziare con http:// o https://.' });
+  if (link && !/^https?:\/\//i.test(link)) return res.status(400).json({ error: 'Il link deve iniziare con http:// o https://.' });
   try {
     const launches = readLaunches(); const now = new Date().toISOString();
     launches.unshift({ id: crypto.randomUUID(), title, body, link, createdAt: now, updatedAt: now });
@@ -106,7 +106,7 @@ app.put('/api/launches/:id', requireAuthor, (req, res) => {
   const title = String(req.body?.title || '').trim(); const body = String(req.body?.body || '').trim(); const link = String(req.body?.link || '').trim();
   if (!title || !body) return res.status(400).json({ error: 'Titolo e testo sono obbligatori.' });
   if (title.length > 180 || body.length > 5000) return res.status(400).json({ error: 'Testo troppo lungo.' });
-  if (link && !/^https?:\\/\\//i.test(link)) return res.status(400).json({ error: 'Il link deve iniziare con http:// o https://.' });
+  if (link && !/^https?:\/\//i.test(link)) return res.status(400).json({ error: 'Il link deve iniziare con http:// o https://.' });
   try {
     const launches = readLaunches(); const item = launches.find(x => x.id === req.params.id);
     if (!item) return res.status(404).json({ error: 'Lancio non trovato.' });
