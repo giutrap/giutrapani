@@ -1,5 +1,5 @@
 // Elenco delle fonti RSS aggregate.
-// Preferire feed ufficiali; per le testate senza RSS pubblico si usano feed di ricerca Google News
+// Preferire feed ufficiali; per le testate senza RSS pubblico si usano feed alternativi
 // limitati al dominio della testata. Le fonti non raggiungibili vengono segnalate separatamente.
 
 const FEEDS = [
@@ -16,7 +16,7 @@ const FEEDS = [
   { name: 'Rai News', url: 'https://www.rainews.it/rss/tutti', category: 'Italia' },
   { name: 'Governo Italiano', url: 'https://www.governo.it/it/rss.xml', category: 'Istituzioni' },
 
-  // --- Quotidiani italiani: testate principali ---
+  // --- Quotidiani italiani ---
   { name: 'Corriere della Sera - Homepage', url: 'https://xml2.corriereobjects.it/rss/homepage.xml', category: 'Italia' },
   { name: 'Corriere della Sera - Politica', url: 'https://xml2.corriereobjects.it/rss/politica.xml', category: 'Italia' },
   { name: 'Corriere della Sera - Esteri', url: 'https://xml2.corriereobjects.it/rss/esteri.xml', category: 'Mondo' },
@@ -40,7 +40,7 @@ const FEEDS = [
   { name: 'Il Fatto Quotidiano - Politica', url: 'https://www.ilfattoquotidiano.it/politica-palazzo/feed/', category: 'Italia' },
   { name: 'Il Fatto Quotidiano - Economia', url: 'https://www.ilfattoquotidiano.it/economia-e-lobby/feed/', category: 'Economia' },
   { name: 'Il Fatto Quotidiano - Esteri', url: 'https://www.ilfattoquotidiano.it/esteri/feed/', category: 'Mondo' },
-  { name: 'Il Sole 24 Ore - Italia', url: 'https://www.ilsole24ore.com/rss/italia.xml', category: 'Economia' },
+  { name: 'Il Sole 24 Ore - Italia', url: 'https://www.ilsole24ore.com/rss/italia.xml', category: 'Italia' },
   { name: 'Il Sole 24 Ore - Economia', url: 'https://www.ilsole24ore.com/rss/economia.xml', category: 'Economia' },
   { name: 'Il Sole 24 Ore - Mondo', url: 'https://www.ilsole24ore.com/rss/mondo.xml', category: 'Mondo' },
   { name: 'Il Sole 24 Ore - Finanza', url: 'https://www.ilsole24ore.com/rss/finanza.xml', category: 'Economia' },
@@ -48,7 +48,7 @@ const FEEDS = [
   { name: 'Avvenire', url: 'https://www.avvenire.it/rss', category: 'Italia' },
   { name: 'Domani', url: 'https://www.editorialedomani.it/rss', category: 'Italia' },
   { name: 'Libero Quotidiano', url: 'https://www.liberoquotidiano.it/rss.xml', category: 'Italia' },
-  { name: 'Il Riformista', url: 'https://news.google.com/rss/search?q=site%3Ailriformista.it&hl=it&gl=IT&ceid=IT%3Ait', category: 'Italia' },
+  { name: 'Il Riformista', url: 'https://www.ilriformista.it/feed/', category: 'Italia' },
   { name: 'Open', url: 'https://www.open.online/feed/', category: 'Italia' },
   { name: 'Il Post', url: 'https://www.ilpost.it/feed/', category: 'Italia' },
   { name: 'Fanpage.it', url: 'https://www.fanpage.it/feed/', category: 'Italia' },
