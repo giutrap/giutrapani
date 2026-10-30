@@ -149,3 +149,7 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
 body.redazione-lock{overflow:hidden}
 @media(max-width:760px){.news-item{grid-template-columns:80px 92px minmax(0,1fr) 72px 38px}.redazione-open{grid-column:3/6;justify-self:start;margin-top:4px}.news-link{grid-column:5;grid-row:1}.news-source{grid-column:3/5;text-align:left}.redazione-content{padding:16px}}
 @media(max-width:420px){.news-item{grid-template-columns:67px 78px minmax(0,1fr) 34px}.redazione-open{grid-column:3/5}.news-link{grid-column:4}.news-source{display:none}}
+
+.redazione-login{border:1px solid #b3262d;background:#fff;color:#b3262d;border-radius:2px;padding:7px 10px;font:700 12px 'Economica',Arial,sans-serif;letter-spacing:.6px;white-space:nowrap}
+.redazione-login:hover{background:#b3262d;color:#fff}
+@media(max-width:760px){.redazione-login{font-size:10px;padding:5px 6px}}
