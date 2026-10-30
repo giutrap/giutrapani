@@ -2,12 +2,11 @@ const path = require('path');
 const express = require('express');
 const Parser = require('rss-parser');
 const { FEEDS } = require('./feeds');
-const { getSocial } = require('./social');
 
 const app = express();
 const parser = new Parser({ timeout: 8000 });
 
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 60 * 1000;
 const cache = { timestamp: 0, articles: [], errors: [] };
 
 function normalizeItem(item, source) {
@@ -16,7 +15,7 @@ function normalizeItem(item, source) {
     title: (item.title || '').trim(),
     link: item.link || item.guid || '',
     pubDate: item.isoDate || item.pubDate || null,
-    summary: rawSummary.replace(/\s+/g, ' ').trim().slice(0, 280),
+    summary: rawSummary.replace(/\\s+/g, ' ').trim().slice(0, 280),
     source: source.name,
     category: source.category,
   };
@@ -44,9 +43,9 @@ async function fetchAllFeeds() {
   return { articles, errors };
 }
 
-async function getFeeds(forceRefresh) {
+async function getFeeds() {
   const isFresh = Date.now() - cache.timestamp < CACHE_TTL_MS;
-  if (!forceRefresh && isFresh && cache.articles.length > 0) return cache;
+  if (isFresh && cache.timestamp > 0) return cache;
   const { articles, errors } = await fetchAllFeeds();
   cache.timestamp = Date.now();
   cache.articles = articles;
@@ -62,29 +61,9 @@ app.get('/api/sources', (req, res) => {
   res.json({ sources, categories });
 });
 
-app.get('/api/social', async (req, res) => {
-  try {
-    const options = {
-      q: String(req.query.q || ''),
-      accounts: String(req.query.accounts || '').split(',').map(x => x.trim()).filter(Boolean),
-    };
-    const data = await getSocial(options);
-    res.json({
-      updatedAt: Date.now(),
-      count: data.posts.length,
-      posts: data.posts,
-      configured: data.configured,
-      paused: data.paused,
-      errors: data.errors,
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Impossibile recuperare i social.' });
-  }
-});
-
 app.get('/api/feeds', async (req, res) => {
   try {
-    const data = await getFeeds(req.query.refresh === 'true');
+    const data = await getFeeds();
     res.json({
       updatedAt: data.timestamp,
       count: data.articles.length,
