@@ -27,7 +27,8 @@ function requireRedazione(req, res, next) {
 }
 async function initDatabase() {
   if (!pool) return;
-  await pool.query('CREATE TABLE IF NOT EXISTS editorial_notes (id BIGSERIAL PRIMARY KEY, title TEXT NOT NULL DEFAULT \\'\\', source TEXT NOT NULL DEFAULT \\'\\', original_url TEXT NOT NULL DEFAULT \\'\\', notes TEXT NOT NULL DEFAULT \\'\\', extra_links TEXT NOT NULL DEFAULT \\'\\', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
+  const ddl = `CREATE TABLE IF NOT EXISTS editorial_notes (id BIGSERIAL PRIMARY KEY, title TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '', original_url TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', extra_links TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
+  await pool.query(ddl);
 }
 function normalizeItem(item, source) {
   const rawSummary = item.contentSnippet || item.summary || item.content || '';
