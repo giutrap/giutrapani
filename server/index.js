@@ -2,6 +2,7 @@ const path = require('path');
 const express = require('express');
 const Parser = require('rss-parser');
 const { FEEDS } = require('./feeds');
+const { getSocial } = require('./social');
 
 const app = express();
 const parser = new Parser({ timeout: 8000 });
@@ -64,6 +65,8 @@ app.get('/api/sources', (req, res) => {
   const categories = [...new Set(FEEDS.map((f) => f.category))].sort();
   res.json({ sources, categories });
 });
+
+app.get('/api/social', async (req, res) => { try { const d=await getSocial(); res.json({updatedAt:Date.now(),count:d.posts.length,posts:d.posts,configured:d.configured,errors:d.errors}); } catch(e) { res.status(500).json({error:'Impossibile recuperare i social.'}); } });
 
 app.get('/api/feeds', async (req, res) => {
   try {
