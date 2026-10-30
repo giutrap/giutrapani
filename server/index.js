@@ -16,7 +16,7 @@ function normalizeItem(item, source) {
     title: (item.title || '').trim(),
     link: item.link || item.guid || '',
     pubDate: item.isoDate || item.pubDate || null,
-    summary: rawSummary.replace(/\\s+/g, ' ').trim().slice(0, 280),
+    summary: rawSummary.replace(/\s+/g, ' ').trim().slice(0, 280),
     source: source.name,
     category: source.category,
   };
