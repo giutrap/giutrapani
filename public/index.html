@@ -1,56 +1,63 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BREAKING</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101216">
+  <title>BREAKING — News monitor</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <div class="brand">
-        <svg class="brand-icon" viewBox="0 0 64 64" aria-hidden="true">
-          <path d="M8 26 L34 14 C36 13 38 14.5 38 17 V47 C38 49.5 36 51 34 50 L8 38 Z" fill="currentColor"/>
-          <rect x="4" y="24" width="6" height="14" rx="2" fill="currentColor"/>
-          <path d="M38 20 C48 20 54 26 54 32 C54 38 48 44 38 44" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-          <rect x="12" y="39" width="6" height="14" rx="2" transform="rotate(15 12 39)" fill="currentColor"/>
-        </svg>
-        <h1>BREAKING<span class="brand-sub">news da tutte le agenzie</span></h1>
+      <div>
+        <a class="brand" href="/" aria-label="BREAKING home">BREAK<span>ING</span></a>
+        <div class="tagline">NEWS MONITOR · AGENZIE · WEB · SOCIAL</div>
       </div>
-      <button id="theme-toggle" class="icon-btn" title="Cambia tema" aria-label="Cambia tema">🌙</button>
+      <div class="header-right">
+        <span class="live-dot"></span><span id="clock">ONLINE</span>
+        <button id="theme-toggle" class="theme-toggle" title="Cambia tema" aria-label="Cambia tema">☾</button>
+      </div>
     </div>
   </header>
 
   <main class="container">
-    <section class="controls">
-      <input id="search" type="search" placeholder="Cerca per titolo o testo..." aria-label="Cerca" />
-
-      <select id="category-filter" aria-label="Filtra per categoria">
-        <option value="">Tutte le categorie</option>
-      </select>
-
-      <select id="source-filter" aria-label="Filtra per fonte">
-        <option value="">Tutte le fonti</option>
-      </select>
-
-      <button id="refresh-btn" class="primary-btn">Aggiorna</button>
+    <section class="search-row" aria-label="Ricerca notizie">
+      <input id="search" type="search" placeholder="Cerca una parola chiave: cortei, governo, Ucraina…" aria-label="Cerca notizie">
+      <button id="refresh-btn" class="refresh-btn">Aggiorna</button>
     </section>
 
-    <p id="status" class="status"></p>
-    <details id="errors-details" class="errors-details" hidden>
-      <summary>Fonti non raggiungibili</summary>
-      <ul id="errors-list"></ul>
-    </details>
+    <nav class="tabs" aria-label="Tipo di contenuto">
+      <button class="tab active" data-kind="all">TUTTE LE NOTIZIE</button>
+      <button class="tab" data-kind="web">AGENZIE &amp; WEB</button>
+      <button class="tab" data-kind="social">SOCIAL <span class="soon">IN SVILUPPO</span></button>
+    </nav>
 
-    <section id="articles" class="grid"></section>
-    <p id="empty-state" class="empty-state" hidden>Nessun articolo trovato con i filtri selezionati.</p>
+    <nav id="topics" class="topics" aria-label="Argomenti">
+      <button class="topic active" data-topic="Tutti">TUTTE</button>
+      <button class="topic" data-topic="Politica">POLITICA</button>
+      <button class="topic" data-topic="Esteri">ESTERI</button>
+      <button class="topic" data-topic="Europa">EUROPA</button>
+      <button class="topic" data-topic="Economia">ECONOMIA</button>
+      <button class="topic" data-topic="Cronaca">CRONACA</button>
+      <button class="topic" data-topic="Società">SOCIETÀ</button>
+      <button class="topic" data-topic="Chiesa">CHIESA</button>
+      <button class="topic" data-topic="Scuola">SCUOLA</button>
+      <button class="topic" data-topic="Cultura">CULTURA</button>
+    </nav>
+
+    <section class="toolbar">
+      <div id="status" class="status" aria-live="polite">Connessione alle fonti…</div>
+      <div class="sort-label">ORDINE CRONOLOGICO · PIÙ RECENTI IN ALTO</div>
+    </section>
+    <details id="errors-details" class="errors-details" hidden>
+      <summary>Fonti non raggiungibili</summary><ul id="errors-list"></ul>
+    </details>
+    <section id="articles" class="news-list" aria-live="polite"></section>
+    <p id="empty-state" class="empty-state" hidden>Nessuna notizia trovata con i filtri selezionati.</p>
   </main>
 
-  <footer class="footer">
-    <p>Le fonti non raggiungibili vengono ignorate automaticamente. Aggiornamento automatico ogni 5 minuti.</p>
-  </footer>
-
+  <footer class="footer">BREAKING aggrega feed RSS pubblici. Non accede ai lanci riservati delle agenzie né ai contenuti protetti da abbonamento. I livelli di urgenza sono stime automatiche e non priorità ufficiali delle redazioni. Il monitoraggio social richiede fonti e autorizzazioni dedicate.</footer>
   <script src="app.js"></script>
 </body>
 </html>
