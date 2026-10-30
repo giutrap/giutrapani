@@ -97,10 +97,11 @@ function requireAuthor(req, res, next) {
   if (!safeEqual(supplied, expected)) return res.status(401).json({ error: 'Password non valida.' });
   next();
 }
-app.post('/api/author/login', (req, res) => {
+app.post('/api/author/login', async (req, res) => {
   const expected = process.env.EDITOR_PASSWORD;
   if (!expected) return res.status(503).json({ error: 'Area autore non ancora configurata: manca EDITOR_PASSWORD.' });
   if (!safeEqual(req.body?.password || '', expected)) return res.status(401).json({ error: 'Password non valida.' });
+  if (!process.env.GITHUB_TOKEN) return res.status(503).json({ error: 'Archivio editoriale non configurato: manca la chiave GitHub.' });
   res.json({ ok: true });
 });
 app.get('/api/launches', (req, res) => {
@@ -115,6 +116,7 @@ app.post('/api/launches', requireAuthor, async (req, res) => {
   if (title.length > 180 || body.length > 5000) return res.status(400).json({ error: 'Testo troppo lungo.' });
   if (link && !/^https?:\/\//i.test(link)) return res.status(400).json({ error: 'Il link deve iniziare con http:// o https://.' });
   try {
+    if (!process.env.GITHUB_TOKEN) return res.status(503).json({ error: 'Archivio editoriale non configurato: manca la chiave GitHub.' });
     const stored = await readLaunches(); const launches = stored.launches; const now = new Date().toISOString();
     launches.unshift({ id: crypto.randomUUID(), title, body, link, createdAt: now, updatedAt: now });
     await writeLaunches(launches, stored.sha); res.status(201).json({ launches });
@@ -126,6 +128,7 @@ app.put('/api/launches/:id', requireAuthor, async (req, res) => {
   if (title.length > 180 || body.length > 5000) return res.status(400).json({ error: 'Testo troppo lungo.' });
   if (link && !/^https?:\/\//i.test(link)) return res.status(400).json({ error: 'Il link deve iniziare con http:// o https://.' });
   try {
+    if (!process.env.GITHUB_TOKEN) return res.status(503).json({ error: 'Archivio editoriale non configurato: manca la chiave GitHub.' });
     const stored = await readLaunches(); const launches = stored.launches; const item = launches.find(x => x.id === req.params.id);
     if (!item) return res.status(404).json({ error: 'Lancio non trovato.' });
     Object.assign(item, { title, body, link, updatedAt: new Date().toISOString() });
@@ -134,6 +137,7 @@ app.put('/api/launches/:id', requireAuthor, async (req, res) => {
 });
 app.delete('/api/launches/:id', requireAuthor, async (req, res) => {
   try {
+    if (!process.env.GITHUB_TOKEN) return res.status(503).json({ error: 'Archivio editoriale non configurato: manca la chiave GitHub.' });
     const stored = await readLaunches(); const launches = stored.launches; const remaining = launches.filter(x => x.id !== req.params.id);
     if (remaining.length === launches.length) return res.status(404).json({ error: 'Lancio non trovato.' });
     await writeLaunches(remaining, stored.sha); res.json({ launches: remaining });
