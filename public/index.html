@@ -3,61 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101216">
+  <meta name="theme-color" content="#ffffff">
   <title>BREAKING — News monitor</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="topbar">
-    <div class="topbar-inner">
-      <div>
-        <a class="brand" href="/" aria-label="BREAKING home">BREAK<span>ING</span></a>
-        <div class="tagline">NEWS MONITOR · AGENZIE · WEB · SOCIAL</div>
-      </div>
-      <div class="header-right">
-        <span class="live-dot"></span><span id="clock">ONLINE</span>
-        <button id="theme-toggle" class="theme-toggle" title="Cambia tema" aria-label="Cambia tema">☾</button>
-      </div>
-    </div>
+    <a class="brand" href="/" aria-label="BREAKING home"><span class="mark">●</span><span class="brand-name">BREAKING</span></a>
+    <div class="header-meta"><span class="live-dot"></span> AGGIORNAMENTO AUTOMATICO OGNI MINUTO</div>
   </header>
-
   <main class="container">
-    <section class="search-row" aria-label="Ricerca notizie">
-      <input id="search" type="search" placeholder="Cerca una parola chiave: cortei, governo, Ucraina…" aria-label="Cerca notizie">
-      <button id="refresh-btn" class="refresh-btn">Aggiorna</button>
+    <section class="controls" aria-label="Ricerca notizie">
+      <input id="search" type="search" placeholder="Cerca nelle notizie…" aria-label="Cerca notizie">
+      <button id="refresh-btn" type="button">Aggiorna</button>
     </section>
-
-    <nav class="tabs" aria-label="Tipo di contenuto">
-      <button class="tab active" data-kind="all">TUTTE LE NOTIZIE</button>
-      <button class="tab" data-kind="web">AGENZIE &amp; WEB</button>
-      <button class="tab" data-kind="social">SOCIAL <span class="soon">IN SVILUPPO</span></button>
-    </nav>
-
-    <nav id="topics" class="topics" aria-label="Argomenti">
-      <button class="topic active" data-topic="Tutti">TUTTE</button>
-      <button class="topic" data-topic="Politica">POLITICA</button>
-      <button class="topic" data-topic="Esteri">ESTERI</button>
-      <button class="topic" data-topic="Europa">EUROPA</button>
-      <button class="topic" data-topic="Economia">ECONOMIA</button>
-      <button class="topic" data-topic="Cronaca">CRONACA</button>
-      <button class="topic" data-topic="Società">SOCIETÀ</button>
-      <button class="topic" data-topic="Chiesa">CHIESA</button>
-      <button class="topic" data-topic="Scuola">SCUOLA</button>
-      <button class="topic" data-topic="Cultura">CULTURA</button>
-    </nav>
-
-    <section class="toolbar">
+    <div class="feed-head">
       <div id="status" class="status" aria-live="polite">Connessione alle fonti…</div>
-      <div class="sort-label">ORDINE CRONOLOGICO · PIÙ RECENTI IN ALTO</div>
-    </section>
+      <div class="order-label">PIÙ RECENTI</div>
+    </div>
     <details id="errors-details" class="errors-details" hidden>
       <summary>Fonti non raggiungibili</summary><ul id="errors-list"></ul>
     </details>
     <section id="articles" class="news-list" aria-live="polite"></section>
-    <p id="empty-state" class="empty-state" hidden>Nessuna notizia trovata con i filtri selezionati.</p>
+    <p id="empty-state" class="empty-state" hidden>Nessuna notizia trovata.</p>
   </main>
-
-  <footer class="footer">BREAKING aggrega feed RSS pubblici. Non accede ai lanci riservati delle agenzie né ai contenuti protetti da abbonamento. I livelli di urgenza sono stime automatiche e non priorità ufficiali delle redazioni. Il monitoraggio social richiede fonti e autorizzazioni dedicate.</footer>
+  <footer class="footer">BREAKING · Aggregazione di feed RSS pubblici. L'orario è quello fornito dalla fonte; i contenuti restano sui siti degli editori.</footer>
   <script src="app.js"></script>
 </body>
 </html>
