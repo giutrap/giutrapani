@@ -25,7 +25,7 @@ async function fetchAllFeeds() {
   const settled = await Promise.allSettled(
     FEEDS.map(async source => {
       // RSS.app può rispondere più lentamente: estendiamo il timeout solo per il feed X.
-      const sourceParser = source.name === '@giutrapani · X'
+      const sourceParser = ['@giutrapani · X', 'Il Riformista'].includes(source.name)
         ? new Parser({ timeout: 30000 })
         : parser;
       const feed = await sourceParser.parseURL(source.url);
