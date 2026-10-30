@@ -115,6 +115,7 @@ function render() {
       + esc(item.title || 'Senza titolo') + '</a></h2></div>'
       + '<div class="news-source">' + esc(item.source || '') + '</div>'
       + '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Leggi la notizia">LEGGI ↗</a>'
+      + '<button type="button" class="redazione-open" data-title="' + esc(item.title || '') + '" data-source="' + esc(item.source || '') + '" data-url="' + link + '">REDAZIONE</button>'
       + '</article>';
   }).join('');
 
@@ -164,3 +165,93 @@ el.categoryFilters.addEventListener('click', event => {
 el.refreshBtn.addEventListener('click', load);
 load();
 setInterval(load, AUTO_REFRESH_MS);
+
+
+// Area privata: le credenziali restano nella memoria della pagina e non vengono salvate.
+const redazione = { auth: '', notes: [] };
+const redPanel = document.getElementById('redazione-panel');
+const redForm = document.getElementById('redazione-form');
+const redMessage = document.getElementById('redazione-message');
+const redList = document.getElementById('redazione-notes-list');
+const rf = {
+  id: document.getElementById('redazione-id'),
+  title: document.getElementById('redazione-title'),
+  source: document.getElementById('redazione-source'),
+  url: document.getElementById('redazione-url'),
+  notes: document.getElementById('redazione-notes'),
+  links: document.getElementById('redazione-links')
+};
+async function redRequest(url, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (redazione.auth) headers.Authorization = redazione.auth;
+  if (options.body) headers['Content-Type'] = 'application/json';
+  return fetch(url, { ...options, headers });
+}
+async function redLogin() {
+  if (!redazione.auth) {
+    const user = prompt('Utente REDAZIONE:');
+    if (user === null) return false;
+    const pass = prompt('Password REDAZIONE:');
+    if (pass === null) return false;
+    redazione.auth = 'Basic ' + btoa(unescape(encodeURIComponent(user + ':' + pass)));
+  }
+  const response = await redRequest('/api/redazione/notes');
+  if (response.status === 401 || response.status === 403) {
+    redazione.auth = ''; alert('Credenziali non valide. Riprova.'); return false;
+  }
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) { alert(data.error || 'Archivio non disponibile.'); return false; }
+  redazione.notes = data.notes || []; renderRedArchive(); return true;
+}
+function renderRedArchive() {
+  if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
+  redList.innerHTML = redazione.notes.map(note =>
+    '<article class="redazione-note"><button type="button" class="redazione-note-title" data-edit-note="' + note.id + '">' + esc(note.title || 'Senza titolo') + '</button><span>' + esc(note.source || '') + '</span><button type="button" class="redazione-delete" data-delete-note="' + note.id + '">ELIMINA</button></article>'
+  ).join('');
+}
+async function refreshRedArchive() {
+  const response = await redRequest('/api/redazione/notes');
+  if (response.ok) { redazione.notes = (await response.json()).notes || []; renderRedArchive(); }
+}
+function openRedPanel(item) {
+  redPanel.classList.add('is-open'); redPanel.setAttribute('aria-hidden','false');
+  document.body.classList.add('redazione-lock'); redForm.reset(); rf.id.value = '';
+  rf.title.value = item.title || ''; rf.source.value = item.source || ''; rf.url.value = item.url || '';
+  redMessage.textContent = ''; redLogin();
+}
+function closeRedPanel() {
+  redPanel.classList.remove('is-open'); redPanel.setAttribute('aria-hidden','true');
+  document.body.classList.remove('redazione-lock');
+}
+document.addEventListener('click', async event => {
+  const open = event.target.closest('.redazione-open');
+  if (open) openRedPanel({ title:open.dataset.title, source:open.dataset.source, url:open.dataset.url });
+  if (event.target.closest('[data-redazione-close]')) closeRedPanel();
+  const edit = event.target.closest('[data-edit-note]');
+  if (edit) {
+    const note = redazione.notes.find(item => String(item.id) === edit.dataset.editNote);
+    if (!note) return;
+    rf.id.value = note.id; rf.title.value = note.title; rf.source.value = note.source;
+    rf.url.value = note.original_url; rf.notes.value = note.notes; rf.links.value = note.extra_links;
+    redMessage.textContent = 'Nota caricata: puoi modificarla e salvarla.';
+    document.querySelector('.redazione-content').scrollTop = 0;
+  }
+  const del = event.target.closest('[data-delete-note]');
+  if (del && confirm('Vuoi eliminare definitivamente questa nota?')) {
+    const response = await redRequest('/api/redazione/notes/' + del.dataset.deleteNote, { method:'DELETE' });
+    if (response.ok) refreshRedArchive();
+  }
+});
+document.getElementById('redazione-new').addEventListener('click', () => {
+  redForm.reset(); rf.id.value = ''; redMessage.textContent = 'Nuova nota pronta.';
+});
+redForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const payload = { title:rf.title.value.trim(), source:rf.source.value.trim(), original_url:rf.url.value.trim(), notes:rf.notes.value, extra_links:rf.links.value };
+  const id = rf.id.value;
+  const response = await redRequest('/api/redazione/notes' + (id ? '/' + id : ''), { method:id ? 'PUT' : 'POST', body:JSON.stringify(payload) });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) { redMessage.textContent = data.error || 'Salvataggio non riuscito.'; return; }
+  redMessage.textContent = 'Nota salvata nell’archivio.'; rf.id.value = ''; await refreshRedArchive();
+});
+document.addEventListener('keydown', event => { if (event.key === 'Escape') closeRedPanel(); });
