@@ -35,27 +35,33 @@
     </details>
     <section id="articles" class="news-list" aria-live="polite"></section>
     <section id="author-launch-view" class="author-launch-view" aria-label="Lanci editoriali"></section>
-    <section class="author-area">
-      <button id="author-login-toggle" type="button">Area autore</button>
+    <section class="author-launch" aria-label="Area autore">
+      <div class="author-toolbar">
+        <button id="author-login-toggle" class="author-login-toggle" type="button">AREA AUTORE</button>
+      </div>
       <div id="author-login" class="author-login" hidden>
         <label for="author-password">Password autore</label>
-        <input id="author-password" type="password" autocomplete="current-password">
-        <button id="author-login-btn" type="button">Accedi</button>
-        <p id="author-message" role="status"></p>
+        <div class="author-login-row">
+          <input id="author-password" type="password" autocomplete="current-password">
+          <button id="author-login-btn" type="button">ACCEDI</button>
+        </div>
+        <p id="author-message" class="author-message" role="status"></p>
       </div>
       <div id="author-editor" class="author-editor" hidden>
-        <button id="author-logout" type="button">Esci</button>
+        <div class="author-editor-head"><strong>SCRIVI UN LANCIO</strong><button id="author-logout" class="text-button" type="button">ESCI</button></div>
         <form id="launch-form">
           <label for="launch-title">Titolo</label>
           <input id="launch-title" type="text" maxlength="180" required>
           <label for="launch-body">Testo</label>
           <textarea id="launch-body" rows="6" required></textarea>
-          <label for="launch-link">Link (facoltativo)</label>
+          <label for="launch-link">Link <span>(facoltativo)</span></label>
           <input id="launch-link" type="url">
-          <button id="launch-submit" type="submit">Pubblica lancio</button>
-          <button id="launch-cancel" type="button" hidden>Annulla modifica</button>
+          <div class="launch-actions">
+            <button id="launch-submit" type="submit">PUBBLICA</button>
+            <button id="launch-cancel" class="text-button" type="button" hidden>Annulla modifica</button>
+          </div>
         </form>
-        <div id="launch-manage"></div>
+        <div id="launch-manage" class="launch-manage"></div>
       </div>
     </section>
     <p id="empty-state" class="empty-state" hidden>Nessuna notizia trovata.</p>
