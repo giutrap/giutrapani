@@ -1,5 +1,6 @@
 const AUTO_REFRESH_MS = 60000;
-const state = { news: [], newsErrors: [], activeCategory: 'TUTTE' };
+const PAGE_SIZE = 50;
+const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', currentPage: 1 };
 const el = {
   search: document.getElementById('search'),
   refreshBtn: document.getElementById('refresh-btn'),
@@ -9,6 +10,7 @@ const el = {
   articles: document.getElementById('articles'),
   emptyState: document.getElementById('empty-state'),
   categoryFilters: document.getElementById('category-filters'),
+  pagination: document.getElementById('pagination'),
 };
 
 function esc(value) {
@@ -104,7 +106,10 @@ function render() {
       String(item.title || '') + ' ' + String(item.source || '') + ' ' + String(item.summary || '')
     ).toLocaleLowerCase('it').includes(query));
 
-  el.articles.innerHTML = rows.map(item => {
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  state.currentPage = Math.min(state.currentPage, pageCount);
+  const visibleRows = rows.slice((state.currentPage - 1) * PAGE_SIZE, state.currentPage * PAGE_SIZE);
+  el.articles.innerHTML = visibleRows.map(item => {
     const link = esc(item.link || '#');
     const level = urgency(item);
     const marker = level === 'urgent'
@@ -126,6 +131,13 @@ function render() {
   }).join('');
 
   el.emptyState.hidden = rows.length > 0;
+  el.pagination.innerHTML = rows.length > 0
+    ? '<div class="pagination-info">Pagina ' + state.currentPage + ' di ' + pageCount + ' · visualizzati ' + ((state.currentPage - 1) * PAGE_SIZE + 1) + '–' + Math.min(state.currentPage * PAGE_SIZE, rows.length) + ' di ' + rows.length + '</div>'
+      + '<div class="pagination-controls">'
+      + '<button type="button" data-page="prev" ' + (state.currentPage === 1 ? 'disabled' : '') + '>← PRECEDENTE</button>'
+      + '<button type="button" data-page="next" ' + (state.currentPage === pageCount ? 'disabled' : '') + '>SUCCESSIVA →</button>'
+      + '</div><button type="button" id="footer-redazione-edit" class="footer-redazione-button">✎ SCRIVI IN REDAZIONE</button>'
+    : '<button type="button" id="footer-redazione-edit" class="footer-redazione-button">✎ SCRIVI IN REDAZIONE</button>';
   el.emptyState.textContent = query
     ? 'Nessuna notizia corrisponde alla ricerca.'
     : 'Nessuna notizia disponibile al momento.';
@@ -163,11 +175,12 @@ async function load() {
   }
 }
 
-el.search.addEventListener('input', render);
+el.search.addEventListener('input', () => { state.currentPage = 1; render(); });
 el.categoryFilters.addEventListener('click', event => {
   const button = event.target.closest('button[data-category]');
   if (!button) return;
   state.activeCategory = button.dataset.category;
+  state.currentPage = 1;
   renderCategoryFilters();
   render();
 });
@@ -233,6 +246,16 @@ function closeRedPanel() {
   document.body.classList.remove('redazione-lock');
 }
 document.getElementById('redazione-login').addEventListener('click', () => openRedPanel({}));
+el.pagination.addEventListener('click', event => {
+  const pageButton = event.target.closest('[data-page]');
+  if (pageButton) {
+    state.currentPage += pageButton.dataset.page === 'next' ? 1 : -1;
+    render();
+    document.getElementById('articles').scrollIntoView({ behavior:'smooth', block:'start' });
+    return;
+  }
+  if (event.target.closest('#footer-redazione-edit')) openRedPanel({});
+});
 document.addEventListener('click', async event => {
   const open = event.target.closest('.redazione-open');
   if (open) openRedPanel({ title:open.dataset.title, source:open.dataset.source, url:open.dataset.url });
