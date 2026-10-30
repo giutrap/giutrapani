@@ -29,7 +29,13 @@ async function fetchAllFeeds() {
         ? new Parser({ timeout: 30000 })
         : parser;
       const feed = await sourceParser.parseURL(source.url);
-      return (feed.items || []).map(item => normalizeItem(item, source));
+      const items = (feed.items || []).map(item => normalizeItem(item, source));
+      if (source.name === '@giutrapani · X') {
+        // Nel flusso manteniamo soltanto il post/repost più recente del profilo.
+        items.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+        return items.slice(0, 1);
+      }
+      return items;
     })
   );
 
