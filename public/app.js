@@ -79,7 +79,7 @@ function renderCategoryFilters() {
     '<button type="button" class="category-filter' + (name === 'IL RIFORMISTA' ? ' category-riformista-filter' : '') + (state.activeCategory === name ? ' is-active' : '')
     + '" data-category="' + esc(name) + '" aria-pressed="' + (state.activeCategory === name ? 'true' : 'false') + '">'
     + esc(name) + '<span class="category-count">' + count + '</span></button>'
-  ).join('') + '<a class="category-filter category-social" href="https://x.com/giutrapani" target="_blank" rel="noopener noreferrer" aria-label="Apri i post di giutrapani su X">@giutrapani <span aria-hidden="true">↗</span></a>';
+  ).join('') + '<button type="button" class="category-filter category-x-filter' + (state.activeCategory === "@giutrapani" ? ' is-active' : '') + '" data-category="@giutrapani" aria-pressed="' + (state.activeCategory === "@giutrapani" ? 'true' : 'false') + '">@giutrapani <span class="category-count">' + (counts.get("@giutrapani") || 0) + '</span></button>' + '<a class="category-filter category-social" href="https://x.com/giutrapani" target="_blank" rel="noopener noreferrer" aria-label="Apri il profilo di giutrapani su X">↗ X</a>';
 }
 
 function render() {
