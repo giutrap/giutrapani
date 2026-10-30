@@ -26,6 +26,34 @@ function tm(value) {
     });
 }
 
+// Classificazione editoriale della singola notizia: prima il contenuto, poi la categoria RSS come ripiego.
+function newsCategory(item) {
+  const text = (String(item.title || '') + ' ' + String(item.summary || '')).toLocaleLowerCase('it');
+  const rules = [
+    ['GEOPOLITICA', /\\b(guerra|attacco|missil|truppe|esercito|kiev|ucrain|russia|mosca|putin|israel|gaza|iran|medio oriente|nato|cremlino|trump|dazi|diplomaz|vertice internazionale|sanzion)\\b/],
+    ['POLITICA', /\\b(governo|parlamento|premier|ministro|ministra|meloni|salvini|schlein|opposizione|maggioranza|partito|elezioni|voto|decreto|riforma|senato|camera|quirinale|sindaco|regione)\\b/],
+    ['CRONACA', /\\b(omicid|uccis|morto|morta|morti|morte|ferit|incidente|tragedia|arrest|rapina|furto|indagine|inchiesta|polizia|carabinieri|procura|violenza|neonat|intossicat|scompar|maltempo|alluvion|terremoto)\\b/],
+    ['LAVORO E SOCIETÀ', /\\b(sciopero|sindacat|lavorator|salari|stipendi|pension|precari|contratto|licenzi|occupazione|carovita|protest|manifestaz|diritti|scuola|universit|docenti)\\b/],
+    ['FINANZA', /\\b(borsa|borsa valori|azioni|titoli|spread|obbligazioni|banca|banche|tassi|borsistico|ftse|nasdaq|wall street|utili|bilancio|quotazioni|investiment)\\b/],
+    ['ECONOMIA', /\\b(economia|economico|economica|aziend|industria|mercato|prezzi|inflazione|pil|consumi|imprese|auto|automotive|dazi|export|import|fisco|tasse|accise|rimborso|carburant|energia)\\b/],
+    ['SALUTE', /\\b(salute|sanità|sanitario|ospedale|medic|medicina|malattia|virus|epidemia|vaccin|tumore|medici|pazienti|farmac)\\b/],
+    ['SPORT', /\\b(calcio|serie a|champions|juventus|inter|milan|napoli|roma|lazio|tennis|formula 1|motogp|olimpiad|gara|campionato|allenatore|atleta|sport)\\b/],
+    ['SPETTACOLO', /\\b(cinema|film|attore|attrice|cantante|concerto|musica|festival|sanremo|teatro|televisione|tv|fedez|vip|celebrity|serie tv|streaming)\\b/],
+    ['TECNOLOGIA', /\\b(tecnologia|intelligenza artificiale|\\bai\\b|digitale|internet|cyber|hacker|smartphone|apple|google|microsoft|software|social network)\\b/],
+    ['AMBIENTE', /\\b(ambiente|clima|climatico|ambientale|emissioni|inquinamento|green|rinnovabili|siccità|biodiversità|energia)\\b/],
+    ['CULTURA', /\\b(libro|libri|scrittore|scrittura|mostra|museo|arte|cultura|letteratura|premio letterario|archeologia|storia)\\b/],
+  ];
+  for (const [label, pattern] of rules) if (pattern.test(text)) return label;
+  const sourceCategory = String(item.category || '').toLocaleLowerCase('it');
+  const fallback = {
+    'mondo': 'MONDO', 'europa': 'EUROPA', 'economia': 'ECONOMIA',
+    'finanza': 'FINANZA', 'sport': 'SPORT', 'tecnologia': 'TECNOLOGIA',
+    'scienza': 'SCIENZA', 'ambiente': 'AMBIENTE', 'chiesa': 'CHIESA',
+    'istituzioni': 'ISTITUZIONI', 'italia': 'ATTUALITÀ',
+  };
+  return fallback[sourceCategory] || 'ATTUALITÀ';
+}
+
 // La priorità viene assegnata solo quando il titolo contiene un'indicazione esplicita.
 function urgency(item) {
   const title = String(item.title || '').toLocaleLowerCase('it');
@@ -48,8 +76,10 @@ function render() {
       : level === 'developing'
         ? '<span class="urgency-label urgency-developing">AGGIORNAMENTO</span>'
         : '';
+    const category = newsCategory(item);
     return '<article class="news-item urgency-' + level + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
+      + '<span class="news-category">' + esc(category) + '</span>'
       + '<div class="news-main">' + marker
       + '<h2 class="news-title"><a href="' + link + '" target="_blank" rel="noopener">'
       + esc(item.title || 'Senza titolo') + '</a></h2></div>'
