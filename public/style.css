@@ -153,3 +153,19 @@ body.redazione-lock{overflow:hidden}
 .redazione-login{border:1px solid #b3262d;background:#fff;color:#b3262d;border-radius:2px;padding:7px 10px;font:700 12px 'Economica',Arial,sans-serif;letter-spacing:.6px;white-space:nowrap}
 .redazione-login:hover{background:#b3262d;color:#fff}
 @media(max-width:760px){.redazione-login{font-size:10px;padding:5px 6px}}
+
+/* Contenuti editoriali pubblicati */
+.category-filter.category-redazione-filter{background:#27834b;border-color:#27834b;color:#fff}
+.category-filter.category-redazione-filter:hover{background:#1f6d3e;border-color:#1f6d3e;color:#fff}
+.category-filter.category-redazione-filter.is-active{background:#185a33;border-color:#185a33;color:#fff;box-shadow:0 0 0 2px rgba(39,131,75,.2)}
+.news-category-redazione{background:#27834b!important;border-color:#27834b!important;color:#fff!important;font-weight:700}
+.redazione-note-tools{display:flex;gap:6px;align-items:center}
+.redazione-note-tools button{border:1px solid #27834b;background:#fff;color:#27834b;padding:5px 7px;font-size:11px}
+.redazione-note-tools .redazione-delete{border-color:#ddd;color:#a22}
+.editorial-page{max-width:900px}
+.editorial-meta{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:14px;margin:18px 0}
+.editorial-title{font-size:clamp(30px,5vw,48px);line-height:1.08;margin:12px 0}
+.editorial-byline{color:var(--muted);font-size:16px;border-bottom:1px solid var(--line);padding-bottom:18px}
+.editorial-body{font:18px/1.65 Arial,sans-serif;white-space:normal;margin:25px 0;overflow-wrap:anywhere}
+.editorial-links{border-top:1px solid var(--line);padding-top:16px;font:15px Arial,sans-serif;overflow-wrap:anywhere}
+.editorial-links a{color:#176b3b}
