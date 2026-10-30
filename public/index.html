@@ -1,1 +1,49 @@
-<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#fff"><title>BREAKING — News monitor</title><link rel="stylesheet" href="style.css"></head><body><header class="topbar"><a class="brand" href="/"><span class="mark">●</span><span class="brand-name">BREAKING</span></a><div class="header-meta"><span class="live-dot"></span> AGGIORNAMENTO AUTOMATICO OGNI MINUTO</div></header><main class="container"><nav class="stream-tabs"><button class="stream-tab active" data-stream="all">TUTTO</button><button class="stream-tab" data-stream="news">NEWS</button><button class="stream-tab" data-stream="social">SOCIAL</button></nav><section class="controls"><input id="search" type="search" placeholder="Cerca nelle notizie e nei social…" aria-label="Cerca"><button id="refresh-btn">Aggiorna</button></section><div class="feed-head"><div id="status" class="status" aria-live="polite">Connessione alle fonti…</div><div class="order-label">PIÙ RECENTI</div></div><details id="errors-details" class="errors-details" hidden><summary>Fonti non raggiungibili</summary><ul id="errors-list"></ul></details><section id="social-filters" class="social-filters" hidden><input id="social-query" type="search" placeholder="Parole chiave social: scuola, governo, sciopero…"><input id="social-accounts" type="text" placeholder="Account da seguire: @nome, @profilo…"><button id="social-apply" type="button">Cerca social</button></section><div id="social-note" class="social-note" hidden>I post sono riconoscibili dal colore della piattaforma. Bluesky è interrogabile pubblicamente; X, Facebook e Instagram richiedono credenziali API e account/pagine autorizzati.</div><section id="articles" class="news-list" aria-live="polite"></section><p id="empty-state" class="empty-state" hidden>Nessun contenuto trovato.</p></main><footer class="footer">BREAKING · Notizie e post da fonti pubbliche; i contenuti restano collegati alle piattaforme originali. La copertura social dipende dalle API e dalle autorizzazioni disponibili.</footer><script src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff">
+  <title>BREAKING — News monitor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/"><span class="mark">●</span><span class="brand-name">BREAKING</span></a>
+    <div class="header-meta"><span class="live-dot"></span> AGGIORNAMENTO AUTOMATICO OGNI MINUTO</div>
+  </header>
+  <main class="container">
+    <nav class="stream-tabs">
+      <button class="stream-tab active" data-stream="all">TUTTO</button>
+      <button class="stream-tab" data-stream="news">NEWS</button>
+      <button class="stream-tab" data-stream="social">SOCIAL</button>
+    </nav>
+    <section class="controls">
+      <input id="search" type="search" placeholder="Cerca nelle notizie e nei social…" aria-label="Cerca">
+      <button id="refresh-btn">Aggiorna</button>
+    </section>
+    <div class="feed-head">
+      <div id="status" class="status" aria-live="polite">Connessione alle fonti…</div>
+      <div class="order-label">PIÙ RECENTI</div>
+    </div>
+    <details id="news-errors-details" class="errors-details" hidden>
+      <summary>Problemi nelle fonti NEWS</summary>
+      <ul id="news-errors-list"></ul>
+    </details>
+    <details id="social-errors-details" class="errors-details" hidden>
+      <summary>Problemi nelle fonti SOCIAL</summary>
+      <ul id="social-errors-list"></ul>
+    </details>
+    <section id="social-filters" class="social-filters" hidden>
+      <input id="social-query" type="search" placeholder="Parole chiave social: scuola, governo, sciopero…">
+      <input id="social-accounts" type="text" placeholder="Account da seguire: @nome, @profilo…">
+      <button id="social-apply" type="button">Cerca social</button>
+    </section>
+    <div id="social-note" class="social-note" hidden></div>
+    <section id="articles" class="news-list" aria-live="polite"></section>
+    <p id="empty-state" class="empty-state" hidden>Nessun contenuto trovato.</p>
+  </main>
+  <footer class="footer">BREAKING · Notizie e post da fonti pubbliche; i contenuti restano collegati alle piattaforme originali. La copertura social dipende dalle API e dalle autorizzazioni disponibili.</footer>
+  <script src="app.js"></script>
+</body>
+</html>
