@@ -1,5 +1,5 @@
 const AUTO_REFRESH_MS = 60000;
-const state = { news: [], newsErrors: [] };
+const state = { news: [], newsErrors: [], activeCategory: 'TUTTE' };
 const el = {
   search: document.getElementById('search'),
   refreshBtn: document.getElementById('refresh-btn'),
@@ -8,6 +8,7 @@ const el = {
   newsErrorsList: document.getElementById('news-errors-list'),
   articles: document.getElementById('articles'),
   emptyState: document.getElementById('empty-state'),
+  categoryFilters: document.getElementById('category-filters'),
 };
 
 function esc(value) {
@@ -64,10 +65,27 @@ function urgency(item) {
   return 'normal';
 }
 
+function renderCategoryFilters() {
+  const counts = new Map();
+  for (const item of state.news) {
+    const category = newsCategory(item);
+    counts.set(category, (counts.get(category) || 0) + 1);
+  }
+  const total = state.news.length;
+  const categories = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it'));
+  const buttons = [['TUTTE', total], ...categories];
+  el.categoryFilters.innerHTML = buttons.map(([name, count]) =>
+    '<button type="button" class="category-filter' + (state.activeCategory === name ? ' is-active' : '')
+    + '" data-category="' + esc(name) + '" aria-pressed="' + (state.activeCategory === name ? 'true' : 'false') + '">'
+    + esc(name) + '<span class="category-count">' + count + '</span></button>'
+  ).join('');
+}
+
 function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const rows = [...state.news]
     .sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0))
+    .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)
     .filter(item => !query || (
       String(item.title || '') + ' ' + String(item.source || '') + ' ' + String(item.summary || '')
     ).toLocaleLowerCase('it').includes(query));
@@ -113,6 +131,8 @@ async function load() {
     const data = await response.json();
     state.news = data.articles || [];
     state.newsErrors = data.errors || [];
+    if (state.activeCategory !== 'TUTTE' && !state.news.some(item => newsCategory(item) === state.activeCategory)) state.activeCategory = 'TUTTE';
+    renderCategoryFilters();
     render();
     renderErrors();
     el.status.textContent = state.news.length + ' notizie · aggiornato '
@@ -126,6 +146,13 @@ async function load() {
 }
 
 el.search.addEventListener('input', render);
+el.categoryFilters.addEventListener('click', event => {
+  const button = event.target.closest('button[data-category]');
+  if (!button) return;
+  state.activeCategory = button.dataset.category;
+  renderCategoryFilters();
+  render();
+});
 el.refreshBtn.addEventListener('click', load);
 load();
 setInterval(load, AUTO_REFRESH_MS);
