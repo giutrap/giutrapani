@@ -6,7 +6,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 'Economica',A
 .brand-block{display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:0}
 .brand{display:flex;align-items:center;text-decoration:none;min-width:0}
 .brand-logo{display:block;width:min(360px,42vw);max-height:88px;height:auto;object-fit:contain}
-.brand-credit{margin-top:-2px;padding-left:2px;color:var(--muted);font-size:13px;line-height:1.1;letter-spacing:.2px}
+.brand-credit{margin-top:5px;padding-left:2px;color:var(--muted);font-size:13px;line-height:1.1;letter-spacing:.2px}
 .brand-credit a{color:var(--ink);font-weight:700;text-decoration:none}
 .brand-credit a:hover{text-decoration:underline}
 .header-meta{font-size:14px;letter-spacing:1.1px;color:var(--muted);font-weight:700;white-space:nowrap}
@@ -45,7 +45,10 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
 .footer{max-width:1440px;margin:16px auto 0;padding:14px 28px 24px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
 @media(max-width:760px){
  .topbar{height:auto;min-height:76px;padding:8px 14px;gap:8px}
- .brand-logo{width:min(250px,48vw);max-height:62px}
+ .brand-logo{width:min(230px,46vw);max-height:58px}
+ .brand-credit{margin-top:4px;font-size:12px}
+ .brand-block{flex-shrink:0}
+ .header-meta{min-width:0}
  .header-meta{font-size:10px;letter-spacing:.5px;white-space:normal;text-align:right}
  .container{padding:16px 12px 10px}
  .controls input{font-size:16px}
@@ -59,6 +62,10 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
  .footer{padding:12px 14px 20px}
 }
 @media(max-width:420px){
+ .topbar{gap:6px;padding-left:10px;padding-right:10px}
+ .brand-logo{width:min(210px,46vw);max-height:54px}
+ .brand-credit{font-size:11px}
+ .header-meta{font-size:9px;letter-spacing:.3px}
  .news-item{grid-template-columns:67px minmax(0,1fr) 34px;gap:6px}
  .news-source{display:none}
  .news-link{grid-column:3}
