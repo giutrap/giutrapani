@@ -66,7 +66,7 @@ app.get('/api/sources', (req, res) => {
   res.json({ sources, categories });
 });
 
-app.get('/api/social', async (req, res) => { try { const d=await getSocial(); res.json({updatedAt:Date.now(),count:d.posts.length,posts:d.posts,configured:d.configured,errors:d.errors}); } catch(e) { res.status(500).json({error:'Impossibile recuperare i social.'}); } });
+app.get('/api/social', async (req, res) => { try { const options={q:String(req.query.q||''),accounts:String(req.query.accounts||'').split(',').map(x=>x.trim()).filter(Boolean)}; const d=await getSocial(options); res.json({updatedAt:Date.now(),count:d.posts.length,posts:d.posts,configured:d.configured,errors:d.errors}); } catch(e) { res.status(500).json({error:'Impossibile recuperare i social.'}); } });
 
 app.get('/api/feeds', async (req, res) => {
   try {
