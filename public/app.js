@@ -74,7 +74,7 @@ function renderCategoryFilters() {
     counts.set(category, (counts.get(category) || 0) + 1);
   }
   const total = state.news.length;
-  const categories = [...counts.entries()].filter(([name]) => name !== 'IL RIFORMISTA' && name !== '@giutrapani').sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it'));
+  const categories = [...counts.entries()].filter(([name]) => name !== 'IL RIFORMISTA' && name !== '@giutrapani' && name !== 'REDAZIONE').sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it'));
   const buttons = [['TUTTE', total], ['REDAZIONE', counts.get('REDAZIONE') || 0], ['IL RIFORMISTA', counts.get('IL RIFORMISTA') || 0], ['@giutrapani', counts.get('@giutrapani') || 0], ...categories];
   el.categoryFilters.innerHTML = buttons.map(([name, count]) =>
     '<button type="button" class="category-filter' + (name === 'REDAZIONE' ? ' category-redazione-filter' : '') + (name === 'IL RIFORMISTA' ? ' category-riformista-filter' : '') + (name === '@giutrapani' ? ' category-x-filter' : '') + (state.activeCategory === name ? ' is-active' : '')
