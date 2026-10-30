@@ -136,7 +136,7 @@ function render() {
       + '<div class="pagination-controls">'
       + '<button type="button" data-page="prev" ' + (state.currentPage === 1 ? 'disabled' : '') + '>← PRECEDENTE</button>'
       + '<button type="button" data-page="next" ' + (state.currentPage === pageCount ? 'disabled' : '') + '>SUCCESSIVA →</button>'
-      + '</div><button type="button" id="footer-redazione-edit" class="footer-redazione-button">✎ SCRIVI IN REDAZIONE</button>'
+      + '</div><button type="button" id="footer-redazione-edit" class="footer-redazione-button">ACCESSO REDAZIONE</button>'
     : '<button type="button" id="footer-redazione-edit" class="footer-redazione-button">✎ SCRIVI IN REDAZIONE</button>';
   el.emptyState.textContent = query
     ? 'Nessuna notizia corrisponde alla ricerca.'
@@ -245,7 +245,7 @@ function closeRedPanel() {
   redPanel.classList.remove('is-open'); redPanel.setAttribute('aria-hidden','true');
   document.body.classList.remove('redazione-lock');
 }
-document.getElementById('redazione-login').addEventListener('click', () => openRedPanel({}));
+// L'accesso alla redazione è disponibile dal footer del flusso.
 el.pagination.addEventListener('click', event => {
   const pageButton = event.target.closest('[data-page]');
   if (pageButton) {
