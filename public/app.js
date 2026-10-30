@@ -89,6 +89,11 @@ function render() {
     // I contenuti di @giutrapani hanno una corsia editoriale prioritaria:
     // post e repost restano in testa, ordinati dal più recente, prima delle news.
     .sort((a, b) => {
+      // Prima gli approfondimenti pubblicati dalla Redazione, dal più recente;
+      // subito dopo i post/repost X, poi tutte le altre fonti in ordine cronologico.
+      const aIsEditorial = newsCategory(a) === 'REDAZIONE';
+      const bIsEditorial = newsCategory(b) === 'REDAZIONE';
+      if (aIsEditorial !== bIsEditorial) return aIsEditorial ? -1 : 1;
       const aIsX = newsCategory(a) === '@giutrapani';
       const bIsX = newsCategory(b) === '@giutrapani';
       if (aIsX !== bIsX) return aIsX ? -1 : 1;
