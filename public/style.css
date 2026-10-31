@@ -180,3 +180,22 @@ body.redazione-lock{overflow:hidden}
 .footer-redazione-button{border-color:#27834b;background:#27834b;color:#fff}
 .footer-redazione-button:hover{background:#1f6d3e;border-color:#1f6d3e}
 @media(max-width:600px){.pagination{padding:14px 12px 18px;gap:10px}.pagination-info{width:100%}.pagination-controls{flex:1}.pagination-controls button{flex:1;padding:9px 7px}.footer-redazione-button{width:100%}}
+
+
+/* Navigazione essenziale: i tag delle notizie diventano filtri contestuali */
+.news-category-tag{
+  appearance:none;
+  font:700 11px 'Economica',Arial,sans-serif;
+  cursor:pointer;
+  transition:filter .15s ease,transform .15s ease;
+}
+.news-category-tag:hover{filter:brightness(.94);transform:translateY(-1px)}
+.news-category-tag.is-active{
+  outline:2px solid #17191d;
+  outline-offset:2px;
+}
+.news-category-tag.news-category-redazione.is-active{outline-color:#185a33}
+.news-category-tag.news-category-riformista.is-active{outline-color:#713000}
+.news-category-tag.news-category-x.is-active{outline-color:#08679f}
+@media(max-width:760px){.news-category-tag{font-size:9px;padding:3px 4px}}
+@media(max-width:420px){.news-category-tag{font-size:8px;padding:3px 3px}}
