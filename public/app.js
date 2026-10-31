@@ -9,7 +9,6 @@ const el = {
   newsErrorsList: document.getElementById('news-errors-list'),
   articles: document.getElementById('articles'),
   emptyState: document.getElementById('empty-state'),
-  categoryFilters: document.getElementById('category-filters'),
   pagination: document.getElementById('pagination'),
 };
 
@@ -69,22 +68,6 @@ function urgency(item) {
   return 'normal';
 }
 
-function renderCategoryFilters() {
-  const counts = new Map();
-  for (const item of state.news) {
-    const category = newsCategory(item);
-    counts.set(category, (counts.get(category) || 0) + 1);
-  }
-  const total = state.news.length;
-  const categories = [...counts.entries()].filter(([name]) => name !== 'IL RIFORMISTA' && name !== '@giutrapani' && name !== 'FOCUS').sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'it'));
-  const buttons = [['TUTTE', total], ['FOCUS', counts.get('FOCUS') || 0], ['IL RIFORMISTA', counts.get('IL RIFORMISTA') || 0], ['@giutrapani', counts.get('@giutrapani') || 0], ...categories];
-  el.categoryFilters.innerHTML = buttons.map(([name, count]) =>
-    '<button type="button" class="category-filter' + (name === 'FOCUS' ? ' category-redazione-filter' : '') + (name === 'IL RIFORMISTA' ? ' category-riformista-filter' : '') + (name === '@giutrapani' ? ' category-x-filter' : '') + (state.activeCategory === name ? ' is-active' : '')
-    + '" data-category="' + esc(name) + '" aria-pressed="' + (state.activeCategory === name ? 'true' : 'false') + '">'
-    + esc(name) + '<span class="category-count">' + count + '</span></button>'
-  ).join('') + '<a class="category-filter category-social" href="https://x.com/giutrapani" target="_blank" rel="noopener noreferrer" aria-label="Apri il profilo di giutrapani su X">↗ X</a>';
-}
-
 function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const rows = [...state.news]
@@ -120,7 +103,7 @@ function render() {
     const category = newsCategory(item);
     return '<article class="news-item urgency-' + level + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
-      + '<span class="news-category' + (category === 'FOCUS' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : '') + '">' + esc(category) + '</span>'
+      + '<button type="button" class="news-category news-category-tag' + (category === 'FOCUS' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : '') + (state.activeCategory === category ? ' is-active' : '') + '" data-category="' + esc(category) + '" aria-pressed="' + (state.activeCategory === category ? 'true' : 'false') + '" title="Filtra per ' + esc(category) + '">' + esc(category) + '</button>'
       + '<div class="news-main">' + marker
       + '<h2 class="news-title"><a href="' + link + '" ' + (item.isEditorial ? '' : 'target="_blank" rel="noopener"') + '>'
       + esc(item.title || 'Senza titolo') + '</a></h2></div>'
@@ -162,7 +145,6 @@ async function load() {
     state.news = [...(data.articles || []), ...editorialItems];
     state.newsErrors = data.errors || [];
     if (state.activeCategory !== 'TUTTE' && !state.news.some(item => newsCategory(item) === state.activeCategory)) state.activeCategory = 'TUTTE';
-    renderCategoryFilters();
     render();
     renderErrors();
     el.status.textContent = state.news.length + ' notizie · aggiornato '
@@ -176,12 +158,12 @@ async function load() {
 }
 
 el.search.addEventListener('input', () => { state.currentPage = 1; render(); });
-el.categoryFilters.addEventListener('click', event => {
+el.articles.addEventListener('click', event => {
   const button = event.target.closest('button[data-category]');
   if (!button) return;
-  state.activeCategory = button.dataset.category;
+  const selected = button.dataset.category;
+  state.activeCategory = state.activeCategory === selected ? 'TUTTE' : selected;
   state.currentPage = 1;
-  renderCategoryFilters();
   render();
 });
 el.refreshBtn.addEventListener('click', load);
