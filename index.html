@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff">
+  <title>BREAKING — News monitor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Economica:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-block">
+      <a class="brand" href="/" aria-label="BREAKING NEWS"><img class="brand-logo" src="/breaking-logo.webp?v=20261031-2" alt="BREAKING NEWS — a cura di @giutrapani" decoding="async"></a>
+    </div>
+    <div class="header-meta"><span class="live-dot"></span> AGGIORNAMENTO AUTOMATICO OGNI MINUTO</div>
+  </header>
+  <main class="container">
+    <section class="controls">
+      <input id="search" type="search" placeholder="Cerca tra le notizie e le testate…" aria-label="Cerca nelle notizie">
+      <button id="refresh-btn">Aggiorna</button>
+    </section>
+    <div class="feed-head">
+      <div id="status" class="status" aria-live="polite">Connessione alle fonti…</div>
+      <div class="order-label">PIÙ RECENTI</div>
+    </div>
+    <details id="news-errors-details" class="errors-details" hidden>
+      <summary>Problemi nelle fonti NEWS</summary>
+      <ul id="news-errors-list"></ul>
+    </details>
+    <section id="articles" class="news-list" aria-live="polite"></section>
+    <p id="empty-state" class="empty-state" hidden>Nessuna notizia trovata.</p>
+    <nav id="pagination" class="pagination" aria-label="Paginazione e strumenti redazione"></nav>
+  </main>
+  <footer class="footer">BREAKING · Aggregatore di notizie da testate, agenzie e fonti informative. Ogni contenuto rimanda alla pubblicazione originale.</footer>
+  <aside id="redazione-panel" class="redazione-panel" aria-hidden="true">
+    <div class="redazione-backdrop" data-redazione-close></div>
+    <section class="redazione-drawer" role="dialog" aria-modal="true" aria-labelledby="redazione-heading">
+      <header class="redazione-header"><div><span class="redazione-kicker">AREA PRIVATA</span><h2 id="redazione-heading">REDAZIONE</h2></div><button type="button" class="redazione-close" data-redazione-close aria-label="Chiudi">×</button></header>
+      <div class="redazione-content">
+        <form id="redazione-form"><input type="hidden" id="redazione-id">
+          <label for="redazione-title">Titolo</label><input id="redazione-title" required>
+          <label for="redazione-source">Fonte</label><input id="redazione-source">
+          <label for="redazione-url">Link alla notizia originale</label><input id="redazione-url" type="url">
+          <label for="redazione-notes">Appunti personali</label><textarea id="redazione-notes" rows="8" placeholder="Annotazioni, spunti, verifiche da fare…"></textarea>
+          <label for="redazione-links">Link aggiuntivi</label><textarea id="redazione-links" rows="3" placeholder="Incolla qui altri collegamenti, uno per riga"></textarea>
+          <div class="redazione-actions"><button type="submit">SALVA NELL’ARCHIVIO</button><button type="button" id="redazione-new">NUOVA NOTA</button></div><p id="redazione-message" role="status"></p>
+        </form><div class="redazione-archive"><h3>ARCHIVIO PERSONALE</h3><div id="redazione-notes-list">Accedi per visualizzare le note salvate.</div></div>
+      </div>
+    </section>
+  </aside>
+  <script src="app.js"></script>
+</body>
+</html>
