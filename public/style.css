@@ -5,12 +5,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.35 'Economica',A
 .topbar{height:auto;min-height:136px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:8px max(28px,calc((100% - 1440px)/2));gap:20px}
 .brand-block{display:flex;flex-direction:column;align-items:center;min-width:0;gap:0}
 .brand{display:flex;align-items:center;text-decoration:none;min-width:0;position:relative}
-.brand-logo{display:block;width:min(420px,48vw);max-height:104px;height:auto;object-fit:contain}
-.brand::after{content:"BREAKING";position:absolute;z-index:1;left:43%;right:0;top:30%;height:69%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#c8def8;color:#080808;font:700 clamp(48px,5.8vw,76px)/.82 'Economica',Arial,sans-serif;letter-spacing:-1.2px;white-space:nowrap}
-.brand::before{content:"NEWS";position:absolute;z-index:2;left:69%;right:6%;top:78%;height:18%;display:flex;align-items:center;justify-content:center;background:#145da8;color:#fff;font:700 clamp(11px,1.5vw,17px)/1 'Economica',Arial,sans-serif;letter-spacing:3px;white-space:nowrap}
-.brand-credit{margin-top:5px;padding-left:2px;color:var(--muted);font-size:13px;line-height:1.1;letter-spacing:.2px}
-.brand-credit a{color:var(--ink);font-weight:700;text-decoration:none}
-.brand-credit a:hover{text-decoration:underline}
+.brand-logo{display:block;width:min(600px,58vw);max-height:160px;height:auto;object-fit:contain}
 .header-meta{font-size:14px;letter-spacing:1.1px;color:var(--muted);font-weight:700;white-space:nowrap}
 .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#25a45a;margin-right:7px}
 .container{max-width:1440px;margin:0 auto;padding:22px 28px 12px}
@@ -48,10 +43,7 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
 .footer{max-width:1440px;margin:16px auto 0;padding:14px 28px 24px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
 @media(max-width:760px){
  .topbar{height:auto;min-height:90px;padding:8px 14px;gap:8px}
- .brand-logo{width:min(270px,54vw);max-height:68px}
- .brand::after{font-size:clamp(38px,8vw,54px);letter-spacing:-.7px}
- .brand::before{font-size:clamp(9px,2vw,13px);letter-spacing:2px}
- .brand-credit{margin-top:4px;font-size:12px}
+ .brand-logo{width:min(390px,66vw);max-height:125px}
  .brand-block{flex-shrink:0}
  .header-meta{min-width:0}
  .header-meta{font-size:10px;letter-spacing:.5px;white-space:normal;text-align:right}
@@ -69,9 +61,7 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
 }
 @media(max-width:420px){
  .topbar{gap:6px;padding-left:10px;padding-right:10px}
- .brand-logo{width:min(250px,54vw);max-height:63px}
- .brand::after{font-size:clamp(34px,8vw,48px);letter-spacing:-.6px}
- .brand::before{font-size:9px;letter-spacing:1.5px}
+ .brand-logo{width:min(350px,66vw);max-height:112px}
  .brand-credit{font-size:11px}
  .header-meta{font-size:9px;letter-spacing:.3px}
  .news-item{grid-template-columns:67px 78px minmax(0,1fr) 34px;gap:5px}
