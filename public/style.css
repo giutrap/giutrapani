@@ -195,3 +195,8 @@ body.redazione-lock{overflow:hidden}
 .news-category-tag.news-category-x.is-active{outline-color:#08679f}
 @media(max-width:760px){.news-category-tag{font-size:9px;padding:3px 4px}}
 @media(max-width:420px){.news-category-tag{font-size:8px;padding:3px 3px}}
+
+
+/* Testata tipografica temporanea, senza immagini o loghi */
+.brand-wordmark{display:inline-block;color:#17191d;font:700 clamp(34px,5vw,58px)/1 'Economica',Arial,sans-serif;letter-spacing:1.5px;text-decoration:none;padding:12px 0}
+.brand-wordmark:hover{text-decoration:none}
