@@ -209,3 +209,35 @@ body.redazione-lock{overflow:hidden}
 .brand-wordmark:hover{text-decoration:none;color:#17191d;}
 @media(max-width:760px){.topbar{min-height:60px;padding:10px 14px;}.brand-wordmark{font-size:20px;}}
 @media(max-width:420px){.topbar{min-height:54px;padding:9px 10px;}.brand-wordmark{font-size:20px;}}
+
+
+/* Tipografia ingrandita: migliore leggibilità su desktop e mobile */
+body{font-size:18px;line-height:1.4}
+.brand-wordmark{font-size:28px}
+.controls input{font-size:22px}
+.status{font-size:18px}
+.order-label{font-size:15px}
+.news-item{min-height:54px}
+.news-time{font-size:17px}
+.news-category{font-size:13px;padding:4px 8px}
+.news-title{font-size:23px;line-height:1.22}
+.news-source{font-size:17px}
+.news-link{font-size:16px}
+.errors-details{font-size:17px}
+@media(max-width:760px){
+ .brand-wordmark{font-size:26px}
+ .controls input{font-size:19px}
+ .status{font-size:16px}
+ .news-item{min-height:52px}
+ .news-time{font-size:13px}
+ .news-category{font-size:10px;padding:4px 5px}
+ .news-title{font-size:17px;line-height:1.2}
+ .news-source{font-size:13px}
+ .news-link{font-size:12px}
+}
+@media(max-width:420px){
+ .brand-wordmark{font-size:25px}
+ .controls input{font-size:18px}
+ .news-time{font-size:12px}
+ .news-title{font-size:16px;line-height:1.18}
+}
