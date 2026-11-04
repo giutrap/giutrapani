@@ -7,6 +7,9 @@ const app = express();
 const parser = new Parser({ timeout: 8000 });
 const CACHE_TTL_MS = 60 * 1000;
 const cache = { timestamp: 0, articles: [], errors: [] };
+const insightSessions = new Map();
+const INSIGHT_SESSION_TTL_MS = 2 * 60 * 1000;
+const INSIGHT_EVENTS = new Set(['visit','article_open','podcast_open','social_open','trend_filter','category_filter','manual_refresh','live_open']);
 const pool = process.env.DATABASE_URL ? new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false },
@@ -37,6 +40,7 @@ async function initDatabase() {
   await pool.query("CREATE TABLE IF NOT EXISTS media_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, post_id TEXT NOT NULL DEFAULT '', url TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', caption TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
   await pool.query("INSERT INTO media_settings (id,enabled,post_id,url,title,caption) VALUES (1,TRUE,'2117852081189216309','https://x.com/Iran_in_India/status/2117852081189216309/video/1','','') ON CONFLICT (id) DO NOTHING");
   await pool.query("UPDATE media_settings SET enabled=TRUE, post_id='2116057861448966355', url='https://x.com/sarrah_bellus/status/2116057861448966355/video/1', title='', caption='', updated_at=NOW() WHERE id=1 AND post_id='2117852081189216309'");
+  await pool.query('CREATE TABLE IF NOT EXISTS insight_daily (day DATE NOT NULL, event TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(day,event))');
   await pool.query('CREATE TABLE IF NOT EXISTS x_feed_cache (id INTEGER PRIMARY KEY CHECK (id = 1), item JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
   const savedX = await pool.query('SELECT item FROM x_feed_cache WHERE id=1');
   if (savedX.rowCount && savedX.rows[0].item) xPostCache.items = [savedX.rows[0].item];
@@ -167,6 +171,26 @@ async function getFeeds() {
 }
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
+
+function pruneInsightSessions() {
+  const cutoff = Date.now() - INSIGHT_SESSION_TTL_MS;
+  for (const [id,lastSeen] of insightSessions) if (lastSeen < cutoff) insightSessions.delete(id);
+}
+app.post('/api/insight/collect', async (req,res) => {
+  const { sessionId, event } = req.body || {};
+  if (typeof sessionId !== 'string' || !/^[a-f0-9-]{36}$/i.test(sessionId)) return res.status(400).json({ error:'Sessione non valida.' });
+  if (event === 'heartbeat') {
+    pruneInsightSessions();
+    insightSessions.set(sessionId,Date.now());
+    return res.status(204).end();
+  }
+  if (!INSIGHT_EVENTS.has(event)) return res.status(400).json({ error:'Evento non riconosciuto.' });
+  if (!pool) return res.status(204).end();
+  try {
+    await pool.query("INSERT INTO insight_daily (day,event,count) VALUES ((NOW() AT TIME ZONE 'Europe/Rome')::date,$1,1) ON CONFLICT (day,event) DO UPDATE SET count=insight_daily.count+1",[event]);
+    res.status(204).end();
+  } catch { res.status(503).json({ error:'Raccolta statistiche temporaneamente non disponibile.' }); }
+});
 app.get('/api/live', async (req,res) => {
   try {
     if (!pool) return res.json({ enabled:false, videoId:'', title:'', description:'' });
@@ -220,6 +244,25 @@ app.get('/api/redazione/public/:id', async (req,res) => {
   } catch { res.status(500).json({ error:'Impossibile leggere il contenuto.' }); }
 });
 app.use('/api/redazione', requireRedazione);
+
+app.get('/api/redazione/insights', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio statistiche non configurato.' });
+    pruneInsightSessions();
+    const result = await pool.query("SELECT day::text AS day,event,count FROM insight_daily WHERE day >= (NOW() AT TIME ZONE 'Europe/Rome')::date - 6 ORDER BY day ASC,event ASC");
+    const rows = result.rows;
+    const today = new Date().toLocaleDateString('en-CA',{ timeZone:'Europe/Rome' });
+    const totals = rows.filter(row => row.day === today).reduce((acc,row) => { acc[row.event] = Number(row.count); return acc; },{});
+    const days = [];
+    for (let offset=6;offset>=0;offset--) {
+      const date = new Date(Date.now() - offset*86400000);
+      const key = new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Rome',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
+      const dayRows = rows.filter(row => row.day === key);
+      days.push({ day:key, visits:dayRows.filter(row=>row.event==='visit').reduce((n,row)=>n+Number(row.count),0), articles:dayRows.filter(row=>row.event==='article_open').reduce((n,row)=>n+Number(row.count),0), interactions:dayRows.filter(row=>row.event!=='visit').reduce((n,row)=>n+Number(row.count),0) });
+    }
+    res.json({ activeSessions:insightSessions.size, today:totals, days, events:rows.filter(row=>row.day===today).map(row=>({event:row.event,count:Number(row.count)})), refreshedAt:new Date().toISOString() });
+  } catch { res.status(500).json({ error:'Statistiche non disponibili.' }); }
+});
 app.get('/api/redazione/live', async (req,res) => {
   try {
     if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
