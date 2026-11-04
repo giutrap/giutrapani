@@ -388,8 +388,8 @@ function renderPodcast(data) {
   if (!enabled) { podcastEls.player.src = ''; return; }
   const embed = 'https://widget.spreaker.com/player?episode_id=' + encodeURIComponent(data.episodeId) + '&theme=light&playlist=false';
   if (podcastEls.player.src !== embed) podcastEls.player.src = embed;
-  podcastEls.title.textContent = data.title || 'Podcast di approfondimento';
-  podcastEls.description.textContent = data.description || '';
+  if (podcastEls.title) podcastEls.title.textContent = data.title || 'Podcast di approfondimento';
+  if (podcastEls.description) podcastEls.description.textContent = data.description || '';
 }
 async function loadPodcastPublic() {
   try { const response = await fetch('/api/podcast'); if (response.ok) renderPodcast(await response.json()); }
