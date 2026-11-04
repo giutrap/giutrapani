@@ -994,3 +994,33 @@ body{font-size:18px;line-height:1.4}
 .editorial-link-card:hover{
   border-color:#c62828!important;
 }
+
+
+/* TREND: mostra tutti gli argomenti disponibili in una griglia compatta */
+.top-feature-grid #trends-section .trends-list{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-auto-rows:minmax(54px,auto)!important;
+  grid-template-rows:none!important;
+  gap:7px!important;
+  align-content:start;
+}
+.top-feature-grid #trends-section .keyword-card{
+  min-height:54px!important;
+  height:auto!important;
+  padding:8px 10px!important;
+  gap:9px!important;
+  align-items:center!important;
+}
+.top-feature-grid #trends-section .keyword-number{font-size:19px!important}
+.top-feature-grid #trends-section .keyword-kicker{font-size:8px!important;line-height:1}
+.top-feature-grid #trends-section .keyword-tag{font-size:17px!important;line-height:1.02}
+.top-feature-grid #trends-section .keyword-count{font-size:11px!important;line-height:1.05}
+.top-feature-grid #trends-section .keyword-content{gap:3px!important}
+@media(max-width:760px){
+  .top-feature-grid #trends-section .trends-list{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-auto-rows:minmax(60px,auto)!important;
+  }
+  .top-feature-grid #trends-section .keyword-card{min-height:60px!important}
+}
