@@ -1053,3 +1053,21 @@ body{font-size:18px;line-height:1.4}
 .feed-meme-card .feed-special-kicker,.feed-meme-card .feed-special-action{color:#587438}
 .feed-special-card a:hover{filter:brightness(.975)}
 @media(max-width:760px){.feed-special-card{margin:14px 0 18px}.feed-special-card a{min-height:120px;padding:16px 18px}}
+
+
+/* TREND: quattro risultati in colonna, a tutta altezza accanto alla diretta */
+@media(min-width:761px){
+  .top-feature-grid #trends-section .trends-list{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:repeat(4,minmax(0,1fr))!important;
+    grid-auto-rows:unset!important;
+    align-content:stretch!important;
+    gap:8px!important;
+  }
+  .top-feature-grid #trends-section .keyword-card{
+    height:100%!important;
+    min-height:0!important;
+    padding:8px 12px!important;
+    align-items:center!important;
+  }
+}
