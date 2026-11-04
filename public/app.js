@@ -1,6 +1,6 @@
 const AUTO_REFRESH_MS = 60000;
 const PAGE_SIZE = 50;
-const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', currentPage: 1 };
+const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', activeKeyword: '', currentPage: 1 };
 const trendEl = { list: document.getElementById('trends-list'), updated: document.getElementById('trends-updated') };
 const el = {
   search: document.getElementById('search'),
@@ -70,69 +70,59 @@ function urgency(item) {
 }
 
 
-const TREND_STOPWORDS = new Set(['della','delle','dello','degli','dallo','dalla','dalle','dallo','nella','nelle','nello','negli','sulla','sulle','sullo','sugli','dopo','prima','contro','sotto','sopra','verso','mentre','dove','quando','come','che','chi','cui','per','con','tra','fra','del','d al','dal','dei','dei','una','uno','gli','alla','alle','allo','agli','il','lo','la','le','i','un','e','o','a','da','di','in','su','non','si','ha','hanno','era','sono','anche','piu','più','nel','nei','nei','sul','sui','ad','al','all','all’','l’','d’','the','and','for','with','from','after','over','into','its','has','are','was']);
-function trendTokens(item) {
-  return String(item.title || '').toLocaleLowerCase('it')
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/https?:\/\/\S+/g,' ').replace(/[^a-z0-9 ]/g,' ')
-    .split(/\s+/).filter(word => word.length > 3 && !TREND_STOPWORDS.has(word))
-    .filter(word => !/^\d+$/.test(word));
+
+const KEYWORD_TOPICS = [
+  { label:'MIDTERM USA 2026', terms:['midterm','midterms','elezioni di meta mandato','elezioni di metà mandato','congresso usa','congresso americano','repubblicani','democratici','casa bianca','trump'], require:['midterm','midterms','elezioni di meta mandato','elezioni di metà mandato','congresso usa','congresso americano'] },
+  { label:'MANOVRA ECONOMICA ITALIA', terms:['manovra','legge di bilancio','finanziaria','bilancio dello stato','conti pubblici','deficit','debito pubblico'], require:['manovra','legge di bilancio','finanziaria','bilancio dello stato','conti pubblici'] },
+  { label:'GUERRA IN IRAN', terms:['iran','teheran','tehran','stretto di hormuz','missili iraniani','israele iran'], require:['iran','teheran','tehran','stretto di hormuz','missili iraniani','israele iran'] },
+  { label:'GUERRA IN UCRAINA', terms:['ucraina','ucraino','ucraini','kiev','kyiv','zelensky','putin','russia'], require:['ucraina','ucraino','ucraini','kiev','kyiv','zelensky'] },
+  { label:'GOVERNO MELONI', terms:['meloni','governo italiano','palazzo chigi','maggioranza','ministri'], require:['meloni','governo italiano','palazzo chigi'] },
+  { label:'ELEZIONI USA', terms:['elezioni usa','elezioni americane','trump','democratici','repubblicani','congresso americano'], require:['elezioni usa','elezioni americane','presidenziali americane'] },
+  { label:'UNIONE EUROPEA', terms:['unione europea','commissione europea','bruxelles','parlamento europeo','von der leyen'], require:['unione europea','commissione europea','bruxelles','parlamento europeo','von der leyen'] },
+  { label:'INTELLIGENZA ARTIFICIALE', terms:['intelligenza artificiale','chatgpt','openai','ai','algoritmi'], require:['intelligenza artificiale','chatgpt','openai'] },
+  { label:'SCUOLA E ISTRUZIONE', terms:['scuola','istruzione','docenti','studenti','universita','università','ministero istruzione'], require:['scuola','istruzione','docenti','studenti','universita','università'] },
+  { label:'MERCATI ED ECONOMIA', terms:['borsa','spread','inflazione','tassi','economia','mercati finanziari','banche centrali'], require:['borsa','spread','inflazione','tassi','mercati finanziari','banche centrali'] },
+  { label:'MEDIO ORIENTE', terms:['gaza','israele','palestina','hamas','libano','medio oriente'], require:['gaza','israele','palestina','hamas','libano'] },
+  { label:'MIGRAZIONI', terms:['migranti','immigrazione','migratoria','sbarchi','ong','asilo'], require:['migranti','immigrazione','sbarchi','ong','asilo'] }
+];
+function normalizeForMatch(value) {
+  return String(value || '').toLocaleLowerCase('it').normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 }
-function trendSimilarity(a,b) {
-  const left = new Set(trendTokens(a)), right = new Set(trendTokens(b));
-  if (!left.size || !right.size) return 0;
-  let common = 0;
-  for (const word of left) if (right.has(word)) common++;
-  return common / Math.min(left.size,right.size);
+function itemSearchText(item) {
+  return normalizeForMatch([item.title,item.summary,item.source].join(' '));
+}
+function topicMatches(item, topic) {
+  const text = itemSearchText(item);
+  return topic.require.some(term => {
+    const needle = normalizeForMatch(term);
+    return needle && (' ' + text + ' ').includes(' ' + needle + ' ');
+  });
 }
 function buildTrends(items) {
-  const eligible = items.filter(item => !item.isEditorial && item.title && item.link);
-  const groups = [];
-  for (const item of eligible) {
-    let best = null, bestScore = 0;
-    for (const group of groups) {
-      const score = Math.max(...group.items.map(existing => trendSimilarity(item,existing)));
-      if (score > bestScore) { bestScore = score; best = group; }
-    }
-    if (best && bestScore >= 0.48) best.items.push(item);
-    else groups.push({ items:[item] });
-  }
-  const now = Date.now(), recentWindow = 6 * 60 * 60 * 1000;
-  return groups.map(group => {
-    const valid = group.items.filter(item => {
-      const time = Date.parse(item.pubDate || '');
-      return Number.isFinite(time) && time > 0;
-    });
-    const recent = valid.filter(item => now - Date.parse(item.pubDate) <= recentWindow && now - Date.parse(item.pubDate) >= 0);
-    const previous = valid.filter(item => {
-      const age = now - Date.parse(item.pubDate);
-      return age > recentWindow && age <= recentWindow * 2;
-    });
-    const sources = new Set(group.items.map(item => item.source).filter(Boolean));
-    const score = recent.length - previous.length;
-    const first = [...group.items].sort((a,b) => Date.parse(b.pubDate || 0) - Date.parse(a.pubDate || 0))[0];
-    const trend = recent.length >= previous.length + 2 ? 'up' : recent.length + 1 < previous.length ? 'down' : 'steady';
-    return { ...group, recent:recent.length, previous:previous.length, sources:sources.size, score, first, trend };
-  }).filter(group => group.items.length >= 2 && group.sources >= 2)
-    .sort((a,b) => {
-      const rank = group => group.recent * 4 + Math.max(-2, group.score) * 3 + Math.min(group.sources,5);
-      return rank(b)-rank(a) || Date.parse(b.first.pubDate || 0)-Date.parse(a.first.pubDate || 0);
-    }).slice(0,5);
+  return KEYWORD_TOPICS.map(topic => {
+    const matches = items.filter(item => !item.isEditorial && topicMatches(item,topic));
+    const sources = new Set(matches.map(item => item.source).filter(Boolean));
+    const recent = matches.filter(item => {
+      const age = Date.now() - Date.parse(item.pubDate || '');
+      return Number.isFinite(age) && age >= 0 && age <= 12 * 60 * 60 * 1000;
+    }).length;
+    return { ...topic, matches, sources:sources.size, recent };
+  }).filter(topic => topic.matches.length > 0)
+    .sort((a,b) => b.recent-a.recent || b.matches.length-a.matches.length || b.sources-a.sources)
+    .slice(0,3);
 }
 function renderTrends() {
   if (!trendEl.list) return;
   const trends = buildTrends(state.news);
-  trendEl.updated.textContent = 'Finestra di osservazione: ultime 12 ore';
+  trendEl.updated.textContent = 'Seleziona un tema per filtrare il flusso';
   if (!trends.length) {
-    trendEl.list.innerHTML = '<p class="trends-empty">Non ci sono ancora argomenti ripresi da più fonti. I trend compariranno quando il flusso offrirà riscontri sufficienti.</p>';
+    trendEl.list.innerHTML = '<p class="trends-empty">I temi appariranno qui quando saranno presenti nelle notizie raccolte.</p>';
     return;
   }
-  trendEl.list.innerHTML = trends.map((group,index) => {
-    const label = group.trend === 'up' ? 'IN CRESCITA' : group.trend === 'down' ? 'IN CALO' : 'STABILE';
-    const cls = group.trend === 'up' ? 'trend-up' : group.trend === 'down' ? 'trend-down' : 'trend-steady';
-    const title = esc(group.first.title || 'Tema in evidenza');
-    const links = group.items.slice().sort((a,b) => Date.parse(b.pubDate || 0)-Date.parse(a.pubDate || 0)).slice(0,3);
-    return '<article class="trend-card"><div class="trend-rank">' + String(index+1).padStart(2,'0') + '</div><div class="trend-body"><div class="trend-meta"><span class="' + cls + '">' + label + '</span><span>' + group.items.length + ' articoli</span><span>' + group.sources + ' fonti</span></div><h3>' + title + '</h3><div class="trend-links">' + links.map(item => '<a href="' + esc(item.link) + '" target="_blank" rel="noopener">' + esc(item.source || 'Fonte') + ' ↗</a>').join('') + '</div></div></article>';
+  trendEl.list.innerHTML = trends.map((topic,index) => {
+    const active = state.activeKeyword === topic.label;
+    return '<button type="button" class="keyword-card' + (active ? ' is-active' : '') + '" data-keyword="' + esc(topic.label) + '" aria-pressed="' + active + '"><span class="keyword-number">0' + (index+1) + '</span><span class="keyword-content"><span class="keyword-kicker">TEMA IN EVIDENZA</span><strong class="keyword-tag">' + esc(topic.label) + '</strong><span class="keyword-count">' + topic.matches.length + ' notizie · ' + topic.sources + ' fonti</span></span><span class="keyword-arrow">↗</span></button>';
   }).join('');
 }
 
@@ -154,6 +144,7 @@ function render() {
       return new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
     })
     .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)
+    .filter(item => !state.activeKeyword || KEYWORD_TOPICS.find(topic => topic.label === state.activeKeyword && topicMatches(item,topic)))
     .filter(item => !query || (
       String(item.title || '') + ' ' + String(item.source || '') + ' ' + String(item.summary || '')
     ).toLocaleLowerCase('it').includes(query));
@@ -228,6 +219,17 @@ async function load() {
 }
 
 el.search.addEventListener('input', () => { state.currentPage = 1; render(); });
+
+trendEl.list.addEventListener('click', event => {
+  const button = event.target.closest('button[data-keyword]');
+  if (!button) return;
+  state.activeKeyword = state.activeKeyword === button.dataset.keyword ? '' : button.dataset.keyword;
+  state.activeCategory = 'TUTTE';
+  state.currentPage = 1;
+  renderTrends();
+  render();
+  el.articles.scrollIntoView({ behavior:'smooth', block:'start' });
+});
 el.articles.addEventListener('click', event => {
   const button = event.target.closest('button[data-category]');
   if (!button) return;
