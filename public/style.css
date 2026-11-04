@@ -958,3 +958,9 @@ body{font-size:18px;line-height:1.4}
   .editorial-link-card,.editorial-link-anchor{min-height:190px}
   .editorial-link-anchor{padding:24px}
 }
+
+
+/* Se la diretta è disattivata, i Trend occupano l'intera riga */
+.top-feature-grid:not(:has(#live-section:not([hidden]))) #trends-section{
+  grid-column:1/-1;
+}
