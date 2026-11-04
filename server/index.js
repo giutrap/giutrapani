@@ -31,18 +31,48 @@ async function initDatabase() {
   await pool.query(ddl);
   await pool.query('ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ');
 }
+const X_FEED_URLS = [
+  'https://rss.app/feeds/OvP3XcTYa2zjZUcZ.xml',
+  'https://nitter.mie.foundation/giutrapani/rss',
+  'https://nitter.mizuki.st/giutrapani/rss'
+];
+
+async function fetchXPosts(source) {
+  const attempts = await Promise.allSettled(X_FEED_URLS.map(async (url) => {
+    const feed = await new Parser({ timeout: 9000, headers: { 'User-Agent': 'BreakingNewsRSS/1.0' } }).parseURL(url);
+    return (feed.items || []).map(item => normalizeItem(item, source));
+  }));
+  const combined = [];
+  const seen = new Set();
+  for (const attempt of attempts) {
+    if (attempt.status !== 'fulfilled') continue;
+    for (const item of attempt.value) {
+      const key = item.link || item.title;
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      combined.push(item);
+    }
+  }
+  combined.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+  if (!combined.length) {
+    const errors = attempts.filter(x => x.status === 'rejected').map(x => x.reason?.message || 'feed non disponibile');
+    throw new Error(errors.join(' | ').slice(0, 220) || 'Nessun post disponibile');
+  }
+  return combined.slice(0, 10);
+}
 function normalizeItem(item, source) {
   const rawSummary = item.contentSnippet || item.summary || item.content || '';
   return { title: (item.title || '').trim(), link: item.link || item.guid || '', pubDate: item.isoDate || item.pubDate || null, summary: rawSummary.replace(/\\s+/g, ' ').trim().slice(0, 280), source: source.name, category: source.category };
 }
 async function fetchAllFeeds() {
   const settled = await Promise.allSettled(FEEDS.map(async source => {
-    const sourceParser = ['@giutrapani · X', 'Il Riformista'].includes(source.name) ? new Parser({ timeout: 30000 }) : parser;
+    if (source.name === '@giutrapani · X') return fetchXPosts(source);
+    const sourceParser = source.name === 'Il Riformista' ? new Parser({ timeout: 30000 }) : parser;
     const feed = await sourceParser.parseURL(source.url);
     const items = (feed.items || []).map(item => normalizeItem(item, source));
-    if (source.name === '@giutrapani · X' || source.name === 'Il Riformista') {
+    if (source.name === 'Il Riformista') {
       items.sort((a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
-      return items.slice(0, source.name === '@giutrapani · X' ? 10 : 2);
+      return items.slice(0, 2);
     }
     return items;
   }));
