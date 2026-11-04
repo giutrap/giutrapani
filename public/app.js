@@ -461,19 +461,19 @@ function renderMedia(data) {
   mediaEls.caption.hidden = !data.caption;
   mediaEls.embed.replaceChildren();
   const quote = document.createElement('blockquote');
-  quote.className = 'twitter-tweet';
+  quote.className = 'twitter-video';
   const link = document.createElement('a');
   link.href = data.postUrl;
-  link.textContent = 'Visualizza il post su X';
+  link.textContent = 'Guarda il video su X';
   quote.appendChild(link);
   mediaEls.embed.appendChild(quote);
   loadXWidgets().then(twttr => {
     if (twttr && twttr.widgets && mediaEls.section.hidden === false) twttr.widgets.load(mediaEls.embed);
   }).catch(() => {
-    mediaEls.embed.textContent = 'Il contenuto X non è al momento incorporabile. ';
+    mediaEls.embed.textContent = 'Il video X non è al momento incorporabile. ';
     const fallback = document.createElement('a');
     fallback.href = data.postUrl; fallback.target = '_blank'; fallback.rel = 'noopener noreferrer';
-    fallback.textContent = 'Apri il post su X'; mediaEls.embed.appendChild(fallback);
+    fallback.textContent = 'Apri il video su X'; mediaEls.embed.appendChild(fallback);
   });
 }
 async function loadMediaPublic() {
