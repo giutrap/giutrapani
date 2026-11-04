@@ -874,3 +874,87 @@ body{font-size:18px;line-height:1.4}
     margin-left:0!important;
   }
 }
+
+
+/* Nuova architettura homepage: LIVE/TREND sopra, due schede editoriali sotto */
+.media-feature-grid{display:none!important}
+.top-feature-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:22px;
+  align-items:stretch;
+  margin:0 0 22px;
+}
+.top-feature-grid #live-section,
+.top-feature-grid #trends-section{min-width:0;width:100%;margin:0}
+.top-feature-grid #live-section[hidden]{display:none!important}
+.top-feature-grid #trends-section{display:flex;flex-direction:column;justify-content:stretch}
+.top-feature-grid #trends-section .trends-list{
+  flex:1 1 auto;
+  grid-template-rows:repeat(4,minmax(0,1fr));
+}
+.top-feature-grid #trends-section .keyword-card{height:100%;min-height:0}
+.editorial-links-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:22px;
+  margin:0 0 24px;
+}
+.editorial-link-card{
+  min-width:0;
+  min-height:245px;
+  border:0;
+  border-radius:28px;
+  overflow:hidden;
+}
+.editorial-link-card[hidden]{display:none!important}
+.podcast-card{background:#efdbc8}
+.social-card{background:#f2fbe7}
+.editorial-link-anchor{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:flex-start;
+  width:100%;
+  min-height:245px;
+  height:100%;
+  padding:32px 36px 26px;
+  color:#17191d;
+  text-decoration:none;
+  transition:filter .18s ease;
+}
+.editorial-link-anchor:hover{filter:brightness(.97)}
+.editorial-card-title{
+  display:block;
+  max-width:100%;
+  font:400 clamp(34px,4vw,58px)/1.02 'Economica',Arial,sans-serif;
+  overflow-wrap:anywhere;
+}
+.editorial-card-description{
+  display:block;
+  max-width:90%;
+  margin-top:12px;
+  font:400 16px/1.4 Arial,sans-serif;
+  color:#52565b;
+}
+.editorial-card-description:empty{display:none}
+.editorial-card-action{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  align-self:flex-end;
+  margin-top:auto;
+  padding-top:22px;
+  font:400 clamp(22px,2.5vw,34px)/1 'Economica',Arial,sans-serif;
+  color:#17191d;
+}
+.editorial-card-action span{font:700 1.1em/1 Arial,sans-serif}
+@media(max-width:760px){
+  .top-feature-grid,.editorial-links-grid{grid-template-columns:minmax(0,1fr);gap:16px}
+  .top-feature-grid #trends-section{display:flex}
+  .top-feature-grid #trends-section .trends-list{grid-template-rows:none}
+  .top-feature-grid #trends-section .keyword-card{height:auto;min-height:76px}
+  .editorial-link-card,.editorial-link-anchor{min-height:190px}
+  .editorial-link-anchor{padding:24px}
+}
