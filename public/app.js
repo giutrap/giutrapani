@@ -12,6 +12,33 @@ const el = {
   emptyState: document.getElementById('empty-state'),
   pagination: document.getElementById('pagination'),
 };
+function getInsightSessionId() {
+  try {
+    let id = sessionStorage.getItem('breaking-insight-session');
+    if (!id) {
+      id = window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);});
+      sessionStorage.setItem('breaking-insight-session',id);
+    }
+    return id;
+  } catch { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);}); }
+}
+const insightSessionId = getInsightSessionId();
+function sendInsight(event) {
+  fetch('/api/insight/collect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:insightSessionId,event}),keepalive:true}).catch(()=>{});
+}
+function startInsightTracking() {
+  const today = new Date().toLocaleDateString('en-CA');
+  try {
+    if (sessionStorage.getItem('breaking-insight-visit-day') !== today) {
+      sendInsight('visit');
+      sessionStorage.setItem('breaking-insight-visit-day',today);
+    }
+  } catch { sendInsight('visit'); }
+  const heartbeat = () => sendInsight('heartbeat');
+  heartbeat();
+  setInterval(heartbeat,30000);
+}
+startInsightTracking();
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -232,6 +259,15 @@ async function load() {
 
 el.search.addEventListener('input', () => { state.currentPage = 1; render(); });
 
+document.addEventListener('click',event=>{
+  const target=event.target;
+  if (target.closest('.feed-special-card a,#podcast-card-link')) sendInsight('podcast_open');
+  else if (target.closest('.feed-meme-card a,#media-card-link')) sendInsight('social_open');
+  else if (target.closest('.news-title a,.news-link')) sendInsight('article_open');
+  else if (target.closest('button[data-keyword]')) sendInsight('trend_filter');
+  else if (target.closest('button[data-category]')) sendInsight('category_filter');
+});
+
 trendEl.list.addEventListener('click', event => {
   const button = event.target.closest('button[data-keyword]');
   if (!button) return;
@@ -251,7 +287,7 @@ el.articles.addEventListener('click', event => {
   render();
 });
 
-el.refreshBtn.addEventListener('click', load);
+el.refreshBtn.addEventListener('click', () => { sendInsight('manual_refresh'); load(); });
 load();
 loadLivePublic();
 loadPodcastPublic();
@@ -268,6 +304,52 @@ const redPanel = document.getElementById('redazione-panel');
 const redForm = document.getElementById('redazione-form');
 const redMessage = document.getElementById('redazione-message');
 const redList = document.getElementById('redazione-notes-list');
+const insightEls = {
+  active:document.getElementById('insight-active'),
+  visits:document.getElementById('insight-visits'),
+  articles:document.getElementById('insight-articles'),
+  interactions:document.getElementById('insight-interactions'),
+  days:document.getElementById('insight-days'),
+  breakdown:document.getElementById('insight-breakdown'),
+  message:document.getElementById('insight-message')
+};
+const insightLabels = {
+  article_open:'Aperture articoli',
+  podcast_open:'Aperture Podcast',
+  social_open:'Aperture Social',
+  trend_filter:'Filtri Trend',
+  category_filter:'Filtri categoria',
+  manual_refresh:'Aggiornamenti manuali'
+};
+function renderInsights(data) {
+  const today = data.today || {};
+  const interactions = Object.entries(today).filter(([key])=>key!=='visit').reduce((sum,[,value])=>sum+Number(value||0),0);
+  insightEls.active.textContent = Number(data.activeSessions||0).toLocaleString('it-IT');
+  insightEls.visits.textContent = Number(today.visit||0).toLocaleString('it-IT');
+  insightEls.articles.textContent = Number(today.article_open||0).toLocaleString('it-IT');
+  insightEls.interactions.textContent = interactions.toLocaleString('it-IT');
+  const days = data.days || [];
+  const max = Math.max(1,...days.map(day=>Number(day.visits||0)));
+  insightEls.days.innerHTML = days.map(day=>{
+    const date = new Date(day.day+'T12:00:00');
+    const label = date.toLocaleDateString('it-IT',{weekday:'short'}).replace('.','');
+    const value = Number(day.visits||0);
+    const height = Math.max(3,Math.round(value/max*64));
+    return '<div class="insight-day"><strong>'+value+'</strong><span class="insight-day-bar" style="height:'+height+'px"></span><small>'+esc(label)+'</small></div>';
+  }).join('') || '<span>Nessun dato disponibile.</span>';
+  const events = (data.events||[]).filter(row=>row.event!=='visit' && insightLabels[row.event]).sort((a,b)=>b.count-a.count);
+  insightEls.breakdown.innerHTML = events.length ? events.map(row=>'<div class="insight-breakdown-row"><span>'+esc(insightLabels[row.event])+'</span><strong>'+Number(row.count).toLocaleString('it-IT')+'</strong></div>').join('') : 'Nessuna interazione registrata oggi.';
+  insightEls.message.textContent = 'Aggiornato alle '+new Date(data.refreshedAt||Date.now()).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+}
+async function loadInsightsAdmin() {
+  try {
+    const response = await redRequest('/api/redazione/insights');
+    const data = await response.json().catch(()=>({}));
+    if (!response.ok) { insightEls.message.textContent = data.error || 'Statistiche non disponibili.'; return; }
+    renderInsights(data);
+  } catch { insightEls.message.textContent = 'Impossibile caricare gli Insight.'; }
+}
+document.getElementById('insight-refresh').addEventListener('click',loadInsightsAdmin);
 const rf = {
   id: document.getElementById('redazione-id'),
   title: document.getElementById('redazione-title'),
@@ -296,7 +378,7 @@ async function redLogin() {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { alert(data.error || 'Archivio non disponibile.'); return false; }
-  redazione.notes = data.notes || []; renderRedArchive(); await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); render(); return true;
+  redazione.notes = data.notes || []; renderRedArchive(); await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); await loadInsightsAdmin(); render(); return true;
 }
 function renderRedArchive() {
   if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
