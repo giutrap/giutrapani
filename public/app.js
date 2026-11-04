@@ -170,7 +170,9 @@ el.articles.addEventListener('click', event => {
 
 el.refreshBtn.addEventListener('click', load);
 load();
+loadLivePublic();
 setInterval(load, AUTO_REFRESH_MS);
+setInterval(loadLivePublic, 60000);
 
 
 // Area privata: le credenziali restano nella memoria della pagina e non vengono salvate.
@@ -207,7 +209,7 @@ async function redLogin() {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { alert(data.error || 'Archivio non disponibile.'); return false; }
-  redazione.notes = data.notes || []; renderRedArchive(); render(); return true;
+  redazione.notes = data.notes || []; renderRedArchive(); await loadLiveAdmin(); render(); return true;
 }
 function renderRedArchive() {
   if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
@@ -281,3 +283,63 @@ redForm.addEventListener('submit', async event => {
   redMessage.textContent = 'Nota salvata nell’archivio.'; rf.id.value = ''; await refreshRedArchive();
 });
 document.addEventListener('keydown', event => { if (event.key === 'Escape') closeRedPanel(); });
+
+
+const liveEls = {
+  section: document.getElementById('live-section'),
+  player: document.getElementById('live-player'),
+  title: document.getElementById('live-title'),
+  description: document.getElementById('live-description'),
+  url: document.getElementById('live-url'),
+  adminTitle: document.getElementById('live-admin-title'),
+  adminDescription: document.getElementById('live-admin-description'),
+  message: document.getElementById('live-admin-message')
+};
+function youtubeWatchUrl(videoId) { return 'https://www.youtube.com/watch?v=' + encodeURIComponent(videoId); }
+function renderLive(data) {
+  const enabled = Boolean(data && data.enabled && data.videoId);
+  liveEls.section.hidden = !enabled;
+  if (!enabled) { liveEls.player.src = ''; return; }
+  const embed = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(data.videoId);
+  if (liveEls.player.src !== embed) liveEls.player.src = embed;
+  liveEls.title.textContent = data.title || 'Diretta speciale';
+  liveEls.description.textContent = data.description || '';
+}
+async function loadLivePublic() {
+  try {
+    const response = await fetch('/api/live');
+    if (response.ok) renderLive(await response.json());
+  } catch (error) { console.warn('Stato LIVE non disponibile', error); }
+}
+async function loadLiveAdmin() {
+  try {
+    const response = await redRequest('/api/redazione/live');
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { liveEls.message.textContent = data.error || 'Impostazioni LIVE non disponibili.'; return; }
+    liveEls.url.value = data.videoId ? youtubeWatchUrl(data.videoId) : '';
+    liveEls.adminTitle.value = data.title || '';
+    liveEls.adminDescription.value = data.description || '';
+    liveEls.message.textContent = data.enabled ? 'Diretta attualmente attiva.' : 'Nessuna diretta attiva.';
+  } catch { liveEls.message.textContent = 'Impossibile caricare le impostazioni LIVE.'; }
+}
+document.getElementById('live-save').addEventListener('click', async () => {
+  const payload = { url: liveEls.url.value.trim(), title: liveEls.adminTitle.value.trim(), description: liveEls.adminDescription.value.trim(), enabled: true };
+  liveEls.message.textContent = 'Salvataggio in corso…';
+  try {
+    const response = await redRequest('/api/redazione/live', { method:'PUT', body:JSON.stringify(payload) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { liveEls.message.textContent = data.error || 'Salvataggio non riuscito.'; return; }
+    liveEls.message.textContent = 'Diretta attivata e pubblicata nella homepage.';
+    renderLive(data);
+  } catch { liveEls.message.textContent = 'Errore di connessione durante il salvataggio.'; }
+});
+document.getElementById('live-disable').addEventListener('click', async () => {
+  liveEls.message.textContent = 'Disattivazione in corso…';
+  try {
+    const response = await redRequest('/api/redazione/live', { method:'PUT', body:JSON.stringify({ enabled:false }) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { liveEls.message.textContent = data.error || 'Disattivazione non riuscita.'; return; }
+    liveEls.message.textContent = 'Diretta disattivata.';
+    renderLive(data);
+  } catch { liveEls.message.textContent = 'Errore di connessione durante la disattivazione.'; }
+});
