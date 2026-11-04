@@ -242,7 +242,6 @@ app.put('/api/redazione/live', async (req,res) => {
       const embedIndex = pathParts.findIndex(part => ['embed','live','shorts'].includes(part));
       videoId = host === 'youtu.be' ? pathParts[0] : (parsed.searchParams.get('v') || (embedIndex >= 0 ? pathParts[embedIndex + 1] : '') || '');
       if (!/^[A-Za-z0-9_-]{11}$/.test(videoId || '')) return res.status(400).json({ error:'Non riesco a riconoscere l’ID del video. Usa il link standard della diretta YouTube.' });
-      if (!String(title).trim()) return res.status(400).json({ error:'Inserisci un titolo per la diretta.' });
     }
     const safeTitle = String(title || '').trim().slice(0,140);
     const safeDescription = String(description || '').trim().slice(0,400);
