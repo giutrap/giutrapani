@@ -60,7 +60,7 @@ async function fetchXPosts(source) {
   }
   combined.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
   if (combined.length) {
-    xPostCache.items = combined.slice(0, 10);
+    xPostCache.items = combined.slice(0, 1);
     xPostCache.updatedAt = Date.now();
     return xPostCache.items;
   }
