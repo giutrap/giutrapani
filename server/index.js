@@ -31,7 +31,7 @@ async function initDatabase() {
   await pool.query(ddl);
   await pool.query('ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ');
   await pool.query("CREATE TABLE IF NOT EXISTS live_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, video_id TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
-  await pool.query("INSERT INTO live_settings (id, enabled) VALUES (1, FALSE) ON CONFLICT (id) DO NOTHING");
+  await pool.query("INSERT INTO live_settings (id, enabled, video_id, title, description) VALUES (1, TRUE, 'WUTDiO_fXdE', 'Diretta di prova', 'Primo test del player YouTube di Breaking') ON CONFLICT (id) DO NOTHING");
 }
 const X_FEED_URLS = [
   'https://rss.app/feeds/OvP3XcTYa2zjZUcZ.xml',
