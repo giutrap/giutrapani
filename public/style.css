@@ -375,3 +375,10 @@ body{font-size:18px;line-height:1.4}
  .top-feature-grid .keyword-tag{font-size:16px}
  .top-feature-grid .keyword-arrow{position:static}
 }
+
+/* Quattro parole chiave e intestazioni essenziali */
+.top-feature-grid .trends-list{gap:6px}
+.top-feature-grid .keyword-card{min-height:0;padding:8px 12px}
+.top-feature-grid .trends-heading{margin-bottom:8px}
+.top-feature-grid .trends-heading h2{margin-top:2px}
+.top-feature-grid .live-heading{margin-bottom:7px}
