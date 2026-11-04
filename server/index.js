@@ -32,6 +32,8 @@ async function initDatabase() {
   await pool.query('ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ');
   await pool.query("CREATE TABLE IF NOT EXISTS live_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, video_id TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
   await pool.query("INSERT INTO live_settings (id, enabled, video_id, title, description) VALUES (1, TRUE, 'WUTDiO_fXdE', 'Diretta di prova', 'Primo test del player YouTube di Breaking') ON CONFLICT (id) DO NOTHING");
+  await pool.query("CREATE TABLE IF NOT EXISTS podcast_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, episode_id TEXT NOT NULL DEFAULT '', url TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
+  await pool.query("INSERT INTO podcast_settings (id, enabled, episode_id, url, title, description) VALUES (1, TRUE, '76168692', 'https://www.spreaker.com/episode/speciale-midterm-negli-usa-i-democratici-stravincono-le-elezioni-di-meta-mandato--76168692', 'Speciale Midterm negli USA: i Democratici stravincono le elezioni di metà mandato', 'Speciale dedicato alle elezioni di metà mandato negli Stati Uniti.') ON CONFLICT (id) DO NOTHING");
   await pool.query('CREATE TABLE IF NOT EXISTS x_feed_cache (id INTEGER PRIMARY KEY CHECK (id = 1), item JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
   const savedX = await pool.query('SELECT item FROM x_feed_cache WHERE id=1');
   if (savedX.rowCount && savedX.rows[0].item) xPostCache.items = [savedX.rows[0].item];
@@ -170,6 +172,14 @@ app.get('/api/live', async (req,res) => {
     res.json({ enabled:live.enabled === true, videoId:live.video_id || '', title:live.title || '', description:live.description || '' });
   } catch { res.status(500).json({ error:'Stato della diretta non disponibile.' }); }
 });
+app.get('/api/podcast', async (req,res) => {
+  try {
+    if (!pool) return res.json({ enabled:false, episodeId:'', title:'', description:'' });
+    const result = await pool.query('SELECT enabled,episode_id,title,description FROM podcast_settings WHERE id=1');
+    const item = result.rows[0] || {};
+    res.json({ enabled:item.enabled === true, episodeId:item.episode_id || '', title:item.title || '', description:item.description || '' });
+  } catch { res.status(500).json({ error:'Stato del podcast non disponibile.' }); }
+});
 app.get('/api/sources', (req,res) => res.json({ sources: [...new Set(FEEDS.map(f=>f.name))].sort(), categories: [...new Set(FEEDS.map(f=>f.category))].sort() }));
 app.get('/api/diagnostics/feeds', async (req,res) => {
   try {
@@ -229,6 +239,37 @@ app.put('/api/redazione/live', async (req,res) => {
     const live = result.rows[0];
     res.json({ enabled:live.enabled === true, videoId:live.video_id || '', title:live.title || '', description:live.description || '' });
   } catch { res.status(500).json({ error:'Non è stato possibile aggiornare la diretta.' }); }
+});
+app.get('/api/redazione/podcast', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const result = await pool.query('SELECT enabled,episode_id,url,title,description FROM podcast_settings WHERE id=1');
+    const item = result.rows[0] || {};
+    res.json({ enabled:item.enabled === true, episodeId:item.episode_id || '', url:item.url || '', title:item.title || '', description:item.description || '' });
+  } catch { res.status(500).json({ error:'Impostazioni podcast non disponibili.' }); }
+});
+app.put('/api/redazione/podcast', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const { enabled=false, url='', title='', description='' } = req.body || {};
+    let episodeId = '', safeUrl = '';
+    if (enabled) {
+      let parsed;
+      try { parsed = new URL(String(url)); } catch { return res.status(400).json({ error:'Inserisci un link Spreaker valido.' }); }
+      const host = parsed.hostname.toLowerCase().replace(/^www\./,'');
+      if (host !== 'spreaker.com') return res.status(400).json({ error:'Il collegamento deve appartenere a Spreaker.' });
+      const match = parsed.pathname.match(/--(\d+)\/?$/);
+      episodeId = match ? match[1] : '';
+      if (!episodeId) return res.status(400).json({ error:'Non riesco a riconoscere l’ID della puntata Spreaker.' });
+      if (!String(title).trim()) return res.status(400).json({ error:'Inserisci un titolo per il podcast.' });
+      safeUrl = parsed.origin + parsed.pathname;
+    }
+    const safeTitle = String(title || '').trim().slice(0,180);
+    const safeDescription = String(description || '').trim().slice(0,500);
+    const result = await pool.query('INSERT INTO podcast_settings (id,enabled,episode_id,url,title,description,updated_at) VALUES (1,$1,$2,$3,$4,$5,NOW()) ON CONFLICT (id) DO UPDATE SET enabled=EXCLUDED.enabled,episode_id=EXCLUDED.episode_id,url=EXCLUDED.url,title=EXCLUDED.title,description=EXCLUDED.description,updated_at=NOW() RETURNING enabled,episode_id,title,description',[Boolean(enabled),episodeId,safeUrl,safeTitle,safeDescription]);
+    const item = result.rows[0];
+    res.json({ enabled:item.enabled === true, episodeId:item.episode_id || '', title:item.title || '', description:item.description || '' });
+  } catch { res.status(500).json({ error:'Non è stato possibile aggiornare il podcast.' }); }
 });
 app.get('/api/redazione/notes', async (req,res) => {
   try {
