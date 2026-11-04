@@ -1,6 +1,7 @@
 const AUTO_REFRESH_MS = 60000;
 const PAGE_SIZE = 50;
 const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', currentPage: 1 };
+const trendEl = { list: document.getElementById('trends-list'), updated: document.getElementById('trends-updated') };
 const el = {
   search: document.getElementById('search'),
   refreshBtn: document.getElementById('refresh-btn'),
@@ -66,6 +67,73 @@ function urgency(item) {
   if (/\b(ultim['’ ]ora|breaking|flash news|notizia urgente)\b/.test(title)) return 'urgent';
   if (/\b(in aggiornamento|aggiornamento|diretta|live|sviluppi)\b/.test(title)) return 'developing';
   return 'normal';
+}
+
+
+const TREND_STOPWORDS = new Set(['della','delle','dello','degli','dallo','dalla','dalle','dallo','nella','nelle','nello','negli','sulla','sulle','sullo','sugli','dopo','prima','contro','sotto','sopra','verso','mentre','dove','quando','come','che','chi','cui','per','con','tra','fra','del','d al','dal','dei','dei','una','uno','gli','alla','alle','allo','agli','il','lo','la','le','i','un','e','o','a','da','di','in','su','non','si','ha','hanno','era','sono','anche','piu','più','nel','nei','nei','sul','sui','ad','al','all','all’','l’','d’','the','and','for','with','from','after','over','into','its','has','are','was']);
+function trendTokens(item) {
+  return String(item.title || '').toLocaleLowerCase('it')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/https?:\/\/\S+/g,' ').replace(/[^a-z0-9 ]/g,' ')
+    .split(/\s+/).filter(word => word.length > 3 && !TREND_STOPWORDS.has(word))
+    .filter(word => !/^\d+$/.test(word));
+}
+function trendSimilarity(a,b) {
+  const left = new Set(trendTokens(a)), right = new Set(trendTokens(b));
+  if (!left.size || !right.size) return 0;
+  let common = 0;
+  for (const word of left) if (right.has(word)) common++;
+  return common / Math.min(left.size,right.size);
+}
+function buildTrends(items) {
+  const eligible = items.filter(item => !item.isEditorial && item.title && item.link);
+  const groups = [];
+  for (const item of eligible) {
+    let best = null, bestScore = 0;
+    for (const group of groups) {
+      const score = Math.max(...group.items.map(existing => trendSimilarity(item,existing)));
+      if (score > bestScore) { bestScore = score; best = group; }
+    }
+    if (best && bestScore >= 0.48) best.items.push(item);
+    else groups.push({ items:[item] });
+  }
+  const now = Date.now(), recentWindow = 6 * 60 * 60 * 1000;
+  return groups.map(group => {
+    const valid = group.items.filter(item => {
+      const time = Date.parse(item.pubDate || '');
+      return Number.isFinite(time) && time > 0;
+    });
+    const recent = valid.filter(item => now - Date.parse(item.pubDate) <= recentWindow && now - Date.parse(item.pubDate) >= 0);
+    const previous = valid.filter(item => {
+      const age = now - Date.parse(item.pubDate);
+      return age > recentWindow && age <= recentWindow * 2;
+    });
+    const sources = new Set(group.items.map(item => item.source).filter(Boolean));
+    const score = recent.length - previous.length;
+    const first = [...group.items].sort((a,b) => Date.parse(b.pubDate || 0) - Date.parse(a.pubDate || 0))[0];
+    const trend = recent.length >= previous.length + 2 ? 'up' : recent.length + 1 < previous.length ? 'down' : 'steady';
+    return { ...group, recent:recent.length, previous:previous.length, sources:sources.size, score, first, trend };
+  }).filter(group => group.items.length >= 2 && group.sources >= 2)
+    .sort((a,b) => {
+      const rank = group => group.recent * 3 + group.previous + (group.trend === 'up' ? 2 : 0) + Math.min(group.sources,5);
+      return rank(b)-rank(a) || Date.parse(b.first.pubDate || 0)-Date.parse(a.first.pubDate || 0);
+    }).slice(0,5);
+}
+function renderTrends() {
+  if (!trendEl.list) return;
+  const trends = buildTrends(state.news);
+  trendEl.updated.textContent = 'Finestra di osservazione: ultime 12 ore';
+  if (!trends.length) {
+    trendEl.list.innerHTML = '<p class="trends-empty">Non ci sono ancora argomenti ripresi da più fonti. I trend compariranno quando il flusso offrirà riscontri sufficienti.</p>';
+    return;
+  }
+  trendEl.list.innerHTML = trends.map((group,index) => {
+    const label = group.trend === 'up' ? 'IN CRESCITA' : group.trend === 'down' ? 'IN CALO' : 'STABILE';
+    const cls = group.trend === 'up' ? 'trend-up' : group.trend === 'down' ? 'trend-down' : 'trend-steady';
+    const title = esc(group.first.title || 'Tema in evidenza');
+    const links = group.items.slice().sort((a,b) => Date.parse(b.pubDate || 0)-Date.parse(a.pubDate || 0)).slice(0,3);
+    return '<article class="trend-card"><div class="trend-rank">' + String(index+1).padStart(2,'0') + '</div><div class="trend-body"><div class="trend-meta"><span class="' + cls + '">' + label + '</span><span>' + group.items.length + ' articoli</span><span>' + group.sources + ' fonti</span></div><h3>' + title + '</h3><div class="trend-links">' + links.map(item => '<a href="' + esc(item.link) + '" target="_blank" rel="noopener">' + esc(item.source || 'Fonte') + ' ↗</a>').join('') + '</div></div></article>';
+  }).join('');
 }
 
 function render() {
@@ -147,6 +215,7 @@ async function load() {
     state.newsErrors = data.errors || [];
     if (state.activeCategory !== 'TUTTE' && !state.news.some(item => newsCategory(item) === state.activeCategory)) state.activeCategory = 'TUTTE';
     render();
+    renderTrends();
     renderErrors();
     el.status.textContent = state.news.length + ' notizie · aggiornato '
       + new Date().toLocaleTimeString('it-IT');
