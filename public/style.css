@@ -772,3 +772,49 @@ body{font-size:18px;line-height:1.4}
   .top-feature-grid #podcast-section{display:flex!important}
   .top-feature-grid #podcast-section .podcast-player-wrap{height:190px!important;min-height:190px!important}
 }
+
+
+/* SOCIAL: post X completo dentro un riquadro identico al LIVE */
+.media-feature-grid #media-section{min-width:0;width:100%;max-width:none}
+.media-feature-grid #media-section .media-content{width:100%;min-width:0}
+.media-feature-grid #media-section .media-embed{
+  display:block!important;
+  position:relative!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:16/9!important;
+  overflow:hidden!important;
+  background:#f4f5f6;
+  border:1px solid var(--line);
+  border-radius:3px;
+}
+.media-feature-grid #media-section .media-embed blockquote.twitter-tweet{
+  display:block!important;
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  height:100%!important;
+  margin:0!important;
+  padding:0!important;
+}
+.media-feature-grid #media-section .media-embed .twitter-tweet-rendered,
+.media-feature-grid #media-section .media-embed iframe{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  height:100%!important;
+  max-height:none!important;
+  margin:0!important;
+  border:0!important;
+}
+.media-feature-grid #media-section .media-content h2,
+.media-feature-grid #media-section .media-content p{margin-top:7px}
+@media(max-width:760px){
+  .media-feature-grid #media-section .media-embed{aspect-ratio:16/9!important}
+}
