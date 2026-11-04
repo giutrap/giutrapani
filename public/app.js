@@ -248,8 +248,10 @@ el.articles.addEventListener('click', event => {
 el.refreshBtn.addEventListener('click', load);
 load();
 loadLivePublic();
+loadPodcastPublic();
 setInterval(load, AUTO_REFRESH_MS);
 setInterval(loadLivePublic, 60000);
+setInterval(loadPodcastPublic, 60000);
 
 
 // Area privata: le credenziali restano nella memoria della pagina e non vengono salvate.
@@ -286,7 +288,7 @@ async function redLogin() {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { alert(data.error || 'Archivio non disponibile.'); return false; }
-  redazione.notes = data.notes || []; renderRedArchive(); await loadLiveAdmin(); render(); return true;
+  redazione.notes = data.notes || []; renderRedArchive(); await loadLiveAdmin(); await loadPodcastAdmin(); render(); return true;
 }
 function renderRedArchive() {
   if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
@@ -372,6 +374,55 @@ const liveEls = {
   adminDescription: document.getElementById('live-admin-description'),
   message: document.getElementById('live-admin-message')
 };
+const podcastEls = {
+  section: document.getElementById('podcast-section'), player: document.getElementById('podcast-player'),
+  title: document.getElementById('podcast-title'), description: document.getElementById('podcast-description'),
+  url: document.getElementById('podcast-url'), adminTitle: document.getElementById('podcast-admin-title'),
+  adminDescription: document.getElementById('podcast-admin-description'), message: document.getElementById('podcast-admin-message')
+};
+function renderPodcast(data) {
+  const enabled = Boolean(data && data.enabled && data.episodeId);
+  podcastEls.section.hidden = !enabled;
+  if (!enabled) { podcastEls.player.src = ''; return; }
+  const embed = 'https://widget.spreaker.com/player?episode_id=' + encodeURIComponent(data.episodeId) + '&theme=light&playlist=false';
+  if (podcastEls.player.src !== embed) podcastEls.player.src = embed;
+  podcastEls.title.textContent = data.title || 'Podcast di approfondimento';
+  podcastEls.description.textContent = data.description || '';
+}
+async function loadPodcastPublic() {
+  try { const response = await fetch('/api/podcast'); if (response.ok) renderPodcast(await response.json()); }
+  catch (error) { console.warn('Podcast non disponibile', error); }
+}
+async function loadPodcastAdmin() {
+  try {
+    const response = await redRequest('/api/redazione/podcast');
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { podcastEls.message.textContent = data.error || 'Impostazioni podcast non disponibili.'; return; }
+    podcastEls.url.value = data.url || ''; podcastEls.adminTitle.value = data.title || '';
+    podcastEls.adminDescription.value = data.description || '';
+    podcastEls.message.textContent = data.enabled ? 'Podcast attualmente pubblicato.' : 'Nessun podcast pubblicato.';
+  } catch { podcastEls.message.textContent = 'Impossibile caricare le impostazioni del podcast.'; }
+}
+document.getElementById('podcast-save').addEventListener('click', async () => {
+  const payload = { url:podcastEls.url.value.trim(), title:podcastEls.adminTitle.value.trim(), description:podcastEls.adminDescription.value.trim(), enabled:true };
+  podcastEls.message.textContent = 'Pubblicazione in corso…';
+  try {
+    const response = await redRequest('/api/redazione/podcast', { method:'PUT', body:JSON.stringify(payload) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { podcastEls.message.textContent = data.error || 'Pubblicazione non riuscita.'; return; }
+    podcastEls.message.textContent = 'Podcast pubblicato nella homepage.'; renderPodcast(data);
+  } catch { podcastEls.message.textContent = 'Errore di connessione durante la pubblicazione.'; }
+});
+document.getElementById('podcast-disable').addEventListener('click', async () => {
+  podcastEls.message.textContent = 'Ritiro in corso…';
+  try {
+    const response = await redRequest('/api/redazione/podcast', { method:'PUT', body:JSON.stringify({ enabled:false }) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { podcastEls.message.textContent = data.error || 'Ritiro non riuscito.'; return; }
+    podcastEls.message.textContent = 'Podcast ritirato dalla homepage.'; renderPodcast(data);
+  } catch { podcastEls.message.textContent = 'Errore di connessione durante il ritiro.'; }
+});
+
 function youtubeWatchUrl(videoId) { return 'https://www.youtube.com/watch?v=' + encodeURIComponent(videoId); }
 function renderLive(data) {
   const enabled = Boolean(data && data.enabled && data.videoId);
