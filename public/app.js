@@ -1,6 +1,6 @@
 const AUTO_REFRESH_MS = 60000;
 const PAGE_SIZE = 50;
-const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', activeKeyword: '', currentPage: 1 };
+const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', activeKeyword: '', currentPage: 1, podcast: null, media: null };
 const trendEl = { list: document.getElementById('trends-list'), updated: document.getElementById('trends-updated') };
 const el = {
   search: document.getElementById('search'),
@@ -157,7 +157,11 @@ function render() {
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   state.currentPage = Math.min(state.currentPage, pageCount);
   const visibleRows = rows.slice((state.currentPage - 1) * PAGE_SIZE, state.currentPage * PAGE_SIZE);
-  el.articles.innerHTML = visibleRows.map(item => {
+  const podcastCard = state.podcast && state.podcast.enabled && state.podcast.episodeId && state.podcast.url
+    ? '<aside class="feed-special-card feed-podcast-card"><a href="' + esc(state.podcast.url) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">PODCAST · APPROFONDIMENTO</span><strong>' + esc(state.podcast.title || 'Il Podcast') + '</strong>' + (state.podcast.description ? '<span class="feed-special-description">' + esc(state.podcast.description) + '</span>' : '') + '<span class="feed-special-action">ASCOLTA ORA ↗</span></a></aside>' : '';
+  const memeCard = state.media && state.media.enabled && state.media.postUrl
+    ? '<aside class="feed-special-card feed-meme-card"><a href="' + esc(state.media.postUrl) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">MEME · SGUARDO SULL’ATTUALITÀ</span><strong>' + esc(state.media.title || 'Il Meme') + '</strong>' + (state.media.caption ? '<span class="feed-special-description">' + esc(state.media.caption) + '</span>' : '') + '<span class="feed-special-action">GUARDA ↗</span></a></aside>' : '';
+  el.articles.innerHTML = visibleRows.map((item, index) => {
     const link = esc(item.link || '#');
     const level = urgency(item);
     const marker = level === 'urgent'
@@ -175,7 +179,9 @@ function render() {
       + '<div class="news-source">' + esc(item.source || '') + '</div>'
       + (item.isEditorial ? '<a class="news-link" href="' + link + '" aria-label="Apri approfondimento">APRI ↗</a>' : '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Leggi la notizia">LEGGI ↗</a>')
       + (redazione.auth ? '<button type="button" class="redazione-open" data-title="' + esc(item.title || '') + '" data-source="' + esc(item.source || '') + '" data-url="' + link + '">REDAZIONE</button>' : '')
-      + '</article>';
+      + '</article>'
+      + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 10 ? podcastCard : '')
+      + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 20 ? memeCard : '');
   }).join('');
 
   el.emptyState.hidden = rows.length > 0;
@@ -382,6 +388,7 @@ const podcastEls = {
   adminDescription: document.getElementById('podcast-admin-description'), message: document.getElementById('podcast-admin-message')
 };
 function renderPodcast(data) {
+  state.podcast = data || null;
   const enabled = Boolean(data && data.enabled && data.episodeId && data.url);
   podcastEls.section.hidden = !enabled;
   if (!enabled) { podcastEls.player && (podcastEls.player.src = ''); return; }
@@ -389,6 +396,7 @@ function renderPodcast(data) {
   podcastEls.title.textContent = data.title || 'Il Podcast';
   podcastEls.description.textContent = data.description || '';
   podcastEls.description.hidden = !data.description;
+  render();
 }
 async function loadPodcastPublic() {
   try { const response = await fetch('/api/podcast'); if (response.ok) renderPodcast(await response.json()); }
@@ -451,6 +459,7 @@ function loadXWidgets() {
   return xWidgetsLoading;
 }
 function renderMedia(data) {
+  state.media = data || null;
   const enabled = Boolean(data && data.enabled && data.postUrl);
   mediaEls.section.hidden = !enabled;
   if (!enabled) return;
@@ -458,6 +467,7 @@ function renderMedia(data) {
   mediaEls.title.textContent = data.title || 'Il meme';
   mediaEls.caption.textContent = data.caption || '';
   mediaEls.caption.hidden = !data.caption;
+  render();
 }
 async function loadMediaPublic() {
   try { const response = await fetch('/api/media'); if (response.ok) renderMedia(await response.json()); }
