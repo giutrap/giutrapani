@@ -1229,3 +1229,6 @@ body{font-size:18px;line-height:1.4}
  .insight-breakdown{grid-template-columns:1fr}
  .insight-days{gap:4px}
 }
+
+
+.analytics-notice{display:block;margin-top:7px;font-size:11px;line-height:1.35;color:#858c95}
