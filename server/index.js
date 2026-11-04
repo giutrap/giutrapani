@@ -30,6 +30,8 @@ async function initDatabase() {
   const ddl = `CREATE TABLE IF NOT EXISTS editorial_notes (id BIGSERIAL PRIMARY KEY, title TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '', original_url TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', extra_links TEXT NOT NULL DEFAULT '', published_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await pool.query(ddl);
   await pool.query('ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ');
+  await pool.query("CREATE TABLE IF NOT EXISTS live_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, video_id TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
+  await pool.query("INSERT INTO live_settings (id, enabled) VALUES (1, FALSE) ON CONFLICT (id) DO NOTHING");
 }
 const X_FEED_URLS = [
   'https://rss.app/feeds/OvP3XcTYa2zjZUcZ.xml',
@@ -141,6 +143,14 @@ async function getFeeds() {
 }
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
+app.get('/api/live', async (req,res) => {
+  try {
+    if (!pool) return res.json({ enabled:false, videoId:'', title:'', description:'' });
+    const result = await pool.query('SELECT enabled,video_id,title,description FROM live_settings WHERE id=1');
+    const live = result.rows[0] || {};
+    res.json({ enabled:live.enabled === true, videoId:live.video_id || '', title:live.title || '', description:live.description || '' });
+  } catch { res.status(500).json({ error:'Stato della diretta non disponibile.' }); }
+});
 app.get('/api/sources', (req,res) => res.json({ sources: [...new Set(FEEDS.map(f=>f.name))].sort(), categories: [...new Set(FEEDS.map(f=>f.category))].sort() }));
 app.get('/api/diagnostics/feeds', async (req,res) => {
   try {
@@ -170,6 +180,35 @@ app.get('/api/redazione/public/:id', async (req,res) => {
   } catch { res.status(500).json({ error:'Impossibile leggere il contenuto.' }); }
 });
 app.use('/api/redazione', requireRedazione);
+app.get('/api/redazione/live', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const result = await pool.query('SELECT enabled,video_id,title,description FROM live_settings WHERE id=1');
+    const live = result.rows[0] || {};
+    res.json({ enabled:live.enabled === true, videoId:live.video_id || '', title:live.title || '', description:live.description || '' });
+  } catch { res.status(500).json({ error:'Impostazioni LIVE non disponibili.' }); }
+});
+app.put('/api/redazione/live', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const { enabled=false, url='', title='', description='' } = req.body || {};
+    let videoId = '';
+    if (enabled) {
+      let parsed;
+      try { parsed = new URL(String(url)); } catch { return res.status(400).json({ error:'Inserisci un link YouTube valido.' }); }
+      const host = parsed.hostname.toLowerCase().replace(/^www\\./,'');
+      if (!['youtube.com','m.youtube.com','youtu.be','youtube-nocookie.com'].includes(host)) return res.status(400).json({ error:'Il collegamento deve appartenere a YouTube.' });
+      videoId = host === 'youtu.be' ? parsed.pathname.split('/').filter(Boolean)[0] : (parsed.searchParams.get('v') || parsed.pathname.match(/\\/(?:embed|live|shorts)\\/([^/?]+)/)?.[1] || '');
+      if (!/^[A-Za-z0-9_-]{11}$/.test(videoId || '')) return res.status(400).json({ error:'Non riesco a riconoscere l’ID del video. Usa il link standard della diretta YouTube.' });
+      if (!String(title).trim()) return res.status(400).json({ error:'Inserisci un titolo per la diretta.' });
+    }
+    const safeTitle = String(title || '').trim().slice(0,140);
+    const safeDescription = String(description || '').trim().slice(0,400);
+    const result = await pool.query('INSERT INTO live_settings (id,enabled,video_id,title,description,updated_at) VALUES (1,$1,$2,$3,$4,NOW()) ON CONFLICT (id) DO UPDATE SET enabled=EXCLUDED.enabled,video_id=EXCLUDED.video_id,title=EXCLUDED.title,description=EXCLUDED.description,updated_at=NOW() RETURNING enabled,video_id,title,description',[Boolean(enabled),videoId,safeTitle,safeDescription]);
+    const live = result.rows[0];
+    res.json({ enabled:live.enabled === true, videoId:live.video_id || '', title:live.title || '', description:live.description || '' });
+  } catch { res.status(500).json({ error:'Non è stato possibile aggiornare la diretta.' }); }
+});
 app.get('/api/redazione/notes', async (req,res) => {
   try {
     if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
