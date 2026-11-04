@@ -55,6 +55,50 @@ async function fetchAllFeeds() {
   articles.sort((a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
   return { articles, errors };
 }
+const DIAGNOSTICS_CACHE_MS = 10 * 60 * 1000;
+let diagnosticsCache = { checkedAt: 0, results: [] };
+let diagnosticsPromise = null;
+
+async function checkOneFeed(source) {
+  const checkedAt = new Date().toISOString();
+  try {
+    const feed = await new Parser({ timeout: 7000 }).parseURL(source.url);
+    const items = feed.items || [];
+    const dates = items.map(item => new Date(item.isoDate || item.pubDate || 0)).filter(date => !Number.isNaN(date.getTime()) && date.getTime() > 0);
+    const latest = dates.length ? new Date(Math.max(...dates.map(date => date.getTime()))).toISOString() : null;
+    const ageHours = latest ? (Date.now() - new Date(latest).getTime()) / 3600000 : null;
+    return {
+      name: source.name, category: source.category, url: source.url,
+      status: !items.length ? 'empty' : ageHours > 168 ? 'stale' : 'ok',
+      count: items.length, latestPublishedAt: latest, checkedAt,
+      error: !items.length ? 'Feed raggiungibile ma senza articoli.' : ageHours > 168 ? 'Ultimo contenuto più vecchio di 7 giorni.' : null
+    };
+  } catch (error) {
+    return { name: source.name, category: source.category, url: source.url, status: 'error', count: 0, latestPublishedAt: null, checkedAt, error: String(error.message || 'Errore di lettura').slice(0, 220) };
+  }
+}
+async function runFeedDiagnostics(force = false) {
+  if (!force && diagnosticsCache.checkedAt && Date.now() - diagnosticsCache.checkedAt < DIAGNOSTICS_CACHE_MS) return diagnosticsCache;
+  if (diagnosticsPromise) return diagnosticsPromise;
+  diagnosticsPromise = (async () => {
+    const results = new Array(FEEDS.length);
+    let next = 0;
+    const workers = Array.from({ length: Math.min(16, FEEDS.length) }, async () => {
+      while (true) {
+        const index = next++;
+        if (index >= FEEDS.length) return;
+        results[index] = await checkOneFeed(FEEDS[index]);
+      }
+    });
+    await Promise.all(workers);
+    diagnosticsCache = { checkedAt: Date.now(), results };
+    diagnosticsPromise = null;
+    return diagnosticsCache;
+  })();
+  try { return await diagnosticsPromise; }
+  catch (error) { diagnosticsPromise = null; throw error; }
+}
+
 async function getFeeds() {
   if (Date.now() - cache.timestamp < CACHE_TTL_MS && cache.timestamp > 0) return cache;
   const data = await fetchAllFeeds(); cache.timestamp = Date.now(); cache.articles = data.articles; cache.errors = data.errors; return cache;
@@ -62,6 +106,13 @@ async function getFeeds() {
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.get('/api/sources', (req,res) => res.json({ sources: [...new Set(FEEDS.map(f=>f.name))].sort(), categories: [...new Set(FEEDS.map(f=>f.category))].sort() }));
+app.get('/api/diagnostics/feeds', async (req,res) => {
+  try {
+    const data = await runFeedDiagnostics(req.query.force === '1');
+    const counts = data.results.reduce((acc,item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
+    res.json({ checkedAt: new Date(data.checkedAt).toISOString(), total: data.results.length, counts, results: data.results });
+  } catch { res.status(500).json({ error: 'Diagnostica delle fonti non disponibile.' }); }
+});
 app.get('/api/feeds', async (req,res) => {
   try { const data = await getFeeds(); res.json({ updatedAt:data.timestamp, count:data.articles.length, articles:data.articles, errors:data.errors }); }
   catch { res.status(500).json({ error:'Impossibile recuperare i feed RSS.' }); }

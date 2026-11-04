@@ -125,6 +125,7 @@ const FEEDS = [
   { name: 'Vatican News', url: 'https://www.vaticannews.va/it.rss.xml', category: 'Chiesa' },
 
   // --- Internazionali ---
+  { name: 'Associated Press - International', url: 'https://flipboard.com/@associatedpress/international-news-miluvhmaz.rss', category: 'Mondo' },
   { name: 'BBC World', url: 'https://feeds.bbci.co.uk/news/world/rss.xml', category: 'Mondo' },
   { name: 'BBC Business', url: 'https://feeds.bbci.co.uk/news/business/rss.xml', category: 'Economia' },
   { name: 'BBC Science', url: 'https://feeds.bbci.co.uk/news/science_and_environment/rss.xml', category: 'Scienza' },

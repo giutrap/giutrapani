@@ -286,3 +286,20 @@ body{font-size:18px;line-height:1.4}
  .news-title{font-size:14px;line-height:1.14}
  .news-link{font-size:10px}
 }
+
+/* Pannello di diagnostica delle fonti RSS */
+.source-diagnostics{margin:8px 0 12px}
+#diagnostics-btn{border:1px solid #d9dde2;background:#fff;color:#424a54;padding:6px 10px;font-size:13px;letter-spacing:.5px}
+#diagnostics-panel{margin-top:9px;border:1px solid var(--line);padding:10px;background:#fbfcfd}
+.diagnostics-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin-bottom:8px}
+#diagnostics-refresh{border:0;background:#17191d;color:#fff;padding:7px 10px;font-size:12px}
+.diagnostic-row{display:grid;grid-template-columns:minmax(150px,1fr) 105px minmax(180px,1.5fr) 75px;gap:10px;align-items:center;padding:7px 4px;border-top:1px solid var(--line);font-size:14px}
+.diagnostic-row strong{display:block;color:var(--ink)}
+.diagnostic-row span{color:var(--muted);font-size:12px}
+.diagnostic-state{font-weight:700;font-size:11px;letter-spacing:.4px}
+.diagnostic-ok .diagnostic-state{color:#287447}
+.diagnostic-stale .diagnostic-state,.diagnostic-empty .diagnostic-state{color:#a56a12}
+.diagnostic-error .diagnostic-state{color:#b3262d}
+.diagnostic-detail{color:var(--muted);font-size:12px}
+.diagnostic-row a{color:#4e5965;text-decoration:none;font-size:11px;text-align:right}
+@media(max-width:650px){.diagnostic-row{grid-template-columns:minmax(0,1fr) auto;gap:4px 8px}.diagnostic-detail{grid-column:1/-1}.diagnostic-row a{grid-column:2;grid-row:1}.diagnostics-toolbar{align-items:flex-start}}
