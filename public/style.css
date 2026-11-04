@@ -410,3 +410,18 @@ body{font-size:18px;line-height:1.4}
 #podcast-admin-message{min-height:20px;color:#287447;font-size:13px}
 @media(max-width:760px){.podcast-section{padding:0 14px 14px;margin:12px auto 16px}.podcast-section p{font-size:13px}}
 @media(max-width:420px){.podcast-section{padding:0 10px 12px}}
+
+
+/* Podcast: etichetta essenziale e player orizzontale a tutta larghezza */
+.podcast-section{width:100%;max-width:none;margin:0 0 20px;padding:0;border:0}
+.podcast-section[hidden]{display:none}
+.podcast-section .live-heading{margin:0 0 8px}
+.podcast-player-wrap{position:relative;display:block;width:100%;max-width:100%;min-height:180px;margin:0;padding:0;background:transparent;border:0;overflow:hidden}
+.podcast-player-wrap iframe{display:block!important;width:100%!important;max-width:100%!important;height:190px!important;min-height:190px;border:0;margin:0;padding:0}
+@media(max-width:760px){
+  .podcast-section{margin:0 0 16px}
+  .podcast-player-wrap iframe{height:190px!important;min-height:190px}
+}
+@media(max-width:420px){
+  .podcast-player-wrap iframe{height:190px!important;min-height:190px}
+}
