@@ -34,8 +34,11 @@ async function initDatabase() {
 const X_FEED_URLS = [
   'https://rss.app/feeds/OvP3XcTYa2zjZUcZ.xml',
   'https://nitter.mie.foundation/giutrapani/rss',
-  'https://nitter.mizuki.st/giutrapani/rss'
+  'https://nitter.mizuki.st/giutrapani/rss',
+  'https://rsshub.app/twitter/user/giutrapani'
 ];
+
+const xPostCache = { items: [], updatedAt: 0 };
 
 async function fetchXPosts(source) {
   const attempts = await Promise.allSettled(X_FEED_URLS.map(async (url) => {
@@ -54,11 +57,14 @@ async function fetchXPosts(source) {
     }
   }
   combined.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
-  if (!combined.length) {
-    const errors = attempts.filter(x => x.status === 'rejected').map(x => x.reason?.message || 'feed non disponibile');
-    throw new Error(errors.join(' | ').slice(0, 220) || 'Nessun post disponibile');
+  if (combined.length) {
+    xPostCache.items = combined.slice(0, 10);
+    xPostCache.updatedAt = Date.now();
+    return xPostCache.items;
   }
-  return combined.slice(0, 10);
+  if (xPostCache.items.length) return xPostCache.items;
+  const errors = attempts.filter(x => x.status === 'rejected').map(x => x.reason?.message || 'feed non disponibile');
+  throw new Error(errors.join(' | ').slice(0, 220) || 'Nessun post disponibile dalle fonti RSS gratuite');
 }
 function normalizeItem(item, source) {
   const rawSummary = item.contentSnippet || item.summary || item.content || '';
