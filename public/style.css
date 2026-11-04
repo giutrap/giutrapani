@@ -23,18 +23,18 @@ button{font:700 17px 'Economica',Arial,sans-serif;cursor:pointer}
 .trends-kicker{font-size:11px;letter-spacing:1.5px;color:#a51f2b;font-weight:700}
 .trends-heading h2{font-size:25px;line-height:1;margin:3px 0 0;letter-spacing:.5px}
 .trends-updated{font-size:12px;color:var(--muted);text-align:right}
-.trends-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:9px}
-.trend-card{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;padding:11px 12px;background:#f7f8f9;border:1px solid #e8eaed;border-radius:3px;min-width:0}
-.trend-rank{font-size:24px;font-weight:700;color:#aeb4bc;line-height:1}
-.trend-body{min-width:0}
-.trend-meta{display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--muted);letter-spacing:.4px}
-.trend-up,.trend-down,.trend-steady{font-size:10px;font-weight:700;letter-spacing:.6px}
-.trend-up{color:#21834a}.trend-down{color:#a15d25}.trend-steady{color:#69717b}
-.trend-body h3{font-size:17px;line-height:1.16;margin:5px 0 8px}
-.trend-links{display:flex;gap:10px;flex-wrap:wrap}
-.trend-links a{font-size:12px;color:#555f6b;text-decoration:none;border-bottom:1px solid #cbd0d6}
-.trend-links a:hover{color:#17191d;border-color:#17191d}
+.trends-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.keyword-card{display:flex;align-items:flex-start;gap:14px;min-height:112px;padding:15px 16px;text-align:left;background:#f7f8f9;border:1px solid #e1e4e8;border-radius:3px;color:var(--ink);transition:border-color .15s,background .15s;min-width:0}
+.keyword-card:hover,.keyword-card.is-active{border-color:#b3262d;background:#fffafa}
+.keyword-number{font-size:26px;font-weight:700;line-height:1;color:#aeb4bc}
+.keyword-content{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}
+.keyword-kicker{font-size:10px;letter-spacing:1.1px;color:#a51f2b;font-weight:700}
+.keyword-tag{font-size:20px;line-height:1.08;overflow-wrap:anywhere}
+.keyword-count{font-size:13px;color:var(--muted)}
+.keyword-arrow{font-size:20px;color:#aeb4bc;margin-left:auto}
+.keyword-card.is-active .keyword-tag{color:#a51f2b}
 .trends-empty{font-size:14px;color:var(--muted);margin:0}
+@media(max-width:760px){.trends-list{grid-template-columns:1fr;gap:8px}.keyword-card{min-height:76px;padding:11px 13px}.keyword-tag{font-size:18px}.trends-heading{align-items:flex-start;flex-direction:column}.trends-updated{text-align:left}}
 .news-list{border-top:1px solid var(--line)}
 .news-item{display:grid;grid-template-columns:118px 112px minmax(0,1fr) 160px 55px;gap:12px;align-items:center;min-height:43px;padding:7px 5px;border-bottom:1px solid var(--line);border-left:3px solid transparent}
 .news-time{font-size:14px;font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
