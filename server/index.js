@@ -32,6 +32,9 @@ async function initDatabase() {
   await pool.query('ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ');
   await pool.query("CREATE TABLE IF NOT EXISTS live_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, video_id TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
   await pool.query("INSERT INTO live_settings (id, enabled, video_id, title, description) VALUES (1, TRUE, 'WUTDiO_fXdE', 'Diretta di prova', 'Primo test del player YouTube di Breaking') ON CONFLICT (id) DO NOTHING");
+  await pool.query('CREATE TABLE IF NOT EXISTS x_feed_cache (id INTEGER PRIMARY KEY CHECK (id = 1), item JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
+  const savedX = await pool.query('SELECT item FROM x_feed_cache WHERE id=1');
+  if (savedX.rowCount && savedX.rows[0].item) xPostCache.items = [savedX.rows[0].item];
 }
 const X_FEED_URLS = [
   'https://rss.app/feeds/OvP3XcTYa2zjZUcZ.xml',
@@ -44,29 +47,45 @@ const xPostCache = { items: [], updatedAt: 0 };
 
 async function fetchXPosts(source) {
   const attempts = await Promise.allSettled(X_FEED_URLS.map(async (url) => {
-    const feed = await new Parser({ timeout: 9000, headers: { 'User-Agent': 'BreakingNewsRSS/1.0' } }).parseURL(url);
-    return (feed.items || []).map(item => normalizeItem(item, source));
+    const feed = await new Parser({ timeout: 12000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BreakingNewsRSS/1.0)' } }).parseURL(url);
+    return (feed.items || []).map(item => normalizeItem(item, source)).filter(item => item.title && item.link);
   }));
   const combined = [];
   const seen = new Set();
-  for (const attempt of attempts) {
-    if (attempt.status !== 'fulfilled') continue;
-    for (const item of attempt.value) {
-      const key = item.link || item.title;
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      combined.push(item);
+  attempts.forEach((attempt, index) => {
+    if (attempt.status === 'fulfilled') {
+      console.log('[X RSS]', X_FEED_URLS[index], 'articoli:', attempt.value.length);
+      for (const item of attempt.value) {
+        const key = item.link || item.title;
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        combined.push(item);
+      }
+    } else {
+      console.warn('[X RSS] fonte non disponibile:', X_FEED_URLS[index], attempt.reason?.message || 'errore');
     }
-  }
-  combined.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+  });
+  combined.sort((a, b) => {
+    const da = Date.parse(a.pubDate || '') || 0;
+    const db = Date.parse(b.pubDate || '') || 0;
+    return db - da;
+  });
   if (combined.length) {
-    xPostCache.items = combined.slice(0, 1);
+    xPostCache.items = [combined[0]];
     xPostCache.updatedAt = Date.now();
+    if (pool) {
+      try {
+        await pool.query('INSERT INTO x_feed_cache (id,item,updated_at) VALUES (1,$1,NOW()) ON CONFLICT (id) DO UPDATE SET item=EXCLUDED.item,updated_at=NOW()', [JSON.stringify(combined[0])]);
+      } catch (error) { console.warn('[X RSS] impossibile salvare la cache persistente:', error.message); }
+    }
     return xPostCache.items;
   }
-  if (xPostCache.items.length) return xPostCache.items;
+  if (xPostCache.items.length) {
+    console.warn('[X RSS] nessuna fonte ha restituito post: mostro l’ultimo post salvato.');
+    return xPostCache.items.slice(0, 1);
+  }
   const errors = attempts.filter(x => x.status === 'rejected').map(x => x.reason?.message || 'feed non disponibile');
-  throw new Error(errors.join(' | ').slice(0, 220) || 'Nessun post disponibile dalle fonti RSS gratuite');
+  throw new Error(errors.join(' | ').slice(0, 220) || 'Feed X raggiungibili ma senza post');
 }
 function normalizeItem(item, source) {
   const rawSummary = item.contentSnippet || item.summary || item.content || '';
