@@ -1071,3 +1071,85 @@ body{font-size:18px;line-height:1.4}
     align-items:center!important;
   }
 }
+
+
+/* Testata BreakingNEWS: marchio editoriale con avatar, doppio colore e filetto blu */
+.topbar{
+  min-height:150px!important;
+  padding:14px max(28px,calc((100% - 1440px)/2))!important;
+  gap:24px!important;
+}
+.brand-block{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:24px!important;
+  min-width:0;
+}
+.brand-avatar{
+  flex:0 0 auto!important;
+  display:block!important;
+  width:132px!important;
+  height:132px!important;
+  overflow:hidden!important;
+  border-radius:0!important;
+  background:#fff!important;
+}
+.brand-avatar img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+}
+.brand-title-group{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  min-width:0;
+}
+.brand-title-group .brand-wordmark{
+  display:flex!important;
+  align-items:baseline!important;
+  gap:0!important;
+  width:max-content;
+  max-width:100%;
+  padding:0 0 7px!important;
+  margin:0!important;
+  border-bottom:4px solid #285b89;
+  color:#08090b!important;
+  font:700 clamp(58px,6.1vw,88px)/.92 'Economica',Arial,sans-serif!important;
+  letter-spacing:-1.2px!important;
+  white-space:nowrap;
+  text-decoration:none!important;
+}
+.brand-title-group .brand-news{color:#285b89!important}
+.brand-credit{
+  margin-top:8px!important;
+  color:#17191d!important;
+  font:700 clamp(18px,1.7vw,26px)/1.05 'Economica',Arial,sans-serif!important;
+}
+.brand-credit a{color:#17191d!important;text-decoration:none}
+.header-meta{font-size:14px;letter-spacing:1.1px}
+@media(max-width:760px){
+  .topbar{min-height:100px!important;padding:10px 14px!important;gap:10px!important}
+  .brand-block{gap:12px!important}
+  .brand-avatar{width:82px!important;height:82px!important}
+  .brand-title-group .brand-wordmark{
+    font-size:clamp(38px,8vw,54px)!important;
+    letter-spacing:-.7px!important;
+    border-bottom-width:3px;
+    padding-bottom:5px!important;
+  }
+  .brand-credit{font-size:16px!important;margin-top:5px!important}
+  .header-meta{font-size:9px;max-width:31%;line-height:1.15;white-space:normal;text-align:right}
+}
+@media(max-width:420px){
+  .topbar{min-height:84px!important;padding:8px 10px!important}
+  .brand-block{gap:8px!important}
+  .brand-avatar{width:62px!important;height:62px!important}
+  .brand-title-group .brand-wordmark{font-size:clamp(32px,9vw,40px)!important}
+  .brand-credit{font-size:13px!important}
+  .header-meta{font-size:8px;max-width:30%}
+}
