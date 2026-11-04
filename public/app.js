@@ -350,6 +350,7 @@ async function loadInsightsAdmin() {
   } catch { insightEls.message.textContent = 'Impossibile caricare gli Insight.'; }
 }
 document.getElementById('insight-refresh').addEventListener('click',loadInsightsAdmin);
+setInterval(()=>{if(redazione.auth && redPanel.classList.contains('is-open')) loadInsightsAdmin();},30000);
 const rf = {
   id: document.getElementById('redazione-id'),
   title: document.getElementById('redazione-title'),
