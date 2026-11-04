@@ -249,9 +249,11 @@ el.refreshBtn.addEventListener('click', load);
 load();
 loadLivePublic();
 loadPodcastPublic();
+loadMediaPublic();
 setInterval(load, AUTO_REFRESH_MS);
 setInterval(loadLivePublic, 60000);
 setInterval(loadPodcastPublic, 60000);
+setInterval(loadMediaPublic, 60000);
 
 
 // Area privata: le credenziali restano nella memoria della pagina e non vengono salvate.
@@ -288,7 +290,7 @@ async function redLogin() {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { alert(data.error || 'Archivio non disponibile.'); return false; }
-  redazione.notes = data.notes || []; renderRedArchive(); await loadLiveAdmin(); await loadPodcastAdmin(); render(); return true;
+  redazione.notes = data.notes || []; renderRedArchive(); await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); render(); return true;
 }
 function renderRedArchive() {
   if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
@@ -421,6 +423,91 @@ document.getElementById('podcast-disable').addEventListener('click', async () =>
     if (!response.ok) { podcastEls.message.textContent = data.error || 'Ritiro non riuscito.'; return; }
     podcastEls.message.textContent = 'Podcast ritirato dalla homepage.'; renderPodcast(data);
   } catch { podcastEls.message.textContent = 'Errore di connessione durante il ritiro.'; }
+});
+
+const mediaEls = {
+  section:document.getElementById('media-section'), embed:document.getElementById('media-embed'),
+  title:document.getElementById('media-title'), caption:document.getElementById('media-caption'),
+  url:document.getElementById('media-url'), adminTitle:document.getElementById('media-admin-title'),
+  adminCaption:document.getElementById('media-admin-caption'), message:document.getElementById('media-admin-message')
+};
+let xWidgetsLoading = null;
+function loadXWidgets() {
+  if (window.twttr && window.twttr.widgets) return Promise.resolve(window.twttr);
+  if (xWidgetsLoading) return xWidgetsLoading;
+  xWidgetsLoading = new Promise((resolve,reject) => {
+    let script = document.querySelector('script[data-breaking-x-widgets]');
+    if (!script) {
+      script = document.createElement('script');
+      script.src = 'https://platform.twitter.com/widgets.js';
+      script.async = true;
+      script.charset = 'utf-8';
+      script.dataset.breakingXWidgets = 'true';
+      document.body.appendChild(script);
+    }
+    script.addEventListener('load', () => resolve(window.twttr), { once:true });
+    script.addEventListener('error', reject, { once:true });
+    if (window.twttr && window.twttr.ready) window.twttr.ready(() => resolve(window.twttr));
+  });
+  return xWidgetsLoading;
+}
+function renderMedia(data) {
+  const enabled = Boolean(data && data.enabled && data.postUrl);
+  mediaEls.section.hidden = !enabled;
+  if (!enabled) { mediaEls.embed.replaceChildren(); return; }
+  mediaEls.title.textContent = data.title || '';
+  mediaEls.caption.textContent = data.caption || '';
+  mediaEls.title.hidden = !data.title;
+  mediaEls.caption.hidden = !data.caption;
+  mediaEls.embed.replaceChildren();
+  const quote = document.createElement('blockquote');
+  quote.className = 'twitter-tweet';
+  const link = document.createElement('a');
+  link.href = data.postUrl;
+  link.textContent = 'Visualizza il post su X';
+  quote.appendChild(link);
+  mediaEls.embed.appendChild(quote);
+  loadXWidgets().then(twttr => {
+    if (twttr && twttr.widgets && mediaEls.section.hidden === false) twttr.widgets.load(mediaEls.embed);
+  }).catch(() => {
+    mediaEls.embed.textContent = 'Il contenuto X non è al momento incorporabile. ';
+    const fallback = document.createElement('a');
+    fallback.href = data.postUrl; fallback.target = '_blank'; fallback.rel = 'noopener noreferrer';
+    fallback.textContent = 'Apri il post su X'; mediaEls.embed.appendChild(fallback);
+  });
+}
+async function loadMediaPublic() {
+  try { const response = await fetch('/api/media'); if (response.ok) renderMedia(await response.json()); }
+  catch (error) { console.warn('Media non disponibile', error); }
+}
+async function loadMediaAdmin() {
+  try {
+    const response = await redRequest('/api/redazione/media');
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { mediaEls.message.textContent = data.error || 'Impostazioni media non disponibili.'; return; }
+    mediaEls.url.value = data.url || ''; mediaEls.adminTitle.value = data.title || '';
+    mediaEls.adminCaption.value = data.caption || '';
+    mediaEls.message.textContent = data.enabled ? 'Contenuto attualmente pubblicato.' : 'Nessun contenuto media pubblicato.';
+  } catch { mediaEls.message.textContent = 'Impossibile caricare le impostazioni media.'; }
+}
+document.getElementById('media-save').addEventListener('click', async () => {
+  const payload = { url:mediaEls.url.value.trim(), title:mediaEls.adminTitle.value.trim(), caption:mediaEls.adminCaption.value.trim(), enabled:true };
+  mediaEls.message.textContent = 'Pubblicazione in corso…';
+  try {
+    const response = await redRequest('/api/redazione/media', { method:'PUT', body:JSON.stringify(payload) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { mediaEls.message.textContent = data.error || 'Pubblicazione non riuscita.'; return; }
+    mediaEls.message.textContent = 'Contenuto pubblicato nella homepage.'; renderMedia(data);
+  } catch { mediaEls.message.textContent = 'Errore di connessione durante la pubblicazione.'; }
+});
+document.getElementById('media-disable').addEventListener('click', async () => {
+  mediaEls.message.textContent = 'Ritiro in corso…';
+  try {
+    const response = await redRequest('/api/redazione/media', { method:'PUT', body:JSON.stringify({ enabled:false }) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) { mediaEls.message.textContent = data.error || 'Ritiro non riuscito.'; return; }
+    mediaEls.message.textContent = 'Contenuto ritirato dalla homepage.'; renderMedia(data);
+  } catch { mediaEls.message.textContent = 'Errore di connessione durante il ritiro.'; }
 });
 
 function youtubeWatchUrl(videoId) { return 'https://www.youtube.com/watch?v=' + encodeURIComponent(videoId); }
