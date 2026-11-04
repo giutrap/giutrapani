@@ -19,6 +19,12 @@ function esc(value) {
   })[char]);
 }
 
+function isFutureDated(item) {
+  const timestamp = Date.parse(item.pubDate || '');
+  // Tolleranza di due ore per piccoli disallineamenti tra server e feed RSS.
+  return Number.isFinite(timestamp) && timestamp > Date.now() + 2 * 60 * 60 * 1000;
+}
+
 function tm(value) {
   if (!value) return 'Orario n.d.';
   const date = new Date(value);
@@ -114,7 +120,7 @@ function buildTrends(items) {
 }
 function renderTrends() {
   if (!trendEl.list) return;
-  const trends = buildTrends(state.news);
+  const trends = buildTrends(state.news.filter(item => !isFutureDated(item)));
   trendEl.updated.textContent = 'Seleziona un tema per filtrare il flusso';
   if (!trends.length) {
     trendEl.list.innerHTML = '<p class="trends-empty">I temi appariranno qui quando saranno presenti nelle notizie raccolte.</p>';
@@ -128,7 +134,7 @@ function renderTrends() {
 
 function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
-  const rows = [...state.news]
+  const rows = state.news.filter(item => !isFutureDated(item))
     // Ordine editoriale: ultimo post X, ultimi due articoli del Riformista,
     // approfondimenti della Redazione e infine tutte le altre fonti in ordine cronologico.
     .sort((a, b) => {
