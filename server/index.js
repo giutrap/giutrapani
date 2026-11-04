@@ -196,9 +196,11 @@ app.put('/api/redazione/live', async (req,res) => {
     if (enabled) {
       let parsed;
       try { parsed = new URL(String(url)); } catch { return res.status(400).json({ error:'Inserisci un link YouTube valido.' }); }
-      const host = parsed.hostname.toLowerCase().replace(/^www\\./,'');
+      const host = parsed.hostname.toLowerCase().replace(/^www\./,'');
       if (!['youtube.com','m.youtube.com','youtu.be','youtube-nocookie.com'].includes(host)) return res.status(400).json({ error:'Il collegamento deve appartenere a YouTube.' });
-      videoId = host === 'youtu.be' ? parsed.pathname.split('/').filter(Boolean)[0] : (parsed.searchParams.get('v') || parsed.pathname.match(/\\/(?:embed|live|shorts)\\/([^/?]+)/)?.[1] || '');
+      const pathParts = parsed.pathname.split('/').filter(Boolean);
+      const embedIndex = pathParts.findIndex(part => ['embed','live','shorts'].includes(part));
+      videoId = host === 'youtu.be' ? pathParts[0] : (parsed.searchParams.get('v') || (embedIndex >= 0 ? pathParts[embedIndex + 1] : '') || '');
       if (!/^[A-Za-z0-9_-]{11}$/.test(videoId || '')) return res.status(400).json({ error:'Non riesco a riconoscere l’ID del video. Usa il link standard della diretta YouTube.' });
       if (!String(title).trim()) return res.status(400).json({ error:'Inserisci un titolo per la diretta.' });
     }
