@@ -161,7 +161,7 @@ function render() {
   const podcastCard = state.podcast && state.podcast.enabled && state.podcast.episodeId && state.podcast.url
     ? '<aside class="feed-special-card feed-podcast-card"><a href="' + esc(state.podcast.url) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">PODCAST · APPROFONDIMENTO</span><strong>' + esc(state.podcast.title || 'Il Podcast') + '</strong>' + (state.podcast.description ? '<span class="feed-special-description">' + esc(state.podcast.description) + '</span>' : '') + '<span class="feed-special-action">ASCOLTA ORA ↗</span></a></aside>' : '';
   const memeCard = state.media && state.media.enabled && state.media.postUrl
-    ? '<aside class="feed-special-card feed-meme-card"><a href="' + esc(state.media.postUrl) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">MEME · SGUARDO SULL’ATTUALITÀ</span><strong>' + esc(state.media.title || 'Il Meme') + '</strong>' + (state.media.caption ? '<span class="feed-special-description">' + esc(state.media.caption) + '</span>' : '') + '<span class="feed-special-action">GUARDA ↗</span></a></aside>' : '';
+    ? '<aside class="feed-special-card feed-meme-card"><a href="' + esc(state.media.postUrl) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">SOCIAL</span><strong>' + esc(state.media.title || 'Il Meme') + '</strong>' + (state.media.caption ? '<span class="feed-special-description">' + esc(state.media.caption) + '</span>' : '') + '<span class="feed-special-action">GUARDA ↗</span></a></aside>' : '';
   el.articles.innerHTML = visibleRows.map((item, index) => {
     const link = esc(item.link || '#');
     const level = urgency(item);
