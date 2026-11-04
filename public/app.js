@@ -115,8 +115,7 @@ function buildTrends(items) {
     }).length;
     return { ...topic, matches, sources:sources.size, recent };
   }).filter(topic => topic.matches.length > 0)
-    .sort((a,b) => b.recent-a.recent || b.matches.length-a.matches.length || b.sources-a.sources)
-    .slice(0,4);
+    .sort((a,b) => b.recent-a.recent || b.matches.length-a.matches.length || b.sources-a.sources);
 }
 function renderTrends() {
   if (!trendEl.list) return;
