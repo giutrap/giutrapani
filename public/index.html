@@ -22,9 +22,18 @@
     <div class="header-meta"><span class="live-dot"></span> AGGIORNAMENTO AUTOMATICO OGNI MINUTO</div>
   </header>
   <main class="container">
-    <section id="podcast-section" class="podcast-section" hidden aria-label="Podcast di approfondimento">
-      <div class="live-heading"><span class="live-pill">PODCAST</span></div>
-      <div class="podcast-player-wrap"><iframe id="podcast-player" title="Podcast di approfondimento" src="" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe></div>
+    <section class="media-feature-grid" aria-label="Podcast e contenuto multimediale">
+      <section id="podcast-section" class="podcast-section" hidden aria-label="Podcast di approfondimento">
+        <div class="live-heading"><span class="live-pill">PODCAST</span></div>
+        <div class="podcast-player-wrap"><iframe id="podcast-player" title="Podcast di approfondimento" src="" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe></div>
+      </section>
+      <section id="media-section" class="media-section" hidden aria-label="Media editoriale">
+        <div class="live-heading"><span class="live-pill">MEDIA</span></div>
+        <div class="media-content">
+          <div id="media-embed" class="media-embed"></div>
+          <h2 id="media-title"></h2><p id="media-caption"></p>
+        </div>
+      </section>
     </section>
     <section class="top-feature-grid" aria-label="Diretta e trend del giorno">
       <section id="live-section" class="live-section" hidden aria-label="Diretta speciale">
@@ -77,6 +86,15 @@
           <label for="podcast-admin-description">Descrizione (facoltativa)</label><textarea id="podcast-admin-description" rows="3" maxlength="500" placeholder="Una breve presentazione…"></textarea>
           <div class="redazione-actions"><button type="button" id="podcast-save">PUBBLICA / SOSTITUISCI</button><button type="button" id="podcast-disable">RITIRA PODCAST</button></div>
           <p id="podcast-admin-message" role="status"></p>
+        </section>
+        <section class="media-admin">
+          <h3>GESTIONE MEDIA EDITORIALE</h3>
+          <p>Pubblica un solo contenuto alla volta: un post pubblico di X con video o immagine. Il contenuto sarà affiancato al podcast nella prima riga della homepage.</p>
+          <label for="media-url">Link del post X</label><input id="media-url" type="url" placeholder="https://x.com/account/status/123.../video/1">
+          <label for="media-admin-title">Titolo (facoltativo)</label><input id="media-admin-title" maxlength="180" placeholder="Titolo del contenuto">
+          <label for="media-admin-caption">Didascalia (facoltativa)</label><textarea id="media-admin-caption" rows="2" maxlength="500" placeholder="Una breve nota editoriale…"></textarea>
+          <div class="redazione-actions"><button type="button" id="media-save">PUBBLICA / SOSTITUISCI</button><button type="button" id="media-disable">RITIRA MEDIA</button></div>
+          <p id="media-admin-message" role="status"></p>
         </section>
         <section class="live-admin">
           <h3>GESTIONE LIVE YOUTUBE</h3>
