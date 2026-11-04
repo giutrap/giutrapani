@@ -34,6 +34,8 @@ async function initDatabase() {
   await pool.query("INSERT INTO live_settings (id, enabled, video_id, title, description) VALUES (1, TRUE, 'WUTDiO_fXdE', 'Diretta di prova', 'Primo test del player YouTube di Breaking') ON CONFLICT (id) DO NOTHING");
   await pool.query("CREATE TABLE IF NOT EXISTS podcast_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, episode_id TEXT NOT NULL DEFAULT '', url TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
   await pool.query("INSERT INTO podcast_settings (id, enabled, episode_id, url, title, description) VALUES (1, TRUE, '76168692', 'https://www.spreaker.com/episode/speciale-midterm-negli-usa-i-democratici-stravincono-le-elezioni-di-meta-mandato--76168692', 'Speciale Midterm negli USA: i Democratici stravincono le elezioni di metà mandato', 'Speciale dedicato alle elezioni di metà mandato negli Stati Uniti.') ON CONFLICT (id) DO NOTHING");
+  await pool.query("CREATE TABLE IF NOT EXISTS media_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, post_id TEXT NOT NULL DEFAULT '', url TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', caption TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
+  await pool.query("INSERT INTO media_settings (id,enabled,post_id,url,title,caption) VALUES (1,TRUE,'2117852081189216309','https://x.com/Iran_in_India/status/2117852081189216309/video/1','','') ON CONFLICT (id) DO NOTHING");
   await pool.query('CREATE TABLE IF NOT EXISTS x_feed_cache (id INTEGER PRIMARY KEY CHECK (id = 1), item JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
   const savedX = await pool.query('SELECT item FROM x_feed_cache WHERE id=1');
   if (savedX.rowCount && savedX.rows[0].item) xPostCache.items = [savedX.rows[0].item];
@@ -180,6 +182,14 @@ app.get('/api/podcast', async (req,res) => {
     res.json({ enabled:item.enabled === true, episodeId:item.episode_id || '', title:item.title || '', description:item.description || '' });
   } catch { res.status(500).json({ error:'Stato del podcast non disponibile.' }); }
 });
+app.get('/api/media', async (req,res) => {
+  try {
+    if (!pool) return res.json({ enabled:false, postId:'', postUrl:'', title:'', caption:'' });
+    const result = await pool.query('SELECT enabled,post_id,url,title,caption FROM media_settings WHERE id=1');
+    const item = result.rows[0] || {};
+    res.json({ enabled:item.enabled === true, postId:item.post_id || '', postUrl:item.url || '', title:item.title || '', caption:item.caption || '' });
+  } catch { res.status(500).json({ error:'Contenuto media non disponibile.' }); }
+});
 app.get('/api/sources', (req,res) => res.json({ sources: [...new Set(FEEDS.map(f=>f.name))].sort(), categories: [...new Set(FEEDS.map(f=>f.category))].sort() }));
 app.get('/api/diagnostics/feeds', async (req,res) => {
   try {
@@ -270,6 +280,36 @@ app.put('/api/redazione/podcast', async (req,res) => {
     const item = result.rows[0];
     res.json({ enabled:item.enabled === true, episodeId:item.episode_id || '', title:item.title || '', description:item.description || '' });
   } catch { res.status(500).json({ error:'Non è stato possibile aggiornare il podcast.' }); }
+});
+app.get('/api/redazione/media', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const result = await pool.query('SELECT enabled,post_id,url,title,caption FROM media_settings WHERE id=1');
+    const item = result.rows[0] || {};
+    res.json({ enabled:item.enabled === true, postId:item.post_id || '', url:item.url || '', title:item.title || '', caption:item.caption || '' });
+  } catch { res.status(500).json({ error:'Impostazioni media non disponibili.' }); }
+});
+app.put('/api/redazione/media', async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const { enabled=false, url='', title='', caption='' } = req.body || {};
+    let postId = '', safeUrl = '';
+    if (enabled) {
+      let parsed;
+      try { parsed = new URL(String(url)); } catch { return res.status(400).json({ error:'Inserisci un link X valido.' }); }
+      const host = parsed.hostname.toLowerCase().replace(/^www\\./,'');
+      if (!['x.com','twitter.com'].includes(host)) return res.status(400).json({ error:'Per questa prova inserisci il link di un post pubblico su X.' });
+      const match = parsed.pathname.match(/\\/status\\/(\\d+)/);
+      postId = match ? match[1] : '';
+      if (!postId) return res.status(400).json({ error:'Non riesco a riconoscere l’ID del post X.' });
+      safeUrl = parsed.origin + parsed.pathname;
+    }
+    const safeTitle = String(title || '').trim().slice(0,180);
+    const safeCaption = String(caption || '').trim().slice(0,500);
+    const result = await pool.query('INSERT INTO media_settings (id,enabled,post_id,url,title,caption,updated_at) VALUES (1,$1,$2,$3,$4,$5,NOW()) ON CONFLICT (id) DO UPDATE SET enabled=EXCLUDED.enabled,post_id=EXCLUDED.post_id,url=EXCLUDED.url,title=EXCLUDED.title,caption=EXCLUDED.caption,updated_at=NOW() RETURNING enabled,post_id,url,title,caption',[Boolean(enabled),postId,safeUrl,safeTitle,safeCaption]);
+    const item = result.rows[0];
+    res.json({ enabled:item.enabled === true, postId:item.post_id || '', postUrl:item.url || '', title:item.title || '', caption:item.caption || '' });
+  } catch { res.status(500).json({ error:'Non è stato possibile aggiornare il contenuto media.' }); }
 });
 app.get('/api/redazione/notes', async (req,res) => {
   try {
