@@ -297,11 +297,13 @@ app.put('/api/redazione/media', async (req,res) => {
     if (enabled) {
       let parsed;
       try { parsed = new URL(String(url)); } catch { return res.status(400).json({ error:'Inserisci un link X valido.' }); }
-      const host = parsed.hostname.toLowerCase().replace(/^www\\./,'');
+      const rawHost = parsed.hostname.toLowerCase();
+      const host = rawHost.startsWith('www.') ? rawHost.slice(4) : rawHost;
       if (!['x.com','twitter.com'].includes(host)) return res.status(400).json({ error:'Per questa prova inserisci il link di un post pubblico su X.' });
-      const match = parsed.pathname.match(/\\/status\\/(\\d+)/);
-      postId = match ? match[1] : '';
-      if (!postId) return res.status(400).json({ error:'Non riesco a riconoscere l’ID del post X.' });
+      const pathParts = parsed.pathname.split('/').filter(Boolean);
+      const statusIndex = pathParts.indexOf('status');
+      postId = statusIndex >= 0 ? (pathParts[statusIndex + 1] || '') : '';
+      if (!postId || !Array.from(postId).every(char => char >= '0' && char <= '9')) return res.status(400).json({ error:'Non riesco a riconoscere l’ID del post X.' });
       safeUrl = parsed.origin + parsed.pathname;
     }
     const safeTitle = String(title || '').trim().slice(0,180);
