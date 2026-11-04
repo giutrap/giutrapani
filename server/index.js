@@ -178,9 +178,9 @@ app.get('/api/live', async (req,res) => {
 app.get('/api/podcast', async (req,res) => {
   try {
     if (!pool) return res.json({ enabled:false, episodeId:'', title:'', description:'' });
-    const result = await pool.query('SELECT enabled,episode_id,title,description FROM podcast_settings WHERE id=1');
+    const result = await pool.query('SELECT enabled,episode_id,url,title,description FROM podcast_settings WHERE id=1');
     const item = result.rows[0] || {};
-    res.json({ enabled:item.enabled === true, episodeId:item.episode_id || '', title:item.title || '', description:item.description || '' });
+    res.json({ enabled:item.enabled === true, episodeId:item.episode_id || '', url:item.url || '', title:item.title || '', description:item.description || '' });
   } catch { res.status(500).json({ error:'Stato del podcast non disponibile.' }); }
 });
 app.get('/api/media', async (req,res) => {
@@ -277,9 +277,9 @@ app.put('/api/redazione/podcast', async (req,res) => {
     }
     const safeTitle = String(title || '').trim().slice(0,180);
     const safeDescription = String(description || '').trim().slice(0,500);
-    const result = await pool.query('INSERT INTO podcast_settings (id,enabled,episode_id,url,title,description,updated_at) VALUES (1,$1,$2,$3,$4,$5,NOW()) ON CONFLICT (id) DO UPDATE SET enabled=EXCLUDED.enabled,episode_id=EXCLUDED.episode_id,url=EXCLUDED.url,title=EXCLUDED.title,description=EXCLUDED.description,updated_at=NOW() RETURNING enabled,episode_id,title,description',[Boolean(enabled),episodeId,safeUrl,safeTitle,safeDescription]);
+    const result = await pool.query('INSERT INTO podcast_settings (id,enabled,episode_id,url,title,description,updated_at) VALUES (1,$1,$2,$3,$4,$5,NOW()) ON CONFLICT (id) DO UPDATE SET enabled=EXCLUDED.enabled,episode_id=EXCLUDED.episode_id,url=EXCLUDED.url,title=EXCLUDED.title,description=EXCLUDED.description,updated_at=NOW() RETURNING enabled,episode_id,url,title,description',[Boolean(enabled),episodeId,safeUrl,safeTitle,safeDescription]);
     const item = result.rows[0];
-    res.json({ enabled:item.enabled === true, episodeId:item.episode_id || '', title:item.title || '', description:item.description || '' });
+    res.json({ enabled:item.enabled === true, episodeId:item.episode_id || '', url:item.url || '', title:item.title || '', description:item.description || '' });
   } catch { res.status(500).json({ error:'Non è stato possibile aggiornare il podcast.' }); }
 });
 app.get('/api/redazione/media', async (req,res) => {
