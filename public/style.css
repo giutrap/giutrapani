@@ -382,3 +382,11 @@ body{font-size:18px;line-height:1.4}
 .top-feature-grid .trends-heading{margin-bottom:8px}
 .top-feature-grid .trends-heading h2{margin-top:2px}
 .top-feature-grid .live-heading{margin-bottom:7px}
+.top-feature-grid .trends-section{display:flex;flex-direction:column}
+.top-feature-grid .trends-list{flex:1;grid-template-rows:repeat(4,minmax(0,1fr))}
+.top-feature-grid .keyword-card{height:100%}
+@media(max-width:760px){
+ .top-feature-grid .trends-section{display:block}
+ .top-feature-grid .trends-list{grid-template-rows:none}
+ .top-feature-grid .keyword-card{height:auto}
+}
