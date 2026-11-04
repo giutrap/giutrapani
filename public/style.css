@@ -640,3 +640,76 @@ body{font-size:18px;line-height:1.4}
   .top-feature-grid .trends-list{grid-template-rows:none}
   .top-feature-grid .keyword-card{height:auto}
 }
+
+
+/* Rifinitura proporzioni: quattro riquadri con colonne e media perfettamente allineati */
+.container{max-width:1440px}
+.media-feature-grid,
+.top-feature-grid{
+  width:100%;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  column-gap:22px;
+  align-items:stretch;
+}
+.media-feature-grid>section,
+.top-feature-grid>section{
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+}
+.media-feature-grid .live-player-wrap,
+.media-feature-grid .media-embed,
+.top-feature-grid .podcast-player-wrap{
+  width:100%!important;
+  height:auto!important;
+  aspect-ratio:16/9!important;
+  min-height:0!important;
+  position:relative;
+  overflow:hidden;
+}
+.media-feature-grid .live-player-wrap iframe,
+.top-feature-grid .podcast-player-wrap iframe,
+.media-feature-grid .media-embed iframe{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  border:0!important;
+}
+.media-feature-grid .media-embed blockquote{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  margin:0!important;
+}
+.top-feature-grid .trends-section{
+  height:100%!important;
+  min-height:0;
+}
+.top-feature-grid .trends-list{
+  flex:1 1 auto;
+  min-height:0;
+  grid-template-rows:repeat(4,minmax(0,1fr));
+}
+.top-feature-grid .keyword-card{
+  min-height:0!important;
+  height:100%!important;
+}
+@media(max-width:760px){
+  .media-feature-grid,
+  .top-feature-grid{
+    grid-template-columns:minmax(0,1fr)!important;
+    row-gap:18px;
+  }
+  .media-feature-grid .media-embed blockquote{
+    position:absolute!important;
+  }
+  .top-feature-grid .trends-section{height:auto!important}
+  .top-feature-grid .trends-list{grid-template-rows:none}
+  .top-feature-grid .keyword-card{height:auto!important;min-height:76px!important}
+}
