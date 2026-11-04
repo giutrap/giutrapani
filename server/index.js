@@ -42,7 +42,7 @@ async function fetchAllFeeds() {
     const items = (feed.items || []).map(item => normalizeItem(item, source));
     if (source.name === '@giutrapani · X' || source.name === 'Il Riformista') {
       items.sort((a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
-      return items.slice(0, source.name === '@giutrapani · X' ? 1 : 2);
+      return items.slice(0, source.name === '@giutrapani · X' ? 10 : 2);
     }
     return items;
   }));
