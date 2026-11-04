@@ -110,7 +110,7 @@ function buildTrends(items) {
     return { ...topic, matches, sources:sources.size, recent };
   }).filter(topic => topic.matches.length > 0)
     .sort((a,b) => b.recent-a.recent || b.matches.length-a.matches.length || b.sources-a.sources)
-    .slice(0,3);
+    .slice(0,4);
 }
 function renderTrends() {
   if (!trendEl.list) return;
