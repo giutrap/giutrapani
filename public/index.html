@@ -19,6 +19,11 @@
     <div class="header-meta"><span class="live-dot"></span> AGGIORNAMENTO AUTOMATICO OGNI MINUTO</div>
   </header>
   <main class="container">
+    <section id="live-section" class="live-section" hidden aria-label="Diretta speciale">
+      <div class="live-heading"><span class="live-pill">LIVE</span><span id="live-kicker">SPECIALE · DIRETTA</span></div>
+      <div class="live-player-wrap"><iframe id="live-player" title="Diretta YouTube di Breaking" src="" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+      <h2 id="live-title"></h2><p id="live-description"></p>
+    </section>
     <section class="controls">
       <input id="search" type="search" placeholder="Cerca tra le notizie e le testate…" aria-label="Cerca nelle notizie">
       <button id="refresh-btn">Aggiorna</button>
@@ -48,7 +53,17 @@
           <label for="redazione-notes">Appunti personali</label><textarea id="redazione-notes" rows="8" placeholder="Annotazioni, spunti, verifiche da fare…"></textarea>
           <label for="redazione-links">Link aggiuntivi</label><textarea id="redazione-links" rows="3" placeholder="Incolla qui altri collegamenti, uno per riga"></textarea>
           <div class="redazione-actions"><button type="submit">SALVA NELL’ARCHIVIO</button><button type="button" id="redazione-new">NUOVA NOTA</button></div><p id="redazione-message" role="status"></p>
-        </form><div class="redazione-archive"><h3>ARCHIVIO PERSONALE</h3><div id="redazione-notes-list">Accedi per visualizzare le note salvate.</div></div>
+        </form>
+        <section class="live-admin">
+          <h3>GESTIONE LIVE YOUTUBE</h3>
+          <p>Attiva una diretta speciale nella homepage, subito sotto la testata.</p>
+          <label for="live-url">Link della diretta YouTube</label><input id="live-url" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="url">
+          <label for="live-admin-title">Titolo dello speciale</label><input id="live-admin-title" maxlength="140" placeholder="Es. Elezioni americane: speciale Breaking">
+          <label for="live-admin-description">Descrizione</label><textarea id="live-admin-description" rows="3" maxlength="400" placeholder="Una breve presentazione della diretta…"></textarea>
+          <div class="redazione-actions"><button type="button" id="live-save">SALVA E ATTIVA</button><button type="button" id="live-disable">DISATTIVA LIVE</button></div>
+          <p id="live-admin-message" role="status"></p>
+        </section>
+        <div class="redazione-archive"><h3>ARCHIVIO PERSONALE</h3><div id="redazione-notes-list">Accedi per visualizzare le note salvate.</div></div>
       </div>
     </section>
   </aside>
