@@ -1153,3 +1153,33 @@ body{font-size:18px;line-height:1.4}
   .brand-credit{font-size:13px!important}
   .header-meta{font-size:8px;max-width:30%}
 }
+
+
+/* Testata BreakingNEWS: riduzione proporzionale del 15% */
+.topbar{min-height:128px!important}
+.brand-block{gap:20px!important}
+.brand-avatar{width:112px!important;height:112px!important}
+.brand-title-group .brand-wordmark{
+  font-size:clamp(49px,5.2vw,75px)!important;
+  border-bottom-width:3px;
+  padding-bottom:6px!important;
+}
+.brand-credit{font-size:clamp(15px,1.45vw,22px)!important;margin-top:7px!important}
+@media(max-width:760px){
+  .topbar{min-height:85px!important}
+  .brand-block{gap:10px!important}
+  .brand-avatar{width:70px!important;height:70px!important}
+  .brand-title-group .brand-wordmark{
+    font-size:clamp(32px,6.8vw,46px)!important;
+    border-bottom-width:2.5px;
+    padding-bottom:4px!important;
+  }
+  .brand-credit{font-size:14px!important;margin-top:4px!important}
+}
+@media(max-width:420px){
+  .topbar{min-height:71px!important}
+  .brand-block{gap:7px!important}
+  .brand-avatar{width:53px!important;height:53px!important}
+  .brand-title-group .brand-wordmark{font-size:clamp(27px,7.65vw,34px)!important}
+  .brand-credit{font-size:11px!important}
+}
