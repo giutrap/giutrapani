@@ -168,48 +168,6 @@ el.articles.addEventListener('click', event => {
   render();
 });
 
-const diagnosticsBtn = document.getElementById('diagnostics-btn');
-const diagnosticsPanel = document.getElementById('diagnostics-panel');
-const diagnosticsSummary = document.getElementById('diagnostics-summary');
-const diagnosticsResults = document.getElementById('diagnostics-results');
-const diagnosticsRefresh = document.getElementById('diagnostics-refresh');
-function renderDiagnostics(data) {
-  const counts = data.counts || {};
-  diagnosticsSummary.textContent = data.total + ' fonti controllate · '
-    + (counts.ok || 0) + ' funzionanti · ' + (counts.stale || 0) + ' ferme da oltre 7 giorni · '
-    + (counts.empty || 0) + ' vuote · ' + (counts.error || 0) + ' con errori · controllo '
-    + new Date(data.checkedAt).toLocaleString('it-IT');
-  const labels = { ok:'FUNZIONANTE', stale:'FERMA', empty:'VUOTA', error:'ERRORE' };
-  diagnosticsResults.innerHTML = (data.results || []).map(item =>
-    '<article class="diagnostic-row diagnostic-' + esc(item.status) + '">'
-    + '<div><strong>' + esc(item.name) + '</strong><span>' + esc(item.category) + '</span></div>'
-    + '<div class="diagnostic-state">' + esc(labels[item.status] || item.status) + '</div>'
-    + '<div class="diagnostic-detail">' + (item.count || 0) + ' articoli'
-    + (item.latestPublishedAt ? ' · ultimo: ' + new Date(item.latestPublishedAt).toLocaleString('it-IT') : '')
-    + (item.error ? ' · ' + esc(item.error) : '') + '</div>'
-    + '<a href="' + esc(item.url) + '" target="_blank" rel="noopener noreferrer">APRI FEED ↗</a>'
-    + '</article>'
-  ).join('');
-}
-async function loadDiagnostics(force = false) {
-  diagnosticsSummary.textContent = 'Controllo delle fonti in corso…';
-  diagnosticsRefresh.disabled = true;
-  try {
-    const response = await fetch('/api/diagnostics/feeds' + (force ? '?force=1' : ''));
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-    renderDiagnostics(await response.json());
-  } catch (error) {
-    diagnosticsSummary.textContent = 'Diagnostica non disponibile: ' + error.message;
-  } finally { diagnosticsRefresh.disabled = false; }
-}
-diagnosticsBtn.addEventListener('click', () => {
-  const opening = diagnosticsPanel.hidden;
-  diagnosticsPanel.hidden = !opening;
-  diagnosticsBtn.setAttribute('aria-expanded', String(opening));
-  if (opening && !diagnosticsResults.innerHTML) loadDiagnostics(false);
-});
-diagnosticsRefresh.addEventListener('click', () => loadDiagnostics(true));
-
 el.refreshBtn.addEventListener('click', load);
 load();
 setInterval(load, AUTO_REFRESH_MS);
