@@ -344,11 +344,11 @@ body{font-size:18px;line-height:1.4}
 /* Blocco editoriale compatto sotto la testata: diretta a sinistra, trend a destra */
 .top-feature-grid{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);gap:22px;align-items:stretch;margin:16px 0 22px}
 .top-feature-grid .live-section{width:100%;max-width:none;min-width:0;margin:0;padding:0;align-self:start}
-.top-feature-grid .live-heading{margin-bottom:7px}
+.top-feature-grid .live-heading{margin-bottom:7px;min-height:33px;align-items:center}
 .top-feature-grid .live-section h2{font-size:clamp(18px,1.8vw,24px);margin:8px 0 3px}
 .top-feature-grid .live-section p{font-size:13px;line-height:1.35}
 .top-feature-grid .trends-section{min-width:0;margin:0;padding:0 0 10px;border-top:2px solid #17191d;border-bottom:1px solid var(--line)}
-.top-feature-grid .trends-heading{margin:0 0 9px;padding-top:7px;align-items:flex-end}
+.top-feature-grid .trends-heading{margin:0 0 9px;padding-top:0;min-height:33px;align-items:center}
 .top-feature-grid .trends-heading h2{font-size:clamp(22px,2.2vw,29px)}
 .top-feature-grid .trends-list{grid-template-columns:minmax(0,1fr);gap:7px}
 .top-feature-grid .keyword-card{min-height:0;padding:10px 12px;gap:12px;display:grid;grid-template-columns:30px minmax(0,1fr) 20px;align-items:center;position:relative}
