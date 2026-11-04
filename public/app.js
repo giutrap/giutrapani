@@ -383,13 +383,13 @@ const podcastEls = {
   adminDescription: document.getElementById('podcast-admin-description'), message: document.getElementById('podcast-admin-message')
 };
 function renderPodcast(data) {
-  const enabled = Boolean(data && data.enabled && data.episodeId);
+  const enabled = Boolean(data && data.enabled && data.episodeId && data.url);
   podcastEls.section.hidden = !enabled;
-  if (!enabled) { podcastEls.player.src = ''; return; }
-  const embed = 'https://widget.spreaker.com/player?episode_id=' + encodeURIComponent(data.episodeId) + '&theme=light&playlist=false';
-  if (podcastEls.player.src !== embed) podcastEls.player.src = embed;
-  if (podcastEls.title) podcastEls.title.textContent = data.title || 'Podcast di approfondimento';
-  if (podcastEls.description) podcastEls.description.textContent = data.description || '';
+  if (!enabled) { podcastEls.player && (podcastEls.player.src = ''); return; }
+  podcastEls.section.querySelector('#podcast-card-link').href = data.url;
+  podcastEls.title.textContent = data.title || 'Il Podcast';
+  podcastEls.description.textContent = data.description || '';
+  podcastEls.description.hidden = !data.description;
 }
 async function loadPodcastPublic() {
   try { const response = await fetch('/api/podcast'); if (response.ok) renderPodcast(await response.json()); }
@@ -454,28 +454,11 @@ function loadXWidgets() {
 function renderMedia(data) {
   const enabled = Boolean(data && data.enabled && data.postUrl);
   mediaEls.section.hidden = !enabled;
-  if (!enabled) { mediaEls.embed.replaceChildren(); return; }
-  mediaEls.title.textContent = data.title || '';
+  if (!enabled) return;
+  mediaEls.section.querySelector('#media-card-link').href = data.postUrl;
+  mediaEls.title.textContent = data.title || 'Il meme';
   mediaEls.caption.textContent = data.caption || '';
-  mediaEls.title.hidden = !data.title;
   mediaEls.caption.hidden = !data.caption;
-  mediaEls.embed.replaceChildren();
-  const quote = document.createElement('blockquote');
-  quote.className = 'twitter-tweet';
-  quote.setAttribute('data-width', '550');
-  const link = document.createElement('a');
-  link.href = data.postUrl;
-  link.textContent = 'Visualizza il post su X';
-  quote.appendChild(link);
-  mediaEls.embed.appendChild(quote);
-  loadXWidgets().then(twttr => {
-    if (twttr && twttr.widgets && mediaEls.section.hidden === false) twttr.widgets.load(mediaEls.embed);
-  }).catch(() => {
-    mediaEls.embed.textContent = 'Il contenuto X non è al momento incorporabile. ';
-    const fallback = document.createElement('a');
-    fallback.href = data.postUrl; fallback.target = '_blank'; fallback.rel = 'noopener noreferrer';
-    fallback.textContent = 'Apri il post su X'; mediaEls.embed.appendChild(fallback);
-  });
 }
 async function loadMediaPublic() {
   try { const response = await fetch('/api/media'); if (response.ok) renderMedia(await response.json()); }
