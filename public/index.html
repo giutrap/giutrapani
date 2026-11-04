@@ -22,12 +22,13 @@
     <div class="header-meta"><span class="live-dot"></span> AGGIORNAMENTO AUTOMATICO OGNI MINUTO</div>
   </header>
   <main class="container">
-    <section class="media-feature-grid" aria-label="Podcast e contenuto multimediale">
-      <section id="podcast-section" class="podcast-section" hidden aria-label="Podcast di approfondimento">
-        <div class="live-heading"><span class="live-pill">PODCAST</span></div>
-        <div class="podcast-player-wrap"><iframe id="podcast-player" title="Podcast di approfondimento" src="" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe></div>
+    <section class="media-feature-grid" aria-label="YouTube e contenuto social">
+      <section id="live-section" class="live-section" hidden aria-label="Diretta speciale">
+        <div class="live-heading"><span class="live-pill">YOUTUBE</span></div>
+        <div class="live-player-wrap"><iframe id="live-player" title="Diretta YouTube di Breaking" src="" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+        <h2 id="live-title"></h2><p id="live-description"></p>
       </section>
-      <section id="media-section" class="media-section" hidden aria-label="Media editoriale">
+      <section id="media-section" class="media-section" hidden aria-label="Contenuto social">
         <div class="live-heading"><span class="live-pill">SOCIAL</span></div>
         <div class="media-content">
           <div id="media-embed" class="media-embed"></div>
@@ -35,18 +36,16 @@
         </div>
       </section>
     </section>
-    <section class="top-feature-grid" aria-label="Diretta e trend del giorno">
-      <section id="live-section" class="live-section" hidden aria-label="Diretta speciale">
-      <div class="live-heading"><span class="live-pill">LIVE</span></div>
-      <div class="live-player-wrap"><iframe id="live-player" title="Diretta YouTube di Breaking" src="" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
-      <h2 id="live-title"></h2><p id="live-description"></p>
-    </section>
+    <section class="top-feature-grid" aria-label="Podcast e trend del giorno">
+      <section id="podcast-section" class="podcast-section" hidden aria-label="Podcast di approfondimento">
+        <div class="live-heading"><span class="live-pill">PODCAST</span></div>
+        <div class="podcast-player-wrap"><iframe id="podcast-player" title="Podcast di approfondimento" src="" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe></div>
+      </section>
       <section id="trends-section" class="trends-section" aria-label="Trend del flusso">
-      <div class="trends-heading"><div class="trends-title-group"><span class="live-pill trend-pill">TREND</span></div><span id="trends-updated" class="trends-updated">In attesa delle notizie…</span></div>
-      <div id="trends-list" class="trends-list"><p class="trends-empty">I temi emergenti appariranno qui quando più fonti parleranno dello stesso argomento.</p></div>
-    </section>
-    </section>
-    
+        <div class="trends-heading"><div class="trends-title-group"><span class="live-pill trend-pill">TREND</span></div><span id="trends-updated" class="trends-updated">In attesa delle notizie…</span></div>
+        <div id="trends-list" class="trends-list"><p class="trends-empty">I temi emergenti appariranno qui quando più fonti parleranno dello stesso argomento.</p></div>
+      </section>
+    </section>    
     <section class="controls">
       <input id="search" type="search" placeholder="Cerca tra le notizie e le testate…" aria-label="Cerca nelle notizie">
       <button id="refresh-btn">Aggiorna</button>
@@ -80,7 +79,7 @@
         </form>
         <section class="podcast-admin">
           <h3>GESTIONE PODCAST SPREAKER</h3>
-          <p>Pubblica un solo episodio alla volta; incolla il link della puntata Spreaker. Il player apparirà prima della diretta e dei Trend News.</p>
+          <p>Pubblica un solo episodio alla volta; incolla il link della puntata Spreaker. Il player apparirà nella seconda riga, accanto ai Trend.</p>
           <label for="podcast-url">Link della puntata Spreaker</label><input id="podcast-url" type="url" placeholder="https://www.spreaker.com/episode/...">
           <label for="podcast-admin-title">Titolo del podcast</label><input id="podcast-admin-title" maxlength="180" placeholder="Titolo della puntata">
           <label for="podcast-admin-description">Descrizione (facoltativa)</label><textarea id="podcast-admin-description" rows="3" maxlength="500" placeholder="Una breve presentazione…"></textarea>
@@ -88,9 +87,9 @@
           <p id="podcast-admin-message" role="status"></p>
         </section>
         <section class="media-admin">
-          <h3>GESTIONE MEDIA EDITORIALE</h3>
-          <p>Pubblica un solo contenuto alla volta: un post pubblico di X con video o immagine. Il contenuto sarà affiancato al podcast nella prima riga della homepage.</p>
-          <label for="media-url">Link del post X</label><input id="media-url" type="url" placeholder="https://x.com/account/status/123.../video/1">
+          <h3>GESTIONE SOCIAL</h3>
+          <p>Pubblica un video o contenuto social pubblico di X. Apparirà accanto al player YouTube nella prima riga.</p>
+          <label for="media-url">Link del video X</label><input id="media-url" type="url" placeholder="https://x.com/account/status/123.../video/1">
           <label for="media-admin-title">Titolo (facoltativo)</label><input id="media-admin-title" maxlength="180" placeholder="Titolo del contenuto">
           <label for="media-admin-caption">Didascalia (facoltativa)</label><textarea id="media-admin-caption" rows="2" maxlength="500" placeholder="Una breve nota editoriale…"></textarea>
           <div class="redazione-actions"><button type="button" id="media-save">PUBBLICA / SOSTITUISCI</button><button type="button" id="media-disable">RITIRA MEDIA</button></div>
