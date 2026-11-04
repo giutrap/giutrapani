@@ -45,8 +45,13 @@ Ultimo aggiornamento: 4 novembre 2026.
 - Non inserire mai nel repository credenziali o segreti; usare le variabili d'ambiente Render.
 - Il filesystem del servizio Render Free non deve essere considerato archivio permanente per file caricati: i nuovi upload richiedono storage persistente esterno o un disco persistente compatibile con il piano.
 
-### Prossima implementazione proposta: podcast MP3
-**Non ancora implementata.** Requisito richiesto: dalla stessa area Redazione e con le stesse credenziali, poter caricare un file MP3 di approfondimento e renderlo ascoltabile pubblicamente nella homepage.
+### Podcast Spreaker
+- Integrato un solo episodio Spreaker attivo alla volta; la Redazione può pubblicare/sostituire il link o ritirarlo.
+- Il player viene mostrato subito sotto la testata e prima della griglia YouTube LIVE + Trend News.
+- Nessun file MP3 viene caricato sul servizio: l'audio resta ospitato da Spreaker e viene riprodotto tramite iframe.
+- Tabella PostgreSQL `podcast_settings`; la prima inizializzazione inserisce come episodio di prova l'ID `76168692`.
+- Endpoint pubblico `GET /api/podcast`; endpoint autenticati `GET/PUT /api/redazione/podcast`.
+- Il backend accetta solo link `spreaker.com` con ID episodio nel formato `--ID`; i parametri di tracking vengono ignorati.
 
 Disegno funzionale suggerito:
 - Form Redazione con file picker MP3, titolo, breve descrizione e pulsanti pubblica / disattiva / sostituisci / elimina.
