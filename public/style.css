@@ -440,3 +440,24 @@ body{font-size:18px;line-height:1.4}
  .trends-heading{flex-direction:column;align-items:flex-start}
  .trends-updated{text-align:left}
 }
+
+
+/* Testata: avatar editoriale a sinistra del wordmark */
+.brand-block{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px}
+.brand-avatar{display:block;flex:0 0 auto;width:82px;height:82px;overflow:hidden;border-radius:50%;background:#fff}
+.brand-avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.brand-title-group{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-width:0}
+.brand-title-group .brand-wordmark{font-size:48px;line-height:.95;padding:0}
+.brand-credit{font-size:14px;line-height:1.1;color:var(--muted);margin-top:4px}
+.trends-title-group{gap:0}
+@media(max-width:760px){
+ .brand-block{gap:9px}
+ .brand-avatar{width:66px;height:66px}
+ .brand-title-group .brand-wordmark{font-size:42px}
+ .brand-credit{font-size:12px}
+}
+@media(max-width:420px){
+ .brand-avatar{width:56px;height:56px}
+ .brand-title-group .brand-wordmark{font-size:36px}
+ .header-meta{font-size:10px;letter-spacing:.5px}
+}
