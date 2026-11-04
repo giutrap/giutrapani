@@ -19,11 +19,18 @@
     <div class="header-meta"><span class="live-dot"></span> AGGIORNAMENTO AUTOMATICO OGNI MINUTO</div>
   </header>
   <main class="container">
-    <section id="live-section" class="live-section" hidden aria-label="Diretta speciale">
+    <section class="top-feature-grid" aria-label="Diretta e trend del giorno">
+      <section id="live-section" class="live-section" hidden aria-label="Diretta speciale">
       <div class="live-heading"><span class="live-pill">LIVE</span><span id="live-kicker">SPECIALE · DIRETTA</span></div>
       <div class="live-player-wrap"><iframe id="live-player" title="Diretta YouTube di Breaking" src="" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
       <h2 id="live-title"></h2><p id="live-description"></p>
     </section>
+      <section id="trends-section" class="trends-section" aria-label="Trend del flusso">
+      <div class="trends-heading"><div><span class="trends-kicker">MONITORAGGIO EDITORIALE</span><h2>PAROLE CHIAVE</h2></div><span id="trends-updated" class="trends-updated">In attesa delle notizie…</span></div>
+      <div id="trends-list" class="trends-list"><p class="trends-empty">I temi emergenti appariranno qui quando più fonti parleranno dello stesso argomento.</p></div>
+    </section>
+    </section>
+    
     <section class="controls">
       <input id="search" type="search" placeholder="Cerca tra le notizie e le testate…" aria-label="Cerca nelle notizie">
       <button id="refresh-btn">Aggiorna</button>
@@ -36,10 +43,7 @@
       <summary>Problemi nelle fonti NEWS</summary>
       <ul id="news-errors-list"></ul>
     </details>
-    <section id="trends-section" class="trends-section" aria-label="Trend del flusso">
-      <div class="trends-heading"><div><span class="trends-kicker">MONITORAGGIO EDITORIALE</span><h2>PAROLE CHIAVE</h2></div><span id="trends-updated" class="trends-updated">In attesa delle notizie…</span></div>
-      <div id="trends-list" class="trends-list"><p class="trends-empty">I temi emergenti appariranno qui quando più fonti parleranno dello stesso argomento.</p></div>
-    </section>
+    
     <section id="articles" class="news-list" aria-live="polite"></section>
     <p id="empty-state" class="empty-state" hidden>Nessuna notizia trovata.</p>
     <nav id="pagination" class="pagination" aria-label="Paginazione e strumenti redazione"></nav>
