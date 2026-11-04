@@ -115,7 +115,7 @@ function buildTrends(items) {
     return { ...group, recent:recent.length, previous:previous.length, sources:sources.size, score, first, trend };
   }).filter(group => group.items.length >= 2 && group.sources >= 2)
     .sort((a,b) => {
-      const rank = group => group.recent * 3 + group.previous + (group.trend === 'up' ? 2 : 0) + Math.min(group.sources,5);
+      const rank = group => group.recent * 4 + Math.max(-2, group.score) * 3 + Math.min(group.sources,5);
       return rank(b)-rank(a) || Date.parse(b.first.pubDate || 0)-Date.parse(a.first.pubDate || 0);
     }).slice(0,5);
 }
