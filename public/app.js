@@ -462,6 +462,8 @@ function renderMedia(data) {
   mediaEls.embed.replaceChildren();
   const quote = document.createElement('blockquote');
   quote.className = 'twitter-video';
+  quote.setAttribute('data-cards', 'hidden');
+  quote.setAttribute('data-conversation', 'none');
   const link = document.createElement('a');
   link.href = data.postUrl;
   link.textContent = 'Guarda il video su X';
