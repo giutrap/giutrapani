@@ -1183,3 +1183,19 @@ body{font-size:18px;line-height:1.4}
   .brand-title-group .brand-wordmark{font-size:clamp(27px,7.65vw,34px)!important}
   .brand-credit{font-size:11px!important}
 }
+
+
+/* Claim editoriale della testata */
+.brand-credit{
+  max-width:100%!important;
+  font-size:clamp(15px,1.35vw,20px)!important;
+  font-weight:700!important;
+  letter-spacing:.05px;
+  line-height:1.12!important;
+}
+@media(max-width:760px){
+  .brand-credit{font-size:clamp(11px,2.1vw,14px)!important;max-width: min(68vw,420px)!important}
+}
+@media(max-width:420px){
+  .brand-credit{font-size:11px!important;max-width: min(68vw,300px)!important}
+}
