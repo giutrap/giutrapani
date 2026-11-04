@@ -19,6 +19,12 @@
     <div class="header-meta"><span class="live-dot"></span> AGGIORNAMENTO AUTOMATICO OGNI MINUTO</div>
   </header>
   <main class="container">
+    <section id="podcast-section" class="podcast-section" hidden aria-label="Podcast di approfondimento">
+      <div class="podcast-heading"><span>PODCAST</span><span class="podcast-kicker">L’APPROFONDIMENTO</span></div>
+      <h2 id="podcast-title"></h2>
+      <p id="podcast-description"></p>
+      <div class="podcast-player-wrap"><iframe id="podcast-player" title="Podcast di approfondimento" src="" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe></div>
+    </section>
     <section class="top-feature-grid" aria-label="Diretta e trend del giorno">
       <section id="live-section" class="live-section" hidden aria-label="Diretta speciale">
       <div class="live-heading"><span class="live-pill">LIVE</span></div>
@@ -62,6 +68,15 @@
           <label for="redazione-links">Link aggiuntivi</label><textarea id="redazione-links" rows="3" placeholder="Incolla qui altri collegamenti, uno per riga"></textarea>
           <div class="redazione-actions"><button type="submit">SALVA NELL’ARCHIVIO</button><button type="button" id="redazione-new">NUOVA NOTA</button></div><p id="redazione-message" role="status"></p>
         </form>
+        <section class="podcast-admin">
+          <h3>GESTIONE PODCAST SPREAKER</h3>
+          <p>Pubblica un solo episodio alla volta; incolla il link della puntata Spreaker. Il player apparirà prima della diretta e dei Trend News.</p>
+          <label for="podcast-url">Link della puntata Spreaker</label><input id="podcast-url" type="url" placeholder="https://www.spreaker.com/episode/...">
+          <label for="podcast-admin-title">Titolo del podcast</label><input id="podcast-admin-title" maxlength="180" placeholder="Titolo della puntata">
+          <label for="podcast-admin-description">Descrizione (facoltativa)</label><textarea id="podcast-admin-description" rows="3" maxlength="500" placeholder="Una breve presentazione…"></textarea>
+          <div class="redazione-actions"><button type="button" id="podcast-save">PUBBLICA / SOSTITUISCI</button><button type="button" id="podcast-disable">RITIRA PODCAST</button></div>
+          <p id="podcast-admin-message" role="status"></p>
+        </section>
         <section class="live-admin">
           <h3>GESTIONE LIVE YOUTUBE</h3>
           <p>Attiva una diretta speciale nella homepage, subito sotto la testata.</p>
