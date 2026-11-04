@@ -241,3 +241,48 @@ body{font-size:18px;line-height:1.4}
  .news-time{font-size:12px}
  .news-title{font-size:16px;line-height:1.18}
 }
+
+
+/* Testata e firma editoriale */
+.topbar{align-items:center}
+.brand-block{align-items:flex-start;gap:3px}
+.brand-wordmark{font-size:clamp(52px,5.2vw,66px);line-height:.92;letter-spacing:-.4px}
+.brand-credit{font:400 16px/1.2 'Economica',Arial,sans-serif;color:#707782;margin-top:3px}
+.brand-credit a{color:#707782;text-decoration:none}
+.brand-credit a:hover{color:#17191d;text-decoration:underline}
+
+/* Flusso notizie: ritorno a una gerarchia più compatta */
+.news-item{min-height:43px}
+.news-time{font-size:14px}
+.news-category{font-size:11px;padding:3px 7px}
+.news-title{font-size:18px;line-height:1.2}
+.news-source{font-size:14px}
+.news-link{font-size:13px}
+.status{font-size:15px}
+.order-label{font-size:13px}
+
+@media(max-width:760px){
+ .topbar{min-height:88px;padding:9px 14px;align-items:center}
+ .brand-block{gap:3px}
+ .brand-wordmark{font-size:clamp(46px,11vw,54px);line-height:.92}
+ .brand-credit{font-size:14px}
+ .header-meta{font-size:9px;max-width:34%;line-height:1.2}
+ .news-item{min-height:43px}
+ .news-time{font-size:11px}
+ .news-category{font-size:9px;padding:3px 4px}
+ .news-title{font-size:15px;line-height:1.16}
+ .news-source{font-size:11px}
+ .news-link{font-size:11px}
+ .status{font-size:14px}
+ .order-label{font-size:11px}
+}
+@media(max-width:420px){
+ .topbar{min-height:82px;padding:8px 10px;gap:5px}
+ .brand-wordmark{font-size:clamp(44px,12vw,50px)}
+ .brand-credit{font-size:13px}
+ .header-meta{font-size:8px;max-width:32%}
+ .news-time{font-size:10px}
+ .news-category{font-size:8px;padding:3px}
+ .news-title{font-size:14px;line-height:1.14}
+ .news-link{font-size:10px}
+}
