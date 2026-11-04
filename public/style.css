@@ -461,3 +461,9 @@ body{font-size:18px;line-height:1.4}
  .brand-title-group .brand-wordmark{font-size:36px}
  .header-meta{font-size:10px;letter-spacing:.5px}
 }
+
+
+/* Pulizia intestazione Trend: nessuna linea superiore né testo guida */
+.trends-section{border-top:0!important;padding-top:0!important}
+.trends-heading{margin-top:0}
+.trends-updated{display:none!important}
