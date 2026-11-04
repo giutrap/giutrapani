@@ -71,17 +71,18 @@ function urgency(item) {
 function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const rows = [...state.news]
-    // I contenuti di @giutrapani hanno una corsia editoriale prioritaria:
-    // post e repost restano in testa, ordinati dal più recente, prima delle news.
+    // Ordine editoriale: ultimo post X, ultimi due articoli del Riformista,
+    // approfondimenti della Redazione e infine tutte le altre fonti in ordine cronologico.
     .sort((a, b) => {
-      // Prima gli approfondimenti pubblicati dalla Redazione, dal più recente;
-      // subito dopo i post/repost X, poi tutte le altre fonti in ordine cronologico.
-      const aIsEditorial = newsCategory(a) === 'FOCUS';
-      const bIsEditorial = newsCategory(b) === 'FOCUS';
-      if (aIsEditorial !== bIsEditorial) return aIsEditorial ? -1 : 1;
-      const aIsX = newsCategory(a) === '@giutrapani';
-      const bIsX = newsCategory(b) === '@giutrapani';
-      if (aIsX !== bIsX) return aIsX ? -1 : 1;
+      const priority = item => {
+        const category = newsCategory(item);
+        if (category === '@giutrapani') return 0;
+        if (category === 'IL RIFORMISTA') return 1;
+        if (category === 'FOCUS') return 2;
+        return 3;
+      };
+      const difference = priority(a) - priority(b);
+      if (difference !== 0) return difference;
       return new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
     })
     .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)

@@ -40,7 +40,10 @@ async function fetchAllFeeds() {
     const sourceParser = ['@giutrapani · X', 'Il Riformista'].includes(source.name) ? new Parser({ timeout: 30000 }) : parser;
     const feed = await sourceParser.parseURL(source.url);
     const items = (feed.items || []).map(item => normalizeItem(item, source));
-    if (source.name === '@giutrapani · X') { items.sort((a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0)); return items.slice(0,1); }
+    if (source.name === '@giutrapani · X' || source.name === 'Il Riformista') {
+      items.sort((a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+      return items.slice(0, source.name === '@giutrapani · X' ? 1 : 2);
+    }
     return items;
   }));
   const articles = [], errors = [];
