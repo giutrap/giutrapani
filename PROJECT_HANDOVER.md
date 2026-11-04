@@ -45,13 +45,13 @@ Ultimo aggiornamento: 4 novembre 2026.
 - Non inserire mai nel repository credenziali o segreti; usare le variabili d'ambiente Render.
 - Il filesystem del servizio Render Free non deve essere considerato archivio permanente per file caricati: i nuovi upload richiedono storage persistente esterno o un disco persistente compatibile con il piano.
 
-### Podcast Spreaker
-- Integrato un solo episodio Spreaker attivo alla volta; la Redazione può pubblicare/sostituire il link o ritirarlo.
-- Il player viene mostrato subito sotto la testata e prima della griglia YouTube LIVE + Trend News.
-- Nessun file MP3 viene caricato sul servizio: l'audio resta ospitato da Spreaker e viene riprodotto tramite iframe.
-- Tabella PostgreSQL `podcast_settings`; la prima inizializzazione inserisce come episodio di prova l'ID `76168692`.
-- Endpoint pubblico `GET /api/podcast`; endpoint autenticati `GET/PUT /api/redazione/podcast`.
-- Il backend accetta solo link `spreaker.com` con ID episodio nel formato `--ID`; i parametri di tracking vengono ignorati.
+### Podcast Spreaker e blocco MEDIA
+- La prima riga multimediale della homepage è una griglia a due colonne: PODCAST a sinistra e MEDIA a destra; la seconda riga mantiene YouTube LIVE a sinistra e TREND a destra. Su mobile i contenuti si impilano.
+- Podcast: un solo episodio Spreaker attivo; la Redazione può pubblicare/sostituire il link o ritirarlo. Il player è incorporato da Spreaker; nessun MP3 viene caricato sul servizio.
+- Tabella PostgreSQL `podcast_settings`; la prima inizializzazione inserisce come prova l'episodio `76168692`. Endpoint pubblico `GET /api/podcast`; endpoint autenticati `GET/PUT /api/redazione/podcast`.
+- MEDIA: un solo post pubblico X attivo alla volta, incorporato con il widget ufficiale X (`widgets.js`); la Redazione può sostituire o ritirare il contenuto e aggiungere titolo/didascalia facoltativi.
+- Tabella PostgreSQL `media_settings`; l'inizializzazione inserisce il post di prova `2117852081189216309` (`Iran_in_India`, URL con `/video/1`). Endpoint pubblico `GET /api/media`; endpoint autenticati `GET/PUT /api/redazione/media`.
+- Il backend accetta link `x.com` o `twitter.com` con percorso `/status/ID`; il post deve essere pubblico e incorporabile secondo le regole di X.
 
 Disegno funzionale suggerito:
 - Form Redazione con file picker MP3, titolo, breve descrizione e pulsanti pubblica / disattiva / sostituisci / elimina.
