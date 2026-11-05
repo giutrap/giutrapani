@@ -487,7 +487,7 @@ const podcastEls = {
 };
 function renderPodcast(data) {
   state.podcast = data || null;
-  const enabled = Boolean(data && data.enabled && data.episodeId && data.url);
+  const enabled = Boolean(data && data.enabled && data.url);
   podcastEls.section.hidden = !enabled;
   if (!enabled) { podcastEls.player && (podcastEls.player.src = ''); return; }
   podcastEls.section.querySelector('#podcast-card-link').href = data.url;
