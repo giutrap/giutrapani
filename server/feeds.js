@@ -154,6 +154,18 @@ const FEEDS = [
   { name: 'Facta.news - via Google News', url: 'https://news.google.com/rss/search?q=site%3Afacta.news&hl=it&gl=IT&ceid=IT%3Ait', category: 'Italia' },
   { name: 'Reuters - via Google News', url: 'https://news.google.com/rss/search?q=when%3A24h+site%3Areuters.com&ceid=US%3Aen&hl=en-US', category: 'Mondo' },
   { name: 'Associated Press - via Google News', url: 'https://news.google.com/rss/search?q=when%3A24h+site%3Aapnews.com&hl=en-US&gl=US&ceid=US%3Aen', category: 'Mondo' },
+
+  // --- Istituzioni: flussi ufficiali italiani ed europei ---
+  { name: 'Camera dei Deputati - Comunicati stampa', url: 'https://www.camera.it/leg19/feeds/5/33.xml', category: 'Istituzioni' },
+  { name: 'Camera dei Deputati - Commissioni e Giunte', url: 'https://www.camera.it/leg19/feeds/15/522.xml', category: 'Istituzioni' },
+  { name: 'Camera dei Deputati - Calendario', url: 'https://www.camera.it/leg19/feeds/14/414.xml', category: 'Istituzioni' },
+  { name: 'Senato - Comunicazioni di seduta', url: 'https://www.senato.it/senato/feeds/1/1252.xml', category: 'Istituzioni' },
+  { name: 'Senato - Ordini del giorno delle Commissioni', url: 'https://www.senato.it/static/bgt/UltimiAtti/feedODGGC.xml', category: 'Istituzioni' },
+  { name: 'Commissione europea - Presscorner', url: 'https://ec.europa.eu/commission/presscorner/api/rss?language=it', category: 'Istituzioni' },
+  { name: 'Consiglio dell’Unione europea - Comunicati stampa', url: 'https://www.consilium.europa.eu/en/about-site/rss/rss-press-releases/', category: 'Istituzioni' },
+  { name: 'Banca centrale europea - Comunicati', url: 'https://www.ecb.europa.eu/rss/press.html', category: 'Istituzioni' },
+  { name: 'Corte di giustizia UE - Comunicati stampa', url: 'https://curia.europa.eu/feeds/rssenit.xml', category: 'Istituzioni' },
+
   // Profilo X pubblico di @giutrapani tramite route RSSHub; fonte indipendente dalle NEWS.
   { name: '@giutrapani · X', url: 'https://rss.app/feeds/OvP3XcTYa2zjZUcZ.xml', category: 'Social' },
 ];
