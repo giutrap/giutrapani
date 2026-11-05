@@ -174,14 +174,14 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 function pruneInsightSessions() {
   const cutoff = Date.now() - INSIGHT_SESSION_TTL_MS;
-  for (const [id,lastSeen] of insightSessions) if (lastSeen < cutoff) insightSessions.delete(id);
+  for (const [id,session] of insightSessions) if (session.lastSeen < cutoff) insightSessions.delete(id);
 }
 app.post('/api/insight/collect', async (req,res) => {
-  const { sessionId, event } = req.body || {};
+  const { sessionId, event, audience } = req.body || {};
   if (typeof sessionId !== 'string' || !/^[a-f0-9-]{36}$/i.test(sessionId)) return res.status(400).json({ error:'Sessione non valida.' });
   if (event === 'heartbeat') {
     pruneInsightSessions();
-    insightSessions.set(sessionId,Date.now());
+    insightSessions.set(sessionId,{ lastSeen:Date.now(), audience:audience === 'redazione' ? 'redazione' : 'pubblico' });
     return res.status(204).end();
   }
   if (!INSIGHT_EVENTS.has(event)) return res.status(400).json({ error:'Evento non riconosciuto.' });
@@ -260,7 +260,9 @@ app.get('/api/redazione/insights', async (req,res) => {
       const dayRows = rows.filter(row => row.day === key);
       days.push({ day:key, visits:dayRows.filter(row=>row.event==='visit').reduce((n,row)=>n+Number(row.count),0), articles:dayRows.filter(row=>row.event==='article_open').reduce((n,row)=>n+Number(row.count),0), interactions:dayRows.filter(row=>row.event!=='visit').reduce((n,row)=>n+Number(row.count),0) });
     }
-    res.json({ activeSessions:insightSessions.size, today:totals, days, events:rows.filter(row=>row.day===today).map(row=>({event:row.event,count:Number(row.count)})), refreshedAt:new Date().toISOString() });
+    const activeSessions = [...insightSessions.values()].filter(session=>session.audience==='pubblico').length;
+    const editorialSessions = [...insightSessions.values()].filter(session=>session.audience==='redazione').length;
+    res.json({ activeSessions, editorialSessions, today:totals, days, events:rows.filter(row=>row.day===today).map(row=>({event:row.event,count:Number(row.count)})), refreshedAt:new Date().toISOString() });
   } catch { res.status(500).json({ error:'Statistiche non disponibili.' }); }
 });
 app.get('/api/redazione/live', async (req,res) => {
