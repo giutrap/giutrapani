@@ -33,6 +33,7 @@ async function initDatabase() {
   const ddl = `CREATE TABLE IF NOT EXISTS editorial_notes (id BIGSERIAL PRIMARY KEY, title TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '', original_url TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', extra_links TEXT NOT NULL DEFAULT '', published_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await pool.query(ddl);
   await pool.query('ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ');
+  await pool.query("ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS image_url TEXT NOT NULL DEFAULT ''");
   await pool.query("CREATE TABLE IF NOT EXISTS live_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, video_id TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
   await pool.query("INSERT INTO live_settings (id, enabled, video_id, title, description) VALUES (1, TRUE, 'WUTDiO_fXdE', 'Diretta di prova', 'Primo test del player YouTube di Breaking') ON CONFLICT (id) DO NOTHING");
   await pool.query("CREATE TABLE IF NOT EXISTS podcast_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, episode_id TEXT NOT NULL DEFAULT '', url TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
@@ -231,14 +232,14 @@ app.get('/api/feeds', async (req,res) => {
 app.get('/api/redazione/published', async (req,res) => {
   try {
     if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
-    const result = await pool.query("SELECT id,title,source,notes,extra_links,published_at FROM editorial_notes WHERE published_at IS NOT NULL ORDER BY published_at DESC");
+    const result = await pool.query("SELECT id,title,source,notes,extra_links,image_url,published_at FROM editorial_notes WHERE published_at IS NOT NULL ORDER BY published_at DESC");
     res.json({ notes:result.rows });
   } catch { res.status(500).json({ error:'Impossibile leggere i contenuti della redazione.' }); }
 });
 app.get('/api/redazione/public/:id', async (req,res) => {
   try {
     if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
-    const result = await pool.query("SELECT id,title,source,original_url,notes,extra_links,published_at FROM editorial_notes WHERE id=$1 AND published_at IS NOT NULL",[req.params.id]);
+    const result = await pool.query("SELECT id,title,source,original_url,notes,extra_links,image_url,published_at FROM editorial_notes WHERE id=$1 AND published_at IS NOT NULL",[req.params.id]);
     if (!result.rowCount) return res.status(404).json({ error:'Contenuto non trovato.' });
     res.json({ note:result.rows[0] });
   } catch { res.status(500).json({ error:'Impossibile leggere il contenuto.' }); }
@@ -357,23 +358,37 @@ app.put('/api/redazione/media', async (req,res) => {
 app.get('/api/redazione/notes', async (req,res) => {
   try {
     if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
-    const result = await pool.query('SELECT id,title,source,original_url,notes,extra_links,published_at,created_at,updated_at FROM editorial_notes ORDER BY updated_at DESC');
+    const result = await pool.query('SELECT id,title,source,original_url,notes,extra_links,image_url,published_at,created_at,updated_at FROM editorial_notes ORDER BY updated_at DESC');
     res.json({ notes:result.rows });
   } catch { res.status(500).json({ error:'Errore nella lettura dell’archivio.' }); }
 });
 app.post('/api/redazione/notes', async (req,res) => {
   try {
     if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
-    const { title='',source='',original_url='',notes='',extra_links='' } = req.body || {};
-    const result = await pool.query('INSERT INTO editorial_notes (title,source,original_url,notes,extra_links) VALUES ($1,$2,$3,$4,$5) RETURNING id',[title,source,original_url,notes,extra_links]);
+    const { title='',source='',original_url='',image_url='',notes='',extra_links='' } = req.body || {};
+    let safeImage = '';
+    if (String(image_url).trim()) {
+      let parsed;
+      try { parsed = new URL(String(image_url).trim()); } catch { return res.status(400).json({ error:'Inserisci un link immagine valido.' }); }
+      if (parsed.protocol !== 'https:' || !parsed.hostname) return res.status(400).json({ error:'Il link dell’immagine deve iniziare con https://.' });
+      safeImage = parsed.href;
+    }
+    const result = await pool.query('INSERT INTO editorial_notes (title,source,original_url,image_url,notes,extra_links) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id',[title,source,original_url,safeImage,notes,extra_links]);
     res.status(201).json({ id:result.rows[0].id });
   } catch { res.status(500).json({ error:'Errore nel salvataggio.' }); }
 });
 app.put('/api/redazione/notes/:id', async (req,res) => {
   try {
     if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
-    const { title='',source='',original_url='',notes='',extra_links='' } = req.body || {};
-    const result = await pool.query('UPDATE editorial_notes SET title=$1,source=$2,original_url=$3,notes=$4,extra_links=$5,updated_at=NOW() WHERE id=$6 RETURNING id',[title,source,original_url,notes,extra_links,req.params.id]);
+    const { title='',source='',original_url='',image_url='',notes='',extra_links='' } = req.body || {};
+    let safeImage = '';
+    if (String(image_url).trim()) {
+      let parsed;
+      try { parsed = new URL(String(image_url).trim()); } catch { return res.status(400).json({ error:'Inserisci un link immagine valido.' }); }
+      if (parsed.protocol !== 'https:' || !parsed.hostname) return res.status(400).json({ error:'Il link dell’immagine deve iniziare con https://.' });
+      safeImage = parsed.href;
+    }
+    const result = await pool.query('UPDATE editorial_notes SET title=$1,source=$2,original_url=$3,image_url=$4,notes=$5,extra_links=$6,updated_at=NOW() WHERE id=$7 RETURNING id',[title,source,original_url,safeImage,notes,extra_links,req.params.id]);
     if (!result.rowCount) return res.status(404).json({ error:'Nota non trovata.' });
     res.json({ ok:true });
   } catch { res.status(500).json({ error:'Errore nella modifica.' }); }
