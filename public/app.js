@@ -255,7 +255,7 @@ async function load() {
     const data = await response.json();
     const editorialResponse = await fetch('/api/redazione/published');
     const editorialData = editorialResponse.ok ? await editorialResponse.json() : { notes:[] };
-    const editorialItems = (editorialData.notes || []).map(note => ({ id:note.id, title:note.title, source:'A cura della Redazione', pubDate:note.published_at, summary:note.notes || '', link:'/redazione.html?id=' + encodeURIComponent(note.id), category:'REDAZIONE', isEditorial:true }));
+    const editorialItems = (editorialData.notes || []).map(note => ({ id:note.id, title:note.title, source:'A cura della Redazione', pubDate:note.published_at, summary:note.notes || '', image:note.image_url || '', link:'/redazione.html?id=' + encodeURIComponent(note.id), category:'REDAZIONE', isEditorial:true }));
     state.news = [...(data.articles || []), ...editorialItems];
     state.newsErrors = data.errors || [];
     if (state.activeCategory !== 'TUTTE' && !state.news.some(item => newsCategory(item) === state.activeCategory)) state.activeCategory = 'TUTTE';
@@ -373,9 +373,21 @@ const rf = {
   title: document.getElementById('redazione-title'),
   source: document.getElementById('redazione-source'),
   url: document.getElementById('redazione-url'),
+  image: document.getElementById('redazione-image'),
   notes: document.getElementById('redazione-notes'),
   links: document.getElementById('redazione-links')
 };
+const imagePreview = document.getElementById('redazione-image-preview');
+const imagePreviewImg = document.getElementById('redazione-image-preview-img');
+function updateRedazioneImagePreview() {
+  const value = rf.image.value.trim();
+  imagePreview.hidden = !value;
+  if (value) imagePreviewImg.src = value;
+  else imagePreviewImg.removeAttribute('src');
+}
+rf.image.addEventListener('input', updateRedazioneImagePreview);
+imagePreviewImg.addEventListener('error', () => { imagePreview.hidden = true; });
+imagePreviewImg.addEventListener('load', () => { imagePreview.hidden = false; });
 async function redRequest(url, options = {}) {
   const headers = { ...(options.headers || {}) };
   if (redazione.auth) headers.Authorization = redazione.auth;
@@ -438,7 +450,7 @@ document.addEventListener('click', async event => {
     const note = redazione.notes.find(item => String(item.id) === edit.dataset.editNote);
     if (!note) return;
     rf.id.value = note.id; rf.title.value = note.title; rf.source.value = note.source;
-    rf.url.value = note.original_url; rf.notes.value = note.notes; rf.links.value = note.extra_links;
+    rf.url.value = note.original_url; rf.image.value = note.image_url || ''; updateRedazioneImagePreview(); rf.notes.value = note.notes; rf.links.value = note.extra_links;
     redMessage.textContent = 'Nota caricata: puoi modificarla e salvarla.';
     document.querySelector('.redazione-content').scrollTop = 0;
   }
@@ -462,7 +474,7 @@ document.getElementById('redazione-new').addEventListener('click', () => {
 });
 redForm.addEventListener('submit', async event => {
   event.preventDefault();
-  const payload = { title:rf.title.value.trim(), source:rf.source.value.trim(), original_url:rf.url.value.trim(), notes:rf.notes.value, extra_links:rf.links.value };
+  const payload = { title:rf.title.value.trim(), source:rf.source.value.trim(), original_url:rf.url.value.trim(), image_url:rf.image.value.trim(), notes:rf.notes.value, extra_links:rf.links.value };
   const id = rf.id.value;
   const response = await redRequest('/api/redazione/notes' + (id ? '/' + id : ''), { method:id ? 'PUT' : 'POST', body:JSON.stringify(payload) });
   const data = await response.json().catch(() => ({}));
