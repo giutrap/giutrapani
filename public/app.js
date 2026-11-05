@@ -370,8 +370,8 @@ pollContent.addEventListener('click',async event=>{
   }
 });
 
-// Area privata: le credenziali restano nella memoria della pagina e non vengono salvate.
-const redazione = { auth: '', notes: [] };
+// Area privata: la sessione resta attiva nella scheda del browser anche dopo un refresh.
+const redazione = { auth: (() => { try { return sessionStorage.getItem('breaking-redazione-session') || ''; } catch { return ''; } })(), notes: [] };
 const redPanel = document.getElementById('redazione-panel');
 const redForm = document.getElementById('redazione-form');
 const redMessage = document.getElementById('redazione-message');
@@ -509,10 +509,11 @@ async function redLogin() {
     const pass = prompt('Password REDAZIONE:');
     if (pass === null) return false;
     redazione.auth = 'Basic ' + btoa(unescape(encodeURIComponent(user + ':' + pass)));
+    try { sessionStorage.setItem('breaking-redazione-session', redazione.auth); } catch {}
   }
   const response = await redRequest('/api/redazione/notes');
   if (response.status === 401 || response.status === 403) {
-    redazione.auth = ''; alert('Credenziali non valide. Riprova.'); return false;
+    redazione.auth = ''; try { sessionStorage.removeItem('breaking-redazione-session'); } catch {} alert('Credenziali non valide. Riprova.'); return false;
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { alert(data.error || 'Archivio non disponibile.'); return false; }
