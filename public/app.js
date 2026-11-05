@@ -37,8 +37,9 @@ function getInsightSessionId() {
   } catch { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);}); }
 }
 const insightSessionId = getInsightSessionId();
+let insightAudience = 'pubblico';
 function sendInsight(event) {
-  fetch('/api/insight/collect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:insightSessionId,event}),keepalive:true}).catch(()=>{});
+  fetch('/api/insight/collect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:insightSessionId,event,audience:insightAudience}),keepalive:true}).catch(()=>{});
 }
 function startInsightTracking() {
   const today = new Date().toLocaleDateString('en-CA');
@@ -320,6 +321,7 @@ const redMessage = document.getElementById('redazione-message');
 const redList = document.getElementById('redazione-notes-list');
 const insightEls = {
   active:document.getElementById('insight-active'),
+  editorial:document.getElementById('insight-editorial'),
   visits:document.getElementById('insight-visits'),
   articles:document.getElementById('insight-articles'),
   interactions:document.getElementById('insight-interactions'),
@@ -339,6 +341,7 @@ function renderInsights(data) {
   const today = data.today || {};
   const interactions = Object.entries(today).filter(([key])=>key!=='visit').reduce((sum,[,value])=>sum+Number(value||0),0);
   insightEls.active.textContent = Number(data.activeSessions||0).toLocaleString('it-IT');
+  insightEls.editorial.textContent = Number(data.editorialSessions||0).toLocaleString('it-IT');
   insightEls.visits.textContent = Number(today.visit||0).toLocaleString('it-IT');
   insightEls.articles.textContent = Number(today.article_open||0).toLocaleString('it-IT');
   insightEls.interactions.textContent = interactions.toLocaleString('it-IT');
@@ -393,7 +396,7 @@ async function redLogin() {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { alert(data.error || 'Archivio non disponibile.'); return false; }
-  redazione.notes = data.notes || []; renderRedArchive(); await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); await loadInsightsAdmin(); render(); return true;
+  redazione.notes = data.notes || []; insightAudience = 'redazione'; sendInsight('heartbeat'); renderRedArchive(); await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); await loadInsightsAdmin(); render(); return true;
 }
 function renderRedArchive() {
   if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
