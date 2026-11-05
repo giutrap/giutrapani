@@ -34,7 +34,11 @@ const GOOGLE_NEWS_FALLBACKS = {
   'Il Post': 'https://news.google.com/rss/search?q=site%3Ailpost.it&hl=it&gl=IT&ceid=IT%3Ait',
   'Fanpage.it': 'https://news.google.com/rss/search?q=site%3Afanpage.it&hl=it&gl=IT&ceid=IT%3Ait',
   'Sky TG24': 'https://news.google.com/rss/search?q=site%3Atg24.sky.it&hl=it&gl=IT&ceid=IT%3Ait',
-  'Start Magazine': 'https://news.google.com/rss/search?q=site%3Astartmag.it&hl=it&gl=IT&ceid=IT%3Ait'
+  'Start Magazine': 'https://news.google.com/rss/search?q=site%3Astartmag.it&hl=it&gl=IT&ceid=IT%3Ait',
+  'Il Gazzettino - via Google News': [
+    'https://news.google.com/rss/search?q=site%3Awww.ilgazzettino.it&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=ilgazzettino.it&hl=it&gl=IT&ceid=IT%3Ait'
+  ]
 };
 
 async function parseSourceFeed(source, timeout = RSS_TIMEOUT_MS) {
@@ -42,15 +46,22 @@ async function parseSourceFeed(source, timeout = RSS_TIMEOUT_MS) {
   try {
     return await sourceParser.parseURL(source.url);
   } catch (primaryError) {
-    const fallbackUrl = GOOGLE_NEWS_FALLBACKS[source.name];
-    if (!fallbackUrl) throw primaryError;
-    try {
-      const fallback = await sourceParser.parseURL(fallbackUrl);
-      console.warn('[RSS fallback] Fonte alternativa attiva:', source.name);
-      return fallback;
-    } catch (fallbackError) {
-      throw new Error('Feed diretto: ' + (primaryError.message || 'non disponibile') + '; Google News: ' + (fallbackError.message || 'non disponibile'));
+    const configuredFallbacks = GOOGLE_NEWS_FALLBACKS[source.name];
+    const fallbackUrls = Array.isArray(configuredFallbacks)
+      ? configuredFallbacks
+      : configuredFallbacks ? [configuredFallbacks] : [];
+    if (!fallbackUrls.length) throw primaryError;
+    let fallbackError;
+    for (const fallbackUrl of fallbackUrls) {
+      try {
+        const fallback = await sourceParser.parseURL(fallbackUrl);
+        console.warn('[RSS fallback] Fonte alternativa attiva:', source.name, fallbackUrl);
+        return fallback;
+      } catch (error) {
+        fallbackError = error;
+      }
     }
+    throw new Error('Feed principale: ' + (primaryError.message || 'non disponibile') + '; feed alternativi Google News: ' + (fallbackError?.message || 'non disponibili'));
   }
 }
 const CACHE_TTL_MS = 60 * 1000;
