@@ -158,7 +158,7 @@ async function fetchAllFeeds() {
       return items.slice(0, 2);
     }
     return items;
-  }));
+  });
   const articles = [], errors = [];
   settled.forEach((result,index) => {
     const source = FEEDS[index];
