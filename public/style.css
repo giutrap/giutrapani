@@ -1381,3 +1381,50 @@ body{font-size:18px;line-height:1.4}
 .category-filter.category-ricerche-filter:hover{background:#5D3288!important;border-color:#5D3288!important}
 .category-filter.category-ricerche-filter.is-active{background:#4D2874!important;border-color:#4D2874!important;box-shadow:0 0 0 2px rgba(112,64,160,.22)}
 .news-category-istituzioni,.news-category-ricerche{font-family:'Economica',Arial,sans-serif!important}
+
+
+/* Box Podcast e Social: formato compatto nel flusso notizie (altezza ridotta di oltre la metà) */
+.feed-special-card{
+  margin:9px 0 11px!important;
+}
+.feed-special-card a{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto auto auto;
+  align-items:center!important;
+  column-gap:18px!important;
+  row-gap:1px!important;
+  min-height:0!important;
+  padding:8px 18px!important;
+}
+.feed-special-kicker{
+  grid-column:1;
+  font-size:10px!important;
+  line-height:1!important;
+}
+.feed-special-card strong{
+  grid-column:1;
+  font-size:clamp(22px,2.2vw,29px)!important;
+  line-height:1.02!important;
+}
+.feed-special-description{
+  grid-column:1;
+  font-size:13px!important;
+  line-height:1.12!important;
+}
+.feed-special-action{
+  grid-column:2;
+  grid-row:1 / 4;
+  align-self:center!important;
+  margin:0!important;
+  padding:0!important;
+  font-size:15px!important;
+  white-space:nowrap;
+}
+@media(max-width:760px){
+  .feed-special-card{margin:8px 0 10px!important}
+  .feed-special-card a{padding:8px 12px!important;column-gap:10px!important}
+  .feed-special-card strong{font-size:22px!important}
+  .feed-special-description{font-size:12px!important}
+  .feed-special-action{font-size:13px!important}
+}
