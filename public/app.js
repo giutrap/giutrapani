@@ -1,14 +1,19 @@
 const AUTO_REFRESH_MS = 60000;
 const PAGE_SIZE = 50;
 const headerDateEl = document.getElementById('header-date');
-function renderHeaderDate() {
-  if (!headerDateEl) return;
-  const today = new Date();
-  const label = today.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-  headerDateEl.textContent = label.charAt(0).toLocaleUpperCase('it-IT') + label.slice(1);
+const headerTimeEl = document.getElementById('header-time');
+function renderHeaderClock() {
+  const now = new Date();
+  if (headerDateEl) {
+    const label = now.toLocaleDateString('it-IT', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    headerDateEl.textContent = label.charAt(0).toLocaleUpperCase('it-IT') + label.slice(1);
+  }
+  if (headerTimeEl) {
+    headerTimeEl.textContent = now.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  }
 }
-renderHeaderDate();
-setInterval(renderHeaderDate, 60000);
+renderHeaderClock();
+setInterval(renderHeaderClock, 1000);
 const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', activeKeyword: '', currentPage: 1, podcast: null, media: null };
 const trendEl = { list: document.getElementById('trends-list'), updated: document.getElementById('trends-updated') };
 const el = {
