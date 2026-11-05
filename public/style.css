@@ -1428,3 +1428,21 @@ body{font-size:18px;line-height:1.4}
   .feed-special-description{font-size:12px!important}
   .feed-special-action{font-size:13px!important}
 }
+
+
+/* Gerarchia Breaking: le notizie in aggiornamento emergono nel flusso */
+.urgency-developing{
+  border-left:5px solid #285b89!important;
+  background:#f0f6fb!important;
+}
+.urgency-developing .news-time,
+.urgency-developing .news-title a{color:#204f78!important;font-weight:700}
+.urgency-developing .urgency-label{
+  background:#285b89!important;
+  color:#fff!important;
+  padding:4px 8px!important;
+  border-radius:3px!important;
+  font-size:11px!important;
+  letter-spacing:.55px!important;
+  white-space:nowrap;
+}
