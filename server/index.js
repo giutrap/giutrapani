@@ -38,6 +38,19 @@ const GOOGLE_NEWS_FALLBACKS = {
   'Il Gazzettino - via Google News': [
     'https://news.google.com/rss/search?q=site%3Awww.ilgazzettino.it&hl=it&gl=IT&ceid=IT%3Ait',
     'https://news.google.com/rss/search?q=ilgazzettino.it&hl=it&gl=IT&ceid=IT%3Ait'
+  ],
+  'Il Tirreno - via Google News': [
+    'https://news.google.com/rss/search?q=site%3Awww.iltirreno.it&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=iltirreno.it&hl=it&gl=IT&ceid=IT%3Ait'
+  ],
+  'La Gazzetta del Mezzogiorno - via Google News': [
+    'https://www.lagazzettadelmezzogiorno.it/rss.jsp?sezione=113',
+    'https://news.google.com/rss/search?q=site%3Awww.lagazzettadelmezzogiorno.it&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=lagazzettadelmezzogiorno.it&hl=it&gl=IT&ceid=IT%3Ait'
+  ],
+  'Domino - via Google News': [
+    'https://news.google.com/rss/search?q=site%3Awww.rivistadomino.it&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=rivista+Domino+Dario+Fabbri&hl=it&gl=IT&ceid=IT%3Ait'
   ]
 };
 
