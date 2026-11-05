@@ -119,6 +119,10 @@ function urgency(item) {
   return 'normal';
 }
 
+function isXFeed(item) {
+  return /@giutrapani|\\bX\\b|twitter/i.test(String(item.source || ''));
+}
+
 
 
 const KEYWORD_TOPICS = [
@@ -178,20 +182,28 @@ function renderTrends() {
 
 function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
-  const rows = state.news.filter(item => !isFutureDated(item))
-    // Gerarchia Breaking: prima le ultim'ora, poi le notizie in aggiornamento;
-    // le altre fonti, comprese quelle del Riformista, seguono l'ordine cronologico.
-    .sort((a, b) => {
-      const priority = item => {
-        const level = urgency(item);
-        if (level === 'urgent') return 0;
-        if (level === 'developing') return 1;
-        return 2;
-      };
-      const difference = priority(a) - priority(b);
-      if (difference !== 0) return difference;
-      return new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
-    })
+  const eligible = state.news.filter(item => !isFutureDated(item));
+  const byDate = (a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
+  const xPosts = eligible.filter(isXFeed).sort(byDate);
+  const latestXPost = xPosts[0] || null;
+  const urgentItems = eligible.filter(item => !isXFeed(item) && urgency(item) === 'urgent').sort(byDate);
+  const developingItems = eligible
+    .filter(item => !isXFeed(item) && urgency(item) === 'developing')
+    .sort(byDate);
+  // Solo i cinque aggiornamenti più recenti mantengono l'evidenza editoriale.
+  const highlightedDeveloping = developingItems.slice(0,5);
+  const highlightedSet = new Set(highlightedDeveloping);
+  const prioritySet = new Set([...urgentItems, ...highlightedDeveloping]);
+  const normalFlow = eligible
+    .filter(item => !prioritySet.has(item) && item !== latestXPost)
+    .sort(byDate);
+  const orderedRows = [
+    ...urgentItems,
+    ...highlightedDeveloping,
+    ...(latestXPost ? [latestXPost] : []),
+    ...normalFlow
+  ];
+  const rows = orderedRows
     .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)
     .filter(item => !state.activeKeyword || KEYWORD_TOPICS.find(topic => topic.label === state.activeKeyword && topicMatches(item,topic)))
     .filter(item => !query || (
@@ -207,7 +219,7 @@ function render() {
     ? '<aside class="feed-special-card feed-meme-card"><a href="' + esc(state.media.postUrl) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">SOCIAL</span><strong>' + esc(state.media.title || 'Il Meme') + '</strong>' + (state.media.caption ? '<span class="feed-special-description">' + esc(state.media.caption) + '</span>' : '') + '<span class="feed-special-action">GUARDA ↗</span></a></aside>' : '';
   el.articles.innerHTML = visibleRows.map((item, index) => {
     const link = esc(item.link || '#');
-    const level = urgency(item);
+    const level = urgency(item) === 'developing' && !highlightedSet.has(item) ? 'normal' : urgency(item);
     const marker = level === 'urgent'
       ? '<span class="urgency-label urgency-urgent">ULTIM’ORA</span>'
       : level === 'developing'
