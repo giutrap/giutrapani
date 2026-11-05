@@ -1306,3 +1306,46 @@ body{font-size:18px;line-height:1.4}
 }
 
 .poll-choice.is-selected{border-color:#b3262d;background:#fff4f4;color:#a51f2b;box-shadow:inset 3px 0 0 #b3262d}
+
+
+/* Layout finale: Trend e Sondaggio affiancati e perfettamente bilanciati */
+@media(min-width:761px){
+  .top-feature-grid:has(#poll-section:not([hidden])):not(:has(#live-section:not([hidden]))){
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    gap:22px!important;
+  }
+  .top-feature-grid:has(#poll-section:not([hidden])):not(:has(#live-section:not([hidden]))) #trends-section{
+    grid-column:auto!important;
+    width:100%!important;
+    min-width:0!important;
+    height:100%!important;
+  }
+  .top-feature-grid:has(#poll-section:not([hidden])):not(:has(#live-section:not([hidden]))) #poll-section{
+    display:flex!important;
+    flex-direction:column;
+    width:100%!important;
+    min-width:0!important;
+    height:100%!important;
+    box-sizing:border-box;
+  }
+  .top-feature-grid:has(#poll-section:not([hidden])):not(:has(#live-section:not([hidden]))) #poll-content{
+    flex:1 1 auto;
+    align-content:start;
+  }
+}
+@media(max-width:760px){
+  .top-feature-grid:has(#poll-section:not([hidden])){
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:18px!important;
+  }
+  .top-feature-grid:has(#poll-section:not([hidden])) #trends-section,
+  .top-feature-grid:has(#poll-section:not([hidden])) #poll-section{
+    grid-column:1!important;
+    width:100%!important;
+    min-width:0!important;
+    height:auto!important;
+  }
+}
