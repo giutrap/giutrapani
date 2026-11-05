@@ -1250,3 +1250,11 @@ body{font-size:18px;line-height:1.4}
   .header-date{font-size:13px;line-height:1.05}
   .header-time{font-size:13px;padding:4px 6px}
 }
+
+/* Insight: lettura immediata dei dati audience */
+.insight-metrics{grid-template-columns:repeat(5,minmax(0,1fr))}
+.insight-metrics article.insight-live{background:#edf5fb;border-color:#b9d0e2}
+.insight-metrics article.insight-live strong{font-size:36px}
+.insight-help{margin:10px 0 0;padding:10px 12px;background:#f7f8f9;border-left:3px solid #285b89;color:#596574;font-size:12px;line-height:1.5}
+@media(max-width:900px){.insight-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.insight-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
