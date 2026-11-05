@@ -184,23 +184,24 @@ function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const eligible = state.news.filter(item => !isFutureDated(item));
   const byDate = (a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
-  const xPosts = eligible.filter(isXFeed).sort(byDate);
-  const latestXPost = xPosts[0] || null;
-  const urgentItems = eligible.filter(item => !isXFeed(item) && urgency(item) === 'urgent').sort(byDate);
-  const developingItems = eligible
-    .filter(item => !isXFeed(item) && urgency(item) === 'developing')
-    .sort(byDate);
-  // Solo i cinque aggiornamenti più recenti mantengono l'evidenza editoriale.
-  const highlightedDeveloping = developingItems.slice(0,5);
-  const highlightedSet = new Set(highlightedDeveloping);
-  const prioritySet = new Set([...urgentItems, ...highlightedDeveloping]);
+  // Gerarchia editoriale: una sola notizia per ciascuna evidenza, poi il flusso cronologico.
+  const latestUrgent = eligible
+    .filter(item => !item.isEditorial && !isXFeed(item) && urgency(item) === 'urgent')
+    .sort(byDate)[0] || null;
+  const latestDeveloping = eligible
+    .filter(item => !item.isEditorial && !isXFeed(item) && urgency(item) === 'developing')
+    .sort(byDate)[0] || null;
+  const latestFocus = eligible
+    .filter(item => item.isEditorial)
+    .sort(byDate)[0] || null;
+  const highlightedUrgentSet = new Set(latestUrgent ? [latestUrgent] : []);
+  const highlightedDevelopingSet = new Set(latestDeveloping ? [latestDeveloping] : []);
+  const prioritySet = new Set([latestUrgent, latestDeveloping, latestFocus].filter(Boolean));
   const normalFlow = eligible
-    .filter(item => !prioritySet.has(item) && item !== latestXPost)
+    .filter(item => !prioritySet.has(item))
     .sort(byDate);
   const orderedRows = [
-    ...urgentItems,
-    ...highlightedDeveloping,
-    ...(latestXPost ? [latestXPost] : []),
+    ...[latestUrgent, latestDeveloping, latestFocus].filter(Boolean),
     ...normalFlow
   ];
   const rows = orderedRows
@@ -219,7 +220,10 @@ function render() {
     ? '<aside class="feed-special-card feed-meme-card"><a href="' + esc(state.media.postUrl) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">SOCIAL</span><strong>' + esc(state.media.title || 'Il Meme') + '</strong>' + (state.media.caption ? '<span class="feed-special-description">' + esc(state.media.caption) + '</span>' : '') + '<span class="feed-special-action">GUARDA ↗</span></a></aside>' : '';
   el.articles.innerHTML = visibleRows.map((item, index) => {
     const link = esc(item.link || '#');
-    const level = urgency(item) === 'developing' && !highlightedSet.has(item) ? 'normal' : urgency(item);
+    const itemUrgency = urgency(item);
+    const level = (itemUrgency === 'urgent' && !highlightedUrgentSet.has(item))
+      || (itemUrgency === 'developing' && !highlightedDevelopingSet.has(item))
+      ? 'normal' : itemUrgency;
     const marker = level === 'urgent'
       ? '<span class="urgency-label urgency-urgent">ULTIM’ORA</span>'
       : level === 'developing'
