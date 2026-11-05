@@ -1304,3 +1304,5 @@ body{font-size:18px;line-height:1.4}
  .poll-question{font-size:20px}
  .poll-admin-dates{grid-template-columns:1fr}
 }
+
+.poll-choice.is-selected{border-color:#b3262d;background:#fff4f4;color:#a51f2b;box-shadow:inset 3px 0 0 #b3262d}
