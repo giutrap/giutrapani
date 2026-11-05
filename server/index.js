@@ -4,7 +4,52 @@ const Parser = require('rss-parser');
 const { Pool } = require('pg');
 const { FEEDS } = require('./feeds');
 const app = express();
-const parser = new Parser({ timeout: 8000 });
+const RSS_TIMEOUT_MS = 14000;
+const RSS_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (compatible; BreakingNewsRSS/1.0; +https://breakingnewsognigiorno.onrender.com)',
+  'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*'
+};
+const parser = new Parser({ timeout: RSS_TIMEOUT_MS, headers: RSS_HEADERS });
+
+async function mapWithConcurrency(items, limit, worker) {
+  const results = new Array(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (true) {
+      const index = next++;
+      if (index >= items.length) return;
+      try { results[index] = { status:'fulfilled', value:await worker(items[index], index) }; }
+      catch (reason) { results[index] = { status:'rejected', reason }; }
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
+const GOOGLE_NEWS_FALLBACKS = {
+  'la Repubblica - Sport': 'https://news.google.com/rss/search?q=site%3Arepubblica.it%2Fsport&hl=it&gl=IT&ceid=IT%3Ait',
+  'Il Giornale': 'https://news.google.com/rss/search?q=site%3Ailgiornale.it&hl=it&gl=IT&ceid=IT%3Ait',
+  'Avvenire': 'https://news.google.com/rss/search?q=site%3Aavvenire.it&hl=it&gl=IT&ceid=IT%3Ait',
+  'Il Post': 'https://news.google.com/rss/search?q=site%3Ailpost.it&hl=it&gl=IT&ceid=IT%3Ait',
+  'Fanpage.it': 'https://news.google.com/rss/search?q=site%3Afanpage.it&hl=it&gl=IT&ceid=IT%3Ait'
+};
+
+async function parseSourceFeed(source, timeout = RSS_TIMEOUT_MS) {
+  const sourceParser = new Parser({ timeout, headers: RSS_HEADERS });
+  try {
+    return await sourceParser.parseURL(source.url);
+  } catch (primaryError) {
+    const fallbackUrl = GOOGLE_NEWS_FALLBACKS[source.name];
+    if (!fallbackUrl) throw primaryError;
+    try {
+      const fallback = await sourceParser.parseURL(fallbackUrl);
+      console.warn('[RSS fallback] Fonte alternativa attiva:', source.name);
+      return fallback;
+    } catch (fallbackError) {
+      throw new Error('Feed diretto: ' + (primaryError.message || 'non disponibile') + '; Google News: ' + (fallbackError.message || 'non disponibile'));
+    }
+  }
+}
 const CACHE_TTL_MS = 60 * 1000;
 const cache = { timestamp: 0, articles: [], errors: [] };
 const insightSessions = new Map();
@@ -102,10 +147,11 @@ function normalizeItem(item, source) {
   return { title: (item.title || '').trim(), link: item.link || item.guid || '', pubDate: item.isoDate || item.pubDate || null, summary: rawSummary.replace(/\\s+/g, ' ').trim().slice(0, 280), source: source.name, category: source.category };
 }
 async function fetchAllFeeds() {
-  const settled = await Promise.allSettled(FEEDS.map(async source => {
+  const settled = await mapWithConcurrency(FEEDS, 10, async source => {
     if (source.name === '@giutrapani · X') return fetchXPosts(source);
-    const sourceParser = source.name === 'Il Riformista' ? new Parser({ timeout: 30000 }) : parser;
-    const feed = await sourceParser.parseURL(source.url);
+    const feed = source.name === 'Il Riformista'
+      ? await new Parser({ timeout: 30000, headers: RSS_HEADERS }).parseURL(source.url)
+      : await parseSourceFeed(source);
     const items = (feed.items || []).map(item => normalizeItem(item, source));
     if (source.name === 'Il Riformista') {
       items.sort((a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
@@ -129,7 +175,7 @@ let diagnosticsPromise = null;
 async function checkOneFeed(source) {
   const checkedAt = new Date().toISOString();
   try {
-    const feed = await new Parser({ timeout: 7000 }).parseURL(source.url);
+    const feed = await parseSourceFeed(source, RSS_TIMEOUT_MS);
     const items = feed.items || [];
     const dates = items.map(item => new Date(item.isoDate || item.pubDate || 0)).filter(date => !Number.isNaN(date.getTime()) && date.getTime() > 0);
     const latest = dates.length ? new Date(Math.max(...dates.map(date => date.getTime()))).toISOString() : null;
@@ -150,7 +196,7 @@ async function runFeedDiagnostics(force = false) {
   diagnosticsPromise = (async () => {
     const results = new Array(FEEDS.length);
     let next = 0;
-    const workers = Array.from({ length: Math.min(16, FEEDS.length) }, async () => {
+    const workers = Array.from({ length: Math.min(6, FEEDS.length) }, async () => {
       while (true) {
         const index = next++;
         if (index >= FEEDS.length) return;
