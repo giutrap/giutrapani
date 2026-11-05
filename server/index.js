@@ -31,7 +31,9 @@ const GOOGLE_NEWS_FALLBACKS = {
   'Il Giornale': 'https://news.google.com/rss/search?q=site%3Ailgiornale.it&hl=it&gl=IT&ceid=IT%3Ait',
   'Avvenire': 'https://news.google.com/rss/search?q=site%3Aavvenire.it&hl=it&gl=IT&ceid=IT%3Ait',
   'Il Post': 'https://news.google.com/rss/search?q=site%3Ailpost.it&hl=it&gl=IT&ceid=IT%3Ait',
-  'Fanpage.it': 'https://news.google.com/rss/search?q=site%3Afanpage.it&hl=it&gl=IT&ceid=IT%3Ait'
+  'Fanpage.it': 'https://news.google.com/rss/search?q=site%3Afanpage.it&hl=it&gl=IT&ceid=IT%3Ait',
+  'Sky TG24': 'https://news.google.com/rss/search?q=site%3Atg24.sky.it&hl=it&gl=IT&ceid=IT%3Ait',
+  'Start Magazine': 'https://news.google.com/rss/search?q=site%3Astartmag.it&hl=it&gl=IT&ceid=IT%3Ait'
 };
 
 async function parseSourceFeed(source, timeout = RSS_TIMEOUT_MS) {
