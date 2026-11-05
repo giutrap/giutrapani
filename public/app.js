@@ -179,15 +179,14 @@ function renderTrends() {
 function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const rows = state.news.filter(item => !isFutureDated(item))
-    // Ordine editoriale: ultimo post X, ultimi due articoli del Riformista,
-    // approfondimenti della Redazione e infine tutte le altre fonti in ordine cronologico.
+    // Gerarchia Breaking: prima le ultim'ora, poi le notizie in aggiornamento;
+    // le altre fonti, comprese quelle del Riformista, seguono l'ordine cronologico.
     .sort((a, b) => {
       const priority = item => {
-        const category = newsCategory(item);
-        if (category === '@giutrapani') return 0;
-        if (category === 'IL RIFORMISTA') return 1;
-        if (category === 'FOCUS') return 2;
-        return 3;
+        const level = urgency(item);
+        if (level === 'urgent') return 0;
+        if (level === 'developing') return 1;
+        return 2;
       };
       const difference = priority(a) - priority(b);
       if (difference !== 0) return difference;
@@ -212,7 +211,7 @@ function render() {
     const marker = level === 'urgent'
       ? '<span class="urgency-label urgency-urgent">ULTIM’ORA</span>'
       : level === 'developing'
-        ? '<span class="urgency-label urgency-developing">AGGIORNAMENTO</span>'
+        ? '<span class="urgency-label urgency-developing" >IN AGGIORNAMENTO</span>'
         : '';
     const category = newsCategory(item);
     return '<article class="news-item urgency-' + level + '">'
