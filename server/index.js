@@ -28,11 +28,36 @@ async function mapWithConcurrency(items, limit, worker) {
 }
 
 const GOOGLE_NEWS_FALLBACKS = {
-  'la Repubblica - Sport': 'https://news.google.com/rss/search?q=site%3Arepubblica.it%2Fsport&hl=it&gl=IT&ceid=IT%3Ait',
-  'Il Giornale': 'https://news.google.com/rss/search?q=site%3Ailgiornale.it&hl=it&gl=IT&ceid=IT%3Ait',
+  'la Repubblica - Sport': [
+    'https://news.google.com/rss/search?q=site%3Arepubblica.it%2Fsport&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=site%3Awww.repubblica.it%2Fsport&hl=it-IT&gl=IT&ceid=IT%3Ait'
+  ],
+  'Il Giornale': [
+    'https://news.google.com/rss/search?q=site%3Ailgiornale.it&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=site%3Awww.ilgiornale.it&hl=it-IT&gl=IT&ceid=IT%3Ait'
+  ],
+  'Conferenza Episcopale Italiana': [
+    'https://news.google.com/rss/search?q=site%3Achiesacattolica.it&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=site%3Awww.chiesacattolica.it&hl=it-IT&gl=IT&ceid=IT%3Ait'
+  ],
+  'FISC - Settimanali cattolici': [
+    'https://news.google.com/rss/search?q=site%3Afisc.it&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=site%3Awww.fisc.it&hl=it-IT&gl=IT&ceid=IT%3Ait'
+  ],
   'Avvenire': 'https://news.google.com/rss/search?q=site%3Aavvenire.it&hl=it&gl=IT&ceid=IT%3Ait',
-  'Il Post': 'https://news.google.com/rss/search?q=site%3Ailpost.it&hl=it&gl=IT&ceid=IT%3Ait',
-  'Fanpage.it': 'https://news.google.com/rss/search?q=site%3Afanpage.it&hl=it&gl=IT&ceid=IT%3Ait',
+  'Il Post': [
+    'https://news.google.com/rss/search?q=site%3Ailpost.it&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=site%3Awww.ilpost.it&hl=it-IT&gl=IT&ceid=IT%3Ait'
+  ],
+  'Fanpage.it': [
+    'https://news.google.com/rss/search?q=site%3Afanpage.it&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=site%3Awww.fanpage.it&hl=it-IT&gl=IT&ceid=IT%3Ait'
+  ],
+  'Limes - via Google News': [
+    'https://news.google.com/rss/search?q=site%3Alimesonline.com&hl=it&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=site%3Awww.limesonline.com&hl=it-IT&gl=IT&ceid=IT%3Ait',
+    'https://news.google.com/rss/search?q=Limes+geopolitica&hl=it&gl=IT&ceid=IT%3Ait'
+  ],
   'Sky TG24': 'https://news.google.com/rss/search?q=site%3Atg24.sky.it&hl=it&gl=IT&ceid=IT%3Ait',
   'Start Magazine': 'https://news.google.com/rss/search?q=site%3Astartmag.it&hl=it&gl=IT&ceid=IT%3Ait',
   'Il Gazzettino - via Google News': [
@@ -54,10 +79,35 @@ const GOOGLE_NEWS_FALLBACKS = {
   ]
 };
 
+function isTransientFeedError(error) {
+  const status = Number(error?.statusCode || error?.status || error?.response?.statusCode || 0);
+  return !status || status === 408 || status === 425 || status === 429 || status >= 500;
+}
+
+async function parseFeedUrl(url, timeout) {
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const parsed = await new Parser({ timeout, headers: RSS_HEADERS }).parseURL(url);
+      return parsed;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0 && isTransientFeedError(error)) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
+}
+
 async function parseSourceFeed(source, timeout = RSS_TIMEOUT_MS) {
-  const sourceParser = new Parser({ timeout, headers: RSS_HEADERS });
   try {
-    return await sourceParser.parseURL(source.url);
+    const primary = await parseFeedUrl(source.url, timeout);
+    primary._breakingSourceUrl = source.url;
+    primary._breakingFallbackUsed = false;
+    return primary;
   } catch (primaryError) {
     const configuredFallbacks = GOOGLE_NEWS_FALLBACKS[source.name];
     const fallbackUrls = Array.isArray(configuredFallbacks)
@@ -67,14 +117,16 @@ async function parseSourceFeed(source, timeout = RSS_TIMEOUT_MS) {
     let fallbackError;
     for (const fallbackUrl of fallbackUrls) {
       try {
-        const fallback = await sourceParser.parseURL(fallbackUrl);
+        const fallback = await parseFeedUrl(fallbackUrl, timeout);
+        fallback._breakingSourceUrl = fallbackUrl;
+        fallback._breakingFallbackUsed = true;
         console.warn('[RSS fallback] Fonte alternativa attiva:', source.name, fallbackUrl);
         return fallback;
       } catch (error) {
         fallbackError = error;
       }
     }
-    throw new Error('Feed principale: ' + (primaryError.message || 'non disponibile') + '; feed alternativi Google News: ' + (fallbackError?.message || 'non disponibili'));
+    throw new Error('Feed principale: ' + (primaryError.message || 'non disponibile') + '; alternative: ' + (fallbackError?.message || 'non disponibili'));
   }
 }
 const CACHE_TTL_MS = 60 * 1000;
@@ -211,6 +263,8 @@ async function checkOneFeed(source) {
     const ageHours = latest ? (Date.now() - new Date(latest).getTime()) / 3600000 : null;
     return {
       name: source.name, category: source.category, url: source.url,
+      resolvedUrl: feed._breakingSourceUrl || source.url,
+      fallbackUsed: feed._breakingFallbackUsed === true,
       status: !items.length ? 'empty' : ageHours > 168 ? 'stale' : 'ok',
       count: items.length, latestPublishedAt: latest, checkedAt,
       error: !items.length ? 'Feed raggiungibile ma senza articoli.' : ageHours > 168 ? 'Ultimo contenuto più vecchio di 7 giorni.' : null
