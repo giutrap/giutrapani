@@ -313,6 +313,61 @@ setInterval(loadPodcastPublic, 120000);
 setInterval(loadMediaPublic, 120000);
 
 
+
+const pollSection=document.getElementById('poll-section');
+const pollContent=document.getElementById('poll-content');
+const pollStatus=document.getElementById('poll-status');
+let pollSelected=-1;
+function getPollVoterId(){
+  try{
+    let id=localStorage.getItem('breaking-poll-voter');
+    if(!id){id=crypto.randomUUID();localStorage.setItem('breaking-poll-voter',id);}
+    return id;
+  }catch{return crypto.randomUUID();}
+}
+const pollVoterId=getPollVoterId();
+function renderPublicPoll(data){
+  if(!data || !data.visible){pollSection.hidden=true;return;}
+  pollSection.hidden=false;
+  pollStatus.textContent=data.status==='active'?'APERTO': 'CHIUSO';
+  const showResults=data.status==='closed'||data.alreadyVoted;
+  const total=Number(data.total||0);
+  let html='<h2 class="poll-question">'+esc(data.question)+'</h2>';
+  if(showResults){
+    html+=(data.options||[]).map(option=>{
+      const percent=total?Math.round(option.votes/total*100):0;
+      return '<div class="poll-result"><div class="poll-result-head"><span>'+esc(option.label)+'</span><strong>'+percent+'%</strong></div><div class="poll-result-track"><div class="poll-result-fill" style="width:'+percent+'%"></div></div><span class="poll-result-count">'+Number(option.votes).toLocaleString('it-IT')+' voti</span></div>';
+    }).join('');
+    html+='<div class="poll-footnote">'+total.toLocaleString('it-IT')+' voti totali · '+(data.status==='closed'?'Risultati definitivi':'Risultati aggiornati in tempo reale')+'</div>';
+  }else{
+    html+='<div class="poll-choices">'+(data.options||[]).map((option,index)=>'<button type="button" class="poll-choice'+(pollSelected===index?' is-selected':'')+'" data-poll-option="'+index+'" aria-pressed="'+(pollSelected===index)+'">'+esc(option.label)+'</button>').join('')+'</div>';
+    html+='<button type="button" class="poll-vote-button" id="poll-vote-submit" '+(pollSelected<0?'disabled':'')+'>VOTA</button><div id="poll-vote-message" class="poll-vote-message">Seleziona una risposta per partecipare.</div>';
+  }
+  pollContent.innerHTML=html;
+}
+async function loadPollPublic(){
+  try{
+    const response=await fetch('/api/poll?voterId='+encodeURIComponent(pollVoterId));
+    if(response.ok)renderPublicPoll(await response.json());
+  }catch(error){console.warn('Sondaggio non disponibile',error);}
+}
+pollContent.addEventListener('click',async event=>{
+  const choice=event.target.closest('[data-poll-option]');
+  if(choice){pollSelected=Number(choice.dataset.pollOption);await loadPollPublic();return;}
+  if(event.target.closest('#poll-vote-submit')){
+    const button=document.getElementById('poll-vote-submit');
+    const message=document.getElementById('poll-vote-message');
+    if(pollSelected<0||!button)return;
+    button.disabled=true;if(message)message.textContent='Registrazione del voto…';
+    try{
+      const response=await fetch('/api/poll/vote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({voterId:pollVoterId,optionIndex:pollSelected})});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok){if(message)message.textContent=result.error||'Voto non registrato.';await loadPollPublic();return;}
+      pollSelected=-1;await loadPollPublic();
+    }catch{if(message)message.textContent='Connessione non disponibile. Riprova.';button.disabled=false;}
+  }
+});
+
 // Area privata: le credenziali restano nella memoria della pagina e non vengono salvate.
 const redazione = { auth: '', notes: [] };
 const redPanel = document.getElementById('redazione-panel');
@@ -377,6 +432,57 @@ const rf = {
   notes: document.getElementById('redazione-notes'),
   links: document.getElementById('redazione-links')
 };
+
+const pollAdmin={
+ question:document.getElementById('poll-admin-question'),
+ options:[0,1,2,3].map(index=>document.getElementById('poll-admin-option-'+index)),
+ start:document.getElementById('poll-admin-start'),
+ end:document.getElementById('poll-admin-end'),
+ message:document.getElementById('poll-admin-message'),
+ results:document.getElementById('poll-admin-results')
+};
+function toLocalDateTime(value){
+ if(!value)return '';
+ const date=new Date(value),offset=date.getTimezoneOffset()*60000;
+ return new Date(date.getTime()-offset).toISOString().slice(0,16);
+}
+async function loadPollAdmin(){
+ try{
+  const response=await redRequest('/api/redazione/poll');
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok){pollAdmin.message.textContent=data.error||'Impostazioni sondaggio non disponibili.';return;}
+  pollAdmin.question.value=data.question||'';
+  pollAdmin.options.forEach((input,index)=>input.value=data.options?.[index]?.label||'');
+  pollAdmin.start.value=toLocalDateTime(data.startsAt);
+  pollAdmin.end.value=toLocalDateTime(data.endsAt);
+  pollAdmin.message.textContent=data.status==='active'?'Sondaggio attualmente aperto.':data.status==='scheduled'?'Sondaggio programmato.':data.status==='closed'?'Ultimo sondaggio chiuso.':'Nessun sondaggio configurato.';
+  pollAdmin.results.textContent='Partecipazioni registrate: '+Number(data.total||0).toLocaleString('it-IT');
+ }catch{pollAdmin.message.textContent='Impossibile caricare il sondaggio.';}
+}
+document.getElementById('poll-save').addEventListener('click',async()=>{
+ const options=pollAdmin.options.map(input=>input.value.trim()).filter(Boolean);
+ const payload={question:pollAdmin.question.value.trim(),options,startsAt:pollAdmin.start.value?new Date(pollAdmin.start.value).toISOString():'',endsAt:pollAdmin.end.value?new Date(pollAdmin.end.value).toISOString():'',enabled:true};
+ pollAdmin.message.textContent='Salvataggio in corso…';
+ try{
+  const response=await redRequest('/api/redazione/poll',{method:'PUT',body:JSON.stringify(payload)});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok){pollAdmin.message.textContent=data.error||'Salvataggio non riuscito.';return;}
+  pollAdmin.message.textContent=data.status==='active'?'Sondaggio pubblicato e attivo.':data.status==='scheduled'?'Sondaggio salvato e programmato.':'Sondaggio salvato: controlla il periodo impostato.';
+  await loadPollAdmin();await loadPollPublic();
+ }catch{pollAdmin.message.textContent='Errore di connessione durante il salvataggio.';}
+});
+document.getElementById('poll-close').addEventListener('click',async()=>{
+ if(!confirm('Vuoi chiudere il sondaggio e mostrare i risultati definitivi?'))return;
+ pollAdmin.message.textContent='Chiusura in corso…';
+ try{
+  const response=await redRequest('/api/redazione/poll/close',{method:'POST'});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok){pollAdmin.message.textContent=data.error||'Chiusura non riuscita.';return;}
+  pollAdmin.message.textContent='Sondaggio chiuso. I risultati restano visibili.';
+  await loadPollAdmin();await loadPollPublic();
+ }catch{pollAdmin.message.textContent='Errore durante la chiusura.';}
+});
+
 const imagePreview = document.getElementById('redazione-image-preview');
 const imagePreviewImg = document.getElementById('redazione-image-preview-img');
 function updateRedazioneImagePreview() {
@@ -408,7 +514,7 @@ async function redLogin() {
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { alert(data.error || 'Archivio non disponibile.'); return false; }
-  redazione.notes = data.notes || []; insightAudience = 'redazione'; sendInsight('heartbeat'); renderRedArchive(); await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); await loadInsightsAdmin(); render(); return true;
+  redazione.notes = data.notes || []; insightAudience = 'redazione'; sendInsight('heartbeat'); renderRedArchive(); await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); await loadPollAdmin(); await loadInsightsAdmin(); render(); return true;
 }
 function renderRedArchive() {
   if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
@@ -664,3 +770,6 @@ document.getElementById('live-disable').addEventListener('click', async () => {
     renderLive(data);
   } catch { liveEls.message.textContent = 'Errore di connessione durante la disattivazione.'; }
 });
+
+loadPollPublic();
+setInterval(loadPollPublic,10000);
