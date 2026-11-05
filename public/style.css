@@ -1365,3 +1365,19 @@ body{font-size:18px;line-height:1.4}
 .top-feature-grid #poll-section .poll-result-head strong{color:#285b89}
 .top-feature-grid #poll-section .poll-footnote{color:#49657f}
 @media(max-width:760px){.top-feature-grid #poll-section{padding:13px!important}}
+
+
+/* Nuove categorie editoriali: testo bianco e tipografia Economica coerente con gli altri tag */
+.category-filter.category-istituzioni-filter,
+.news-category-istituzioni{
+  background:#D5A500!important;border-color:#D5A500!important;color:#fff!important;font-family:'Economica',Arial,sans-serif;font-weight:700;
+}
+.category-filter.category-istituzioni-filter:hover{background:#B88F00!important;border-color:#B88F00!important}
+.category-filter.category-istituzioni-filter.is-active{background:#A98200!important;border-color:#A98200!important;box-shadow:0 0 0 2px rgba(213,165,0,.22)}
+.category-filter.category-ricerche-filter,
+.news-category-ricerche{
+  background:#7040A0!important;border-color:#7040A0!important;color:#fff!important;font-family:'Economica',Arial,sans-serif;font-weight:700;
+}
+.category-filter.category-ricerche-filter:hover{background:#5D3288!important;border-color:#5D3288!important}
+.category-filter.category-ricerche-filter.is-active{background:#4D2874!important;border-color:#4D2874!important;box-shadow:0 0 0 2px rgba(112,64,160,.22)}
+.news-category-istituzioni,.news-category-ricerche{font-family:'Economica',Arial,sans-serif!important}
