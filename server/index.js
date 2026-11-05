@@ -5,7 +5,7 @@ const Parser = require('rss-parser');
 const { Pool } = require('pg');
 const { FEEDS } = require('./feeds');
 const app = express();
-const RSS_TIMEOUT_MS = 74000;
+const RSS_TIMEOUT_MS = 30000;
 const RSS_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (compatible; BreakingNewsRSS/1.0; +https://breakingnewsognigiorno.onrender.com)',
   'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*'
@@ -181,47 +181,41 @@ const X_FEED_URLS = [
 ];
 
 const xPostCache = { items: [], updatedAt: 0 };
+const X_CACHE_TTL_MS = 90 * 1000;
 
 async function fetchXPosts(source) {
-  const attempts = await Promise.allSettled(X_FEED_URLS.map(async (url) => {
-    const feed = await new Parser({ timeout: 72000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BreakingNewsRSS/1.0)' } }).parseURL(url);
-    return (feed.items || []).map(item => normalizeItem(item, source)).filter(item => item.title && item.link);
-  }));
-  const combined = [];
-  const seen = new Set();
-  attempts.forEach((attempt, index) => {
-    if (attempt.status === 'fulfilled') {
-      console.log('[X RSS]', X_FEED_URLS[index], 'articoli:', attempt.value.length);
-      for (const item of attempt.value) {
-        const key = item.link || item.title;
-        if (!key || seen.has(key)) continue;
-        seen.add(key);
-        combined.push(item);
+  if (xPostCache.items.length && Date.now() - xPostCache.updatedAt < X_CACHE_TTL_MS) {
+    return xPostCache.items.slice(0, 1);
+  }
+  const errors = [];
+  // Le fonti X sono alternative: basta la prima che restituisce un post valido.
+  // Evita quattro download XML simultanei per una sezione che mostra un solo elemento.
+  for (const url of X_FEED_URLS) {
+    try {
+      const feed = await new Parser({ timeout: 25000, headers: RSS_HEADERS }).parseURL(url);
+      const items = (feed.items || [])
+        .map(item => normalizeItem(item, source))
+        .filter(item => item.title && item.link)
+        .sort((a, b) => (Date.parse(b.pubDate || '') || 0) - (Date.parse(a.pubDate || '') || 0));
+      console.log('[X RSS]', url, 'articoli:', items.length);
+      if (!items.length) continue;
+      xPostCache.items = [items[0]];
+      xPostCache.updatedAt = Date.now();
+      if (pool) {
+        try {
+          await pool.query('INSERT INTO x_feed_cache (id,item,updated_at) VALUES (1,$1,NOW()) ON CONFLICT (id) DO UPDATE SET item=EXCLUDED.item,updated_at=NOW()', [JSON.stringify(items[0])]);
+        } catch (error) { console.warn('[X RSS] impossibile salvare la cache persistente:', error.message); }
       }
-    } else {
-      console.warn('[X RSS] fonte non disponibile:', X_FEED_URLS[index], attempt.reason?.message || 'errore');
+      return xPostCache.items.slice(0, 1);
+    } catch (error) {
+      errors.push(error?.message || 'feed non disponibile');
+      console.warn('[X RSS] fonte non disponibile:', url, error?.message || 'errore');
     }
-  });
-  combined.sort((a, b) => {
-    const da = Date.parse(a.pubDate || '') || 0;
-    const db = Date.parse(b.pubDate || '') || 0;
-    return db - da;
-  });
-  if (combined.length) {
-    xPostCache.items = [combined[0]];
-    xPostCache.updatedAt = Date.now();
-    if (pool) {
-      try {
-        await pool.query('INSERT INTO x_feed_cache (id,item,updated_at) VALUES (1,$1,NOW()) ON CONFLICT (id) DO UPDATE SET item=EXCLUDED.item,updated_at=NOW()', [JSON.stringify(combined[0])]);
-      } catch (error) { console.warn('[X RSS] impossibile salvare la cache persistente:', error.message); }
-    }
-    return xPostCache.items;
   }
   if (xPostCache.items.length) {
     console.warn('[X RSS] nessuna fonte ha restituito post: mostro l’ultimo post salvato.');
     return xPostCache.items.slice(0, 1);
   }
-  const errors = attempts.filter(x => x.status === 'rejected').map(x => x.reason?.message || 'feed non disponibile');
   throw new Error(errors.join(' | ').slice(0, 220) || 'Feed X raggiungibili ma senza post');
 }
 function normalizeItem(item, source) {
@@ -229,10 +223,10 @@ function normalizeItem(item, source) {
   return { title: (item.title || '').trim(), link: item.link || item.guid || '', pubDate: item.isoDate || item.pubDate || null, summary: rawSummary.replace(/\\s+/g, ' ').trim().slice(0, 280), source: source.name, category: source.category };
 }
 async function fetchAllFeeds() {
-  const settled = await mapWithConcurrency(FEEDS, 10, async source => {
+  const settled = await mapWithConcurrency(FEEDS, 4, async source => {
     if (source.name === '@giutrapani · X') return fetchXPosts(source);
     const feed = source.name === 'Il Riformista'
-      ? await new Parser({ timeout: 90000, headers: RSS_HEADERS }).parseURL(source.url)
+      ? await new Parser({ timeout: 30000, headers: RSS_HEADERS }).parseURL(source.url)
       : await parseSourceFeed(source);
     const items = (feed.items || []).map(item => normalizeItem(item, source));
     if (source.name === 'Il Riformista') {
@@ -285,7 +279,7 @@ async function runFeedDiagnostics(force = false) {
   diagnosticsPromise = (async () => {
     const results = new Array(FEEDS.length);
     let next = 0;
-    const workers = Array.from({ length: Math.min(6, FEEDS.length) }, async () => {
+    const workers = Array.from({ length: Math.min(3, FEEDS.length) }, async () => {
       while (true) {
         const index = next++;
         if (index >= FEEDS.length) return;
@@ -301,9 +295,20 @@ async function runFeedDiagnostics(force = false) {
   catch (error) { diagnosticsPromise = null; throw error; }
 }
 
+let feedsPromise = null;
 async function getFeeds() {
   if (Date.now() - cache.timestamp < CACHE_TTL_MS && cache.timestamp > 0) return cache;
-  const data = await fetchAllFeeds(); cache.timestamp = Date.now(); cache.articles = data.articles; cache.errors = data.errors; return cache;
+  // Condivide un unico aggiornamento tra tutte le richieste contemporanee.
+  if (feedsPromise) return feedsPromise;
+  feedsPromise = (async () => {
+    const data = await fetchAllFeeds();
+    cache.timestamp = Date.now();
+    cache.articles = data.articles;
+    cache.errors = data.errors;
+    return cache;
+  })();
+  try { return await feedsPromise; }
+  finally { feedsPromise = null; }
 }
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
