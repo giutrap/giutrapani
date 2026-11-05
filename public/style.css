@@ -1265,3 +1265,42 @@ body{font-size:18px;line-height:1.4}
 .redazione-image-preview[hidden]{display:none}
 .redazione-image-preview img{display:block;width:112px;height:72px;object-fit:cover;border-radius:2px;background:#e9edf1}
 .editorial-cover{display:block;width:100%;max-height:480px;object-fit:cover;margin:22px 0 8px;border-radius:3px}
+
+
+/* Sondaggio pubblico: gemello editoriale del blocco Trend */
+.top-feature-grid:has(#poll-section:not([hidden])){grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.top-feature-grid:has(#poll-section:not([hidden])) .live-section:not([hidden]){grid-column:1/-1}
+.top-feature-grid:has(#poll-section:not([hidden])) .trends-section,
+.top-feature-grid:has(#poll-section:not([hidden])) .poll-section{width:100%;min-width:0;min-height:100%;margin:0;padding:0 0 12px;border-top:2px solid #17191d;border-bottom:1px solid var(--line)}
+.poll-section[hidden]{display:none!important}
+.poll-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:33px;margin:0 0 10px}
+.poll-pill{background:#b3262d;color:#fff}
+.poll-status{font-size:11px;letter-spacing:.7px;color:var(--muted);font-weight:700}
+.poll-content{display:flex;flex-direction:column;gap:10px}
+.poll-question{font:700 clamp(18px,1.55vw,22px)/1.12 'Economica',Arial,sans-serif;margin:0 0 2px;color:var(--ink)}
+.poll-choice{display:flex;align-items:center;width:100%;min-height:38px;padding:9px 11px;border:1px solid #e1e4e8;border-radius:3px;background:#f7f8f9;color:var(--ink);text-align:left;font:700 16px 'Economica',Arial,sans-serif;transition:border-color .15s,background .15s}
+.poll-choice:hover,.poll-choice:focus-visible{border-color:#b3262d;background:#fffafa;outline:none}
+.poll-vote-button{align-self:flex-start;border:0;border-radius:3px;background:#b3262d;color:#fff;padding:9px 22px;font:700 15px 'Economica',Arial,sans-serif;letter-spacing:.8px}
+.poll-vote-button:disabled{opacity:.55;cursor:wait}
+.poll-result{display:grid;gap:5px}
+.poll-result-head{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:700}
+.poll-result-track{height:9px;border-radius:8px;background:#edf0f2;overflow:hidden}
+.poll-result-fill{height:100%;border-radius:8px;background:#285b89;transition:width .35s ease}
+.poll-result-count,.poll-footnote{font-size:11px;color:var(--muted)}
+.poll-vote-message{font-size:12px;color:var(--muted);min-height:15px}
+.poll-admin{margin:24px 0;padding:18px 0;border-top:2px solid #17191d;border-bottom:1px solid var(--line)}
+.poll-admin h3{font-size:23px;margin:3px 0 7px}
+.poll-admin>p{font-size:14px;color:var(--muted);margin:7px 0 13px}
+.poll-admin input,.poll-admin textarea{display:block;width:100%;margin:6px 0 10px;padding:10px;border:1px solid #d9dde2;border-radius:3px;font:15px Arial,sans-serif}
+.poll-admin label{display:block;margin:10px 0 4px;font-size:13px;font-weight:700;color:#4e5661}
+.poll-admin-dates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.poll-admin-dates>div{min-width:0}
+.poll-admin-results{font-size:13px;color:var(--muted);margin-top:8px}
+@media(max-width:760px){
+ .top-feature-grid:has(#poll-section:not([hidden])){grid-template-columns:minmax(0,1fr);gap:18px}
+ .top-feature-grid:has(#poll-section:not([hidden])) .live-section:not([hidden]){grid-column:auto}
+ .top-feature-grid:has(#poll-section:not([hidden])) .trends-section,
+ .top-feature-grid:has(#poll-section:not([hidden])) .poll-section{min-height:0}
+ .poll-question{font-size:20px}
+ .poll-admin-dates{grid-template-columns:1fr}
+}
