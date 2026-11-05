@@ -83,6 +83,8 @@ function newsCategory(item) {
   // Etichetta editoriale dedicata: identifica sempre gli articoli della testata.
   if (/giutrapani.*x|@giutrapani/i.test(String(item.source || ''))) return '@giutrapani';
   if (/il riformista/i.test(String(item.source || ''))) return 'IL RIFORMISTA';
+  // Le fonti istituzionali ufficiali prevalgono sulla classificazione tematica del titolo.
+  if (/camera dei deputati|senato -|governo italiano|quirinale|corte costituzionale|commissione europea|presscorner|consiglio dell.?unione europea|consilium|banca centrale europea|corte di giustizia ue|curia|parlamento europeo|european parliament|gazzetta ufficiale|eur-lex/i.test(String(item.source || ''))) return 'ISTITUZIONI';
   const text = (String(item.title || '') + ' ' + String(item.summary || '')).toLocaleLowerCase('it');
   const rules = [
     ['GEOPOLITICA', /\b(guerra|attacco|missil|truppe|esercito|kiev|ucrain|russia|mosca|putin|israel|gaza|iran|medio oriente|nato|cremlino|trump|dazi|diplomaz|vertice internazionale|sanzion)\b/],
@@ -215,7 +217,7 @@ function render() {
     const category = newsCategory(item);
     return '<article class="news-item urgency-' + level + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
-      + '<button type="button" class="news-category news-category-tag' + (category === 'FOCUS' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : '') + (state.activeCategory === category ? ' is-active' : '') + '" data-category="' + esc(category) + '" aria-pressed="' + (state.activeCategory === category ? 'true' : 'false') + '" title="Filtra per ' + esc(category) + '">' + esc(category) + '</button>'
+      + '<button type="button" class="news-category news-category-tag' + (category === 'FOCUS' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : category === 'ISTITUZIONI' ? ' news-category-istituzioni' : category === 'RICERCHE' ? ' news-category-ricerche' : '') + (state.activeCategory === category ? ' is-active' : '') + '" data-category="' + esc(category) + '" aria-pressed="' + (state.activeCategory === category ? 'true' : 'false') + '" title="Filtra per ' + esc(category) + '">' + esc(category) + '</button>'
       + '<div class="news-main">' + marker
       + '<h2 class="news-title"><a href="' + link + '" ' + (item.isEditorial ? '' : 'target="_blank" rel="noopener"') + '>'
       + esc(item.title || 'Senza titolo') + '</a></h2></div>'
