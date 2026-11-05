@@ -1234,14 +1234,19 @@ body{font-size:18px;line-height:1.4}
 .analytics-notice{display:block;margin-top:7px;font-size:11px;line-height:1.35;color:#858c95}
 
 
-/* Data del giorno nell'intestazione */
-.header-meta-group{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;text-align:right}
+/* Data e orologio nell'intestazione */
+.header-meta-group{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:6px;text-align:right}
+.header-date-line{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}
 .header-date{font-size:19px;line-height:1.1;font-weight:700;color:var(--ink);letter-spacing:.35px;white-space:nowrap}
+.header-time{display:inline-flex;align-items:center;justify-content:center;padding:5px 9px;border-radius:3px;background:#c62828;color:#fff;font-size:18px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.7px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.12)}
 @media(max-width:760px){
   .header-meta-group{max-width:48%;gap:4px}
   .header-date{font-size:15px;white-space:normal}
+  .header-time{font-size:15px;padding:4px 7px}
+  .header-date-line{gap:6px}
 }
 @media(max-width:420px){
   .header-meta-group{max-width:49%}
   .header-date{font-size:13px;line-height:1.05}
+  .header-time{font-size:13px;padding:4px 6px}
 }
