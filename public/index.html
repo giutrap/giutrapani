@@ -38,6 +38,10 @@
         <div class="trends-heading"><div class="trends-title-group"><span class="live-pill trend-pill">TREND</span></div><span id="trends-updated" class="trends-updated">In attesa delle notizie…</span></div>
         <div id="trends-list" class="trends-list"><p class="trends-empty">I temi emergenti appariranno qui quando più fonti parleranno dello stesso argomento.</p></div>
       </section>
+      <section id="poll-section" class="poll-section" hidden aria-label="Sondaggio">
+        <div class="poll-heading"><span class="live-pill poll-pill">SONDAGGIO</span><span id="poll-status" class="poll-status"></span></div>
+        <div id="poll-content" class="poll-content"></div>
+      </section>
     </section>
     <section class="editorial-links-grid" aria-label="Podcast e contenuti social">
       <section id="podcast-section" class="editorial-link-card podcast-card" hidden>
@@ -89,6 +93,24 @@
           <label for="redazione-links">Link aggiuntivi</label><textarea id="redazione-links" rows="3" placeholder="Incolla qui altri collegamenti, uno per riga"></textarea>
           <div class="redazione-actions"><button type="submit">SALVA NELL’ARCHIVIO</button><button type="button" id="redazione-new">NUOVA NOTA</button></div><p id="redazione-message" role="status"></p>
         </form>
+
+        <section class="poll-admin">
+          <h3>GESTIONE SONDAGGIO</h3>
+          <p>Imposta una domanda e tre o quattro risposte. Il sondaggio si attiva e si chiude automaticamente in base al periodo scelto; puoi anche chiuderlo in anticipo.</p>
+          <label for="poll-admin-question">Domanda</label><textarea id="poll-admin-question" rows="2" maxlength="240" placeholder="Scrivi la domanda del sondaggio…"></textarea>
+          <label>Risposte (inseriscine tre o quattro)</label>
+          <input id="poll-admin-option-0" maxlength="120" placeholder="Risposta 1">
+          <input id="poll-admin-option-1" maxlength="120" placeholder="Risposta 2">
+          <input id="poll-admin-option-2" maxlength="120" placeholder="Risposta 3">
+          <input id="poll-admin-option-3" maxlength="120" placeholder="Risposta 4 (facoltativa)">
+          <div class="poll-admin-dates">
+            <div><label for="poll-admin-start">Data e ora di inizio</label><input id="poll-admin-start" type="datetime-local"></div>
+            <div><label for="poll-admin-end">Data e ora di fine</label><input id="poll-admin-end" type="datetime-local"></div>
+          </div>
+          <div class="redazione-actions"><button type="button" id="poll-save">SALVA / PUBBLICA</button><button type="button" id="poll-close">CHIUDI SONDAGGIO</button></div>
+          <p id="poll-admin-message" role="status"></p>
+          <div id="poll-admin-results" class="poll-admin-results"></div>
+        </section>
         <section class="podcast-admin">
           <h3>GESTIONE SCHEDA PODCAST</h3>
           <p>Pubblica una scheda editoriale con titolo e collegamento a una puntata o a un contenuto audio. Sono accettati link da Spotify, YouTube, Spreaker e altre piattaforme; la scheda apparirà sotto LIVE e TREND.</p>
