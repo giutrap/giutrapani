@@ -82,6 +82,9 @@
           <label for="redazione-title">Titolo</label><input id="redazione-title" required>
           <label for="redazione-source">Fonte</label><input id="redazione-source">
           <label for="redazione-url">Link alla notizia originale</label><input id="redazione-url" type="url">
+          <label for="redazione-image">Immagine di copertina (link web)</label><input id="redazione-image" type="url" placeholder="https://… incolla il link diretto all’immagine">
+          <div id="redazione-image-preview" class="redazione-image-preview" hidden><img id="redazione-image-preview-img" alt="Anteprima copertina"><span>Anteprima della copertina</span></div>
+          <small class="redazione-field-help">Incolla l’indirizzo diretto di un’immagine pubblica (JPG, PNG o WebP). La vedrai come copertina della nota pubblicata.</small>
           <label for="redazione-notes">Appunti personali</label><textarea id="redazione-notes" rows="8" placeholder="Annotazioni, spunti, verifiche da fare…"></textarea>
           <label for="redazione-links">Link aggiuntivi</label><textarea id="redazione-links" rows="3" placeholder="Incolla qui altri collegamenti, uno per riga"></textarea>
           <div class="redazione-actions"><button type="submit">SALVA NELL’ARCHIVIO</button><button type="button" id="redazione-new">NUOVA NOTA</button></div><p id="redazione-message" role="status"></p>
