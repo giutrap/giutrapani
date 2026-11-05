@@ -308,14 +308,11 @@ app.put('/api/redazione/podcast', async (req,res) => {
     let episodeId = '', safeUrl = '';
     if (enabled) {
       let parsed;
-      try { parsed = new URL(String(url)); } catch { return res.status(400).json({ error:'Inserisci un link Spreaker valido.' }); }
-      const host = parsed.hostname.toLowerCase().replace(/^www\./,'');
-      if (host !== 'spreaker.com') return res.status(400).json({ error:'Il collegamento deve appartenere a Spreaker.' });
-      const match = parsed.pathname.match(/--(\d+)\/?$/);
-      episodeId = match ? match[1] : '';
-      if (!episodeId) return res.status(400).json({ error:'Non riesco a riconoscere l’ID della puntata Spreaker.' });
+      try { parsed = new URL(String(url)); } catch { return res.status(400).json({ error:'Inserisci un collegamento valido.' }); }
+      if (!['http:', 'https:'].includes(parsed.protocol)) return res.status(400).json({ error:'Il collegamento deve iniziare con https:// oppure http://.' });
+      if (!parsed.hostname || parsed.username || parsed.password) return res.status(400).json({ error:'Inserisci un indirizzo web valido.' });
       if (!String(title).trim()) return res.status(400).json({ error:'Inserisci un titolo per il podcast.' });
-      safeUrl = parsed.origin + parsed.pathname;
+      safeUrl = parsed.toString();
     }
     const safeTitle = String(title || '').trim().slice(0,180);
     const safeDescription = String(description || '').trim().slice(0,500);
