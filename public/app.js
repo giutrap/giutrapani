@@ -1,4 +1,4 @@
-const AUTO_REFRESH_MS = 60000;
+const AUTO_REFRESH_MS = 120000;
 const PAGE_SIZE = 50;
 const headerDateEl = document.getElementById('header-date');
 const headerTimeEl = document.getElementById('header-time');
@@ -308,9 +308,9 @@ loadLivePublic();
 loadPodcastPublic();
 loadMediaPublic();
 setInterval(load, AUTO_REFRESH_MS);
-setInterval(loadLivePublic, 60000);
-setInterval(loadPodcastPublic, 60000);
-setInterval(loadMediaPublic, 60000);
+setInterval(loadLivePublic, 120000);
+setInterval(loadPodcastPublic, 120000);
+setInterval(loadMediaPublic, 120000);
 
 
 // Area privata: le credenziali restano nella memoria della pagina e non vengono salvate.
