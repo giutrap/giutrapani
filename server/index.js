@@ -120,6 +120,7 @@ async function parseSourceFeed(source, timeout = RSS_TIMEOUT_MS) {
         const fallback = await parseFeedUrl(fallbackUrl, timeout);
         fallback._breakingSourceUrl = fallbackUrl;
         fallback._breakingFallbackUsed = true;
+        fallback._breakingPrimaryError = String(primaryError.message || 'Feed principale non disponibile').slice(0, 220);
         console.warn('[RSS fallback] Fonte alternativa attiva:', source.name, fallbackUrl);
         return fallback;
       } catch (error) {
@@ -261,12 +262,17 @@ async function checkOneFeed(source) {
     const dates = items.map(item => new Date(item.isoDate || item.pubDate || 0)).filter(date => !Number.isNaN(date.getTime()) && date.getTime() > 0);
     const latest = dates.length ? new Date(Math.max(...dates.map(date => date.getTime()))).toISOString() : null;
     const ageHours = latest ? (Date.now() - new Date(latest).getTime()) / 3600000 : null;
+    const fallbackUsed = feed._breakingFallbackUsed === true;
+    const status = !items.length ? 'empty' : ageHours > 168 ? 'stale' : fallbackUsed ? 'fallback' : 'ok';
     return {
       name: source.name, category: source.category, url: source.url,
       resolvedUrl: feed._breakingSourceUrl || source.url,
-      fallbackUsed: feed._breakingFallbackUsed === true,
-      status: !items.length ? 'empty' : ageHours > 168 ? 'stale' : 'ok',
-      count: items.length, latestPublishedAt: latest, checkedAt,
+      fallbackUsed,
+      status,
+      count: items.length, latestPublishedAt: latest,
+      ageHours: ageHours === null ? null : Math.round(ageHours * 10) / 10,
+      checkedAt,
+      primaryError: feed._breakingPrimaryError || null,
       error: !items.length ? 'Feed raggiungibile ma senza articoli.' : ageHours > 168 ? 'Ultimo contenuto più vecchio di 7 giorni.' : null
     };
   } catch (error) {
