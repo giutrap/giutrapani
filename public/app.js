@@ -423,7 +423,7 @@ async function refreshRedArchive() {
 function openRedPanel(item) {
   redPanel.classList.add('is-open'); redPanel.setAttribute('aria-hidden','false');
   document.body.classList.add('redazione-lock'); redForm.reset(); rf.id.value = '';
-  rf.title.value = item.title || ''; rf.source.value = item.source || ''; rf.url.value = item.url || '';
+  rf.title.value = item.title || ''; rf.source.value = item.source || ''; rf.url.value = item.url || ''; rf.image.value = ''; updateRedazioneImagePreview();
   redMessage.textContent = ''; redLogin();
 }
 function closeRedPanel() {
@@ -470,7 +470,7 @@ document.addEventListener('click', async event => {
   }
 });
 document.getElementById('redazione-new').addEventListener('click', () => {
-  redForm.reset(); rf.id.value = ''; redMessage.textContent = 'Nuova nota pronta.';
+  redForm.reset(); rf.id.value = ''; updateRedazioneImagePreview(); redMessage.textContent = 'Nuova nota pronta.';
 });
 redForm.addEventListener('submit', async event => {
   event.preventDefault();
