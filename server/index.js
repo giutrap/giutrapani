@@ -5,7 +5,7 @@ const Parser = require('rss-parser');
 const { Pool } = require('pg');
 const { FEEDS } = require('./feeds');
 const app = express();
-const RSS_TIMEOUT_MS = 14000;
+const RSS_TIMEOUT_MS = 74000;
 const RSS_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (compatible; BreakingNewsRSS/1.0; +https://breakingnewsognigiorno.onrender.com)',
   'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*'
@@ -107,7 +107,7 @@ const xPostCache = { items: [], updatedAt: 0 };
 
 async function fetchXPosts(source) {
   const attempts = await Promise.allSettled(X_FEED_URLS.map(async (url) => {
-    const feed = await new Parser({ timeout: 12000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BreakingNewsRSS/1.0)' } }).parseURL(url);
+    const feed = await new Parser({ timeout: 72000, headers: { 'User-Agent': 'Mozilla/5.0 (compatible; BreakingNewsRSS/1.0)' } }).parseURL(url);
     return (feed.items || []).map(item => normalizeItem(item, source)).filter(item => item.title && item.link);
   }));
   const combined = [];
@@ -155,7 +155,7 @@ async function fetchAllFeeds() {
   const settled = await mapWithConcurrency(FEEDS, 10, async source => {
     if (source.name === '@giutrapani · X') return fetchXPosts(source);
     const feed = source.name === 'Il Riformista'
-      ? await new Parser({ timeout: 30000, headers: RSS_HEADERS }).parseURL(source.url)
+      ? await new Parser({ timeout: 90000, headers: RSS_HEADERS }).parseURL(source.url)
       : await parseSourceFeed(source);
     const items = (feed.items || []).map(item => normalizeItem(item, source));
     if (source.name === 'Il Riformista') {
