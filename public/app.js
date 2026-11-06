@@ -14,7 +14,7 @@ function renderHeaderClock() {
 }
 renderHeaderClock();
 setInterval(renderHeaderClock, 1000);
-const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', activeKeyword: '', currentPage: 1, podcast: null, media: null };
+const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', activeKeyword: '', currentPage: 1, podcast: null, media: null, featured: null };
 const trendEl = { list: document.getElementById('trends-list'), updated: document.getElementById('trends-updated') };
 const el = {
   search: document.getElementById('search'),
@@ -184,8 +184,14 @@ function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const eligible = state.news.filter(item => !isFutureDated(item));
   const byDate = (a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
-  // Unico flusso: tutte le notizie, comprese quelle della redazione, in ordine cronologico.
-  const orderedRows = [...eligible].sort(byDate);
+  // La notizia scelta dalla redazione apre il flusso; tutte le altre restano in ordine cronologico.
+  const featuredItem = state.featured
+    ? (eligible.find(item => item.link === state.featured.link) || state.featured)
+    : null;
+  const orderedRows = [
+    ...(featuredItem ? [featuredItem] : []),
+    ...eligible.filter(item => !featuredItem || item.link !== featuredItem.link).sort(byDate)
+  ];
   const rows = orderedRows
     .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)
     .filter(item => !state.activeKeyword || KEYWORD_TOPICS.find(topic => topic.label === state.activeKeyword && topicMatches(item,topic)))
@@ -199,15 +205,21 @@ function render() {
   el.articles.innerHTML = visibleRows.map((item, index) => {
     const link = esc(item.link || '#');
     const category = newsCategory(item);
-    return '<article class="news-item">'
+    const isFeatured = Boolean(state.featured && item.link === state.featured.link);
+    const featureLabel = isFeatured ? '<span class="featured-news-label">IN EVIDENZA</span>' : '';
+    const featureAction = redazione.auth
+      ? '<button type="button" class="news-feature-toggle' + (isFeatured ? ' is-featured' : '') + '" data-feature-url="' + esc(item.link || '') + '">' + (isFeatured ? 'RIMUOVI EVIDENZA' : 'METTI IN EVIDENZA') + '</button>'
+      : '';
+    return '<article class="news-item' + (isFeatured ? ' is-featured' : '') + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
       + '<button type="button" class="news-category news-category-tag' + (category === 'FOCUS' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : category === 'ISTITUZIONI' ? ' news-category-istituzioni' : category === 'RICERCHE' ? ' news-category-ricerche' : '') + (state.activeCategory === category ? ' is-active' : '') + '" data-category="' + esc(category) + '" aria-pressed="' + (state.activeCategory === category ? 'true' : 'false') + '" title="Filtra per ' + esc(category) + '">' + esc(category) + '</button>'
-      + '<div class="news-main">'
+      + '<div class="news-main">' + featureLabel
       + '<h2 class="news-title"><a href="' + link + '" ' + (item.isEditorial ? '' : 'target="_blank" rel="noopener"') + '>'
       + esc(item.title || 'Senza titolo') + '</a></h2></div>'
       + '<div class="news-source">' + esc(item.source || '') + '</div>'
       + (item.isEditorial ? '<a class="news-link" href="' + link + '" aria-label="Apri approfondimento">APRI ↗</a>' : '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Leggi la notizia">LEGGI ↗</a>')
       + (redazione.auth ? '<button type="button" class="redazione-open" data-title="' + esc(item.title || '') + '" data-source="' + esc(item.source || '') + '" data-url="' + link + '">REDAZIONE</button>' : '')
+      + featureAction
       + '</article>';
   }).join('');
 
@@ -237,8 +249,13 @@ async function load() {
     const response = await fetch('/api/feeds');
     if (!response.ok) throw new Error('News HTTP ' + response.status);
     const data = await response.json();
-    const editorialResponse = await fetch('/api/redazione/published');
+    const [editorialResponse, featuredResponse] = await Promise.all([
+      fetch('/api/redazione/published'),
+      fetch('/api/featured')
+    ]);
     const editorialData = editorialResponse.ok ? await editorialResponse.json() : { notes:[] };
+    const featuredData = featuredResponse.ok ? await featuredResponse.json() : { article:null };
+    state.featured = featuredData.article || null;
     const editorialItems = (editorialData.notes || []).map(note => ({ id:note.id, title:note.title, source:'A cura della Redazione', pubDate:note.published_at, summary:note.notes || '', image:note.image_url || '', link:'/redazione.html?id=' + encodeURIComponent(note.id), category:'REDAZIONE', isEditorial:true }));
     state.news = [...(data.articles || []), ...editorialItems];
     state.newsErrors = data.errors || [];
@@ -277,7 +294,28 @@ trendEl.list.addEventListener('click', event => {
   render();
   el.articles.scrollIntoView({ behavior:'smooth', block:'start' });
 });
-el.articles.addEventListener('click', event => {
+el.articles.addEventListener('click', async event => {
+  const featureButton = event.target.closest('button[data-feature-url]');
+  if (featureButton) {
+    if (!redazione.auth) return;
+    const link = featureButton.dataset.featureUrl;
+    const removing = Boolean(state.featured && state.featured.link === link);
+    featureButton.disabled = true;
+    try {
+      const response = removing
+        ? await redRequest('/api/redazione/featured', { method:'DELETE' })
+        : await redRequest('/api/redazione/featured', {
+            method:'POST',
+            body:JSON.stringify({ article:state.news.find(item => item.link === link) })
+          });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) { alert(data.error || 'Operazione non riuscita.'); return; }
+      state.featured = removing ? null : data.article;
+      state.currentPage = 1;
+      render();
+    } catch { alert('Errore di connessione durante l’aggiornamento della notizia in evidenza.'); }
+    return;
+  }
   const button = event.target.closest('button[data-category]');
   if (!button) return;
   const selected = button.dataset.category;
