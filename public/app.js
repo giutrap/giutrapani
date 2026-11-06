@@ -108,6 +108,8 @@ function newsCategory(item) {
   if (/il riformista/i.test(String(item.source || ''))) return 'IL RIFORMISTA';
   // Le fonti istituzionali ufficiali prevalgono sulla classificazione tematica del titolo.
   if (/camera dei deputati|senato -|governo italiano|quirinale|corte costituzionale|commissione europea|presscorner|consiglio dell.?unione europea|consilium|banca centrale europea|corte di giustizia ue|curia|parlamento europeo|european parliament|gazzetta ufficiale|eur-lex/i.test(String(item.source || ''))) return 'ISTITUZIONI';
+  // Le testate e i feed esclusivamente sportivi hanno una categoria editoriale certa.
+  if (/sport/i.test(String(item.category || '')) || /gazzetta dello sport|corriere dello sport|tuttosport|sky sport|ansa - sport|repubblica - sport/i.test(String(item.source || ''))) return 'SPORT';
   const text = (String(item.title || '') + ' ' + String(item.summary || '')).toLocaleLowerCase('it');
   const rules = [
     ['GEOPOLITICA', /\b(guerra|attacco|missil|truppe|esercito|kiev|ucrain|russia|mosca|putin|israel|gaza|iran|medio oriente|nato|cremlino|trump|dazi|diplomaz|vertice internazionale|sanzion)\b/],
@@ -117,7 +119,7 @@ function newsCategory(item) {
     ['FINANZA', /\b(borsa|borsa valori|azioni|titoli|spread|obbligazioni|banca|banche|tassi|borsistico|ftse|nasdaq|wall street|utili|bilancio|quotazioni|investiment)\b/],
     ['ECONOMIA', /\b(economia|economico|economica|aziend|industria|mercato|prezzi|inflazione|pil|consumi|imprese|auto|automotive|dazi|export|import|fisco|tasse|accise|rimborso|carburant|energia)\b/],
     ['SALUTE', /\b(salute|sanità|sanitario|ospedale|medic|medicina|malattia|virus|epidemia|vaccin|tumore|medici|pazienti|farmac)\b/],
-    ['SPORT', /\b(calcio|serie a|champions|juventus|inter|milan|napoli|roma|lazio|tennis|formula 1|motogp|olimpiad|gara|campionato|allenatore|atleta|sport)\b/],
+    ['SPORT', /\b(calcio|serie a|champions league|juventus|inter milan|ac milan|napoli calcio|ss lazio|tennis|formula 1|motogp|olimpiad|campionato|allenatore|atleta|sport|partita|gol|marcatore|classifica|scudetto|coppa italia|pallavolo|basket|rugby|ciclismo|sci alpino)\b/],
     ['SPETTACOLO', /\b(cinema|film|attore|attrice|cantante|concerto|musica|festival|sanremo|teatro|televisione|tv|fedez|vip|celebrity|serie tv|streaming)\b/],
     ['TECNOLOGIA', /\b(tecnologia|intelligenza artificiale|\bai\b|digitale|internet|cyber|hacker|smartphone|apple|google|microsoft|software|social network)\b/],
     ['AMBIENTE', /\b(ambiente|clima|climatico|ambientale|emissioni|inquinamento|green|rinnovabili|siccità|biodiversità|energia)\b/],
