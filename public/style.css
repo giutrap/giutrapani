@@ -1505,3 +1505,18 @@ body{font-size:18px;line-height:1.4}
 .live-load-button{position:absolute;inset:0;width:100%;height:100%;border:0;background:#172b40;color:#fff;font:700 15px Arial,sans-serif;letter-spacing:.4px}
 .live-load-button:hover{background:#285b89}
 @media(max-width:650px){.cookie-notice{left:10px;right:10px;bottom:10px;padding:14px;display:block}.cookie-notice-actions{margin-top:12px}.cookie-notice-actions button{flex:1}.cookie-notice-copy p{font-size:12px}}
+
+/* Finestra di autenticazione redazionale: il pannello editoriale si apre solo dopo verifica server. */
+.redazione-login[hidden]{display:none!important}
+.redazione-login{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:20px;font-family:Arial,sans-serif}
+.redazione-login-backdrop{position:absolute;inset:0;background:rgba(10,14,20,.62)}
+.redazione-login-card{position:relative;width:min(420px,100%);padding:30px;background:#fff;border-radius:8px;box-shadow:0 18px 60px rgba(0,0,0,.28);display:flex;flex-direction:column;gap:10px}
+.redazione-login-card h2{margin:0;font-size:26px;letter-spacing:.5px}
+.redazione-login-card p{margin:2px 0 10px;color:#596574;font-size:14px;line-height:1.5}
+.redazione-login-card label{font-size:13px;font-weight:700;color:#303944}
+.redazione-login-card input{width:100%;padding:12px;border:1px solid #cfd5dc;border-radius:4px;font:16px Arial,sans-serif}
+.redazione-login-card input:focus{outline:2px solid #285b89;outline-offset:1px}
+#redazione-login-message{min-height:18px;color:#a51f2b;font-size:13px;margin:2px 0}
+#redazione-login-submit{border:0;border-radius:4px;background:#17191d;color:#fff;padding:13px 16px;font-size:14px}
+#redazione-login-submit:disabled{opacity:.6;cursor:wait}
+.redazione-login-close{position:absolute;right:12px;top:8px;border:0;background:transparent;color:#596574;font-size:28px}
