@@ -1434,7 +1434,7 @@ body{font-size:18px;line-height:1.4}
 
 /* Evidenza manuale della redazione: distinta dalla cronologia automatica */
 .news-item.is-featured{border-left:4px solid #1675a9;background:#f3f9fc}
-.featured-news-label{flex:none;display:inline-block;padding:3px 6px;border-radius:2px;background:#e2f1f8;color:#12648f;font-size:10px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.featured-news-label{flex:none;display:inline-block;padding:3px 6px;border-radius:2px;background:#f0e8fa;color:#76509a;font-size:10px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
 .news-feature-toggle{border:1px solid #1675a9;background:#fff;color:#12648f;border-radius:2px;padding:4px 7px;font:700 12px 'Economica',Arial,sans-serif;letter-spacing:.35px;white-space:nowrap;cursor:pointer}
 .news-feature-toggle:hover,.news-feature-toggle.is-featured{background:#1675a9;color:#fff}
 .news-feature-toggle:disabled{opacity:.55;cursor:wait}
