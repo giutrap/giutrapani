@@ -538,7 +538,7 @@ async function loadPollAdmin(){
   pollAdmin.options.forEach((input,index)=>input.value=data.options?.[index]?.label||'');
   pollAdmin.start.value=toLocalDateTime(data.startsAt);
   pollAdmin.end.value=toLocalDateTime(data.endsAt);
-  pollAdmin.message.textContent=data.status==='active'?'Sondaggio attualmente aperto.':data.status==='scheduled'?'Sondaggio programmato.':data.status==='closed'?'Ultimo sondaggio chiuso.':'Nessun sondaggio configurato.';
+  pollAdmin.message.textContent=data.visible===false && data.question?'Sondaggio ritirato dalla homepage.':data.status==='active'?'Sondaggio attualmente aperto.':data.status==='scheduled'?'Sondaggio programmato.':data.status==='closed'?'Ultimo sondaggio chiuso.':'Nessun sondaggio configurato.';
   pollAdmin.results.textContent='Partecipazioni registrate: '+Number(data.total||0).toLocaleString('it-IT');
  }catch{pollAdmin.message.textContent='Impossibile caricare il sondaggio.';}
 }
@@ -564,6 +564,19 @@ document.getElementById('poll-close').addEventListener('click',async()=>{
   pollAdmin.message.textContent='Sondaggio chiuso. I risultati restano visibili.';
   await loadPollAdmin();await loadPollPublic();
  }catch{pollAdmin.message.textContent='Errore durante la chiusura.';}
+});
+
+document.getElementById('poll-hide').addEventListener('click',async()=>{
+  if(!confirm('Ritirare il sondaggio dalla homepage? Le risposte raccolte saranno conservate.'))return;
+  pollAdmin.message.textContent='Ritiro in corso…';
+  try{
+    const response=await redRequest('/api/redazione/poll/hide',{method:'POST'});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok){pollAdmin.message.textContent=data.error||'Ritiro non riuscito.';return;}
+    pollAdmin.message.textContent='Sondaggio ritirato dalla homepage. Le risposte sono conservate.';
+    pollSection.hidden=true;
+    await loadPollAdmin();await loadPollPublic();
+  }catch{pollAdmin.message.textContent='Errore di connessione durante il ritiro.';}
 });
 
 const imagePreview = document.getElementById('redazione-image-preview');
