@@ -444,7 +444,15 @@ pollContent.addEventListener('click',async event=>{
 });
 
 // Area privata: la sessione resta attiva nella scheda del browser anche dopo un refresh.
-const redazione = { auth: '', notes: [] };\ntry { sessionStorage.removeItem('breaking-redazione-session'); } catch {}\nconst loginDialog = document.getElementById('redazione-login');\nconst loginForm = document.getElementById('redazione-login-form');\nconst loginMessage = document.getElementById('redazione-login-message');\nlet pendingRedazioneItem = {};\nfunction showRedazioneLogin(item = {}) { pendingRedazioneItem = item || {}; loginMessage.textContent = ''; loginForm.reset(); loginDialog.hidden = false; loginDialog.setAttribute('aria-hidden','false'); document.body.classList.add('redazione-lock'); setTimeout(() => document.getElementById('redazione-username').focus(), 0); }\nfunction hideRedazioneLogin() { loginDialog.hidden = true; loginDialog.setAttribute('aria-hidden','true'); document.body.classList.remove('redazione-lock'); }\nloginDialog.querySelectorAll('[data-login-close]').forEach(node => node.addEventListener('click', hideRedazioneLogin));
+const redazione = { auth: '', notes: [] };
+try { sessionStorage.removeItem('breaking-redazione-session'); } catch {}
+const loginDialog = document.getElementById('redazione-login');
+const loginForm = document.getElementById('redazione-login-form');
+const loginMessage = document.getElementById('redazione-login-message');
+let pendingRedazioneItem = {};
+function showRedazioneLogin(item = {}) { pendingRedazioneItem = item || {}; loginMessage.textContent = ''; loginForm.reset(); loginDialog.hidden = false; loginDialog.setAttribute('aria-hidden','false'); document.body.classList.add('redazione-lock'); setTimeout(() => document.getElementById('redazione-username').focus(), 0); }
+function hideRedazioneLogin() { loginDialog.hidden = true; loginDialog.setAttribute('aria-hidden','true'); document.body.classList.remove('redazione-lock'); }
+loginDialog.querySelectorAll('[data-login-close]').forEach(node => node.addEventListener('click', hideRedazioneLogin));
 const redPanel = document.getElementById('redazione-panel');
 const redForm = document.getElementById('redazione-form');
 const redMessage = document.getElementById('redazione-message');
