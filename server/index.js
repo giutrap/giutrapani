@@ -5,7 +5,7 @@ const Parser = require('rss-parser');
 const { Pool } = require('pg');
 const { FEEDS } = require('./feeds');
 const app = express();
-const RSS_TIMEOUT_MS = 30000;
+const RSS_TIMEOUT_MS = 8000;
 const RSS_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (compatible; BreakingNewsRSS/1.0; +https://breakingnewsognigiorno.onrender.com)',
   'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*'
@@ -157,6 +157,7 @@ async function initDatabase() {
   if (!pool) return;
   const ddl = `CREATE TABLE IF NOT EXISTS editorial_notes (id BIGSERIAL PRIMARY KEY, title TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '', original_url TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', extra_links TEXT NOT NULL DEFAULT '', published_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())`;
   await pool.query(ddl);
+  await pool.query("CREATE TABLE IF NOT EXISTS rss_cache (id INTEGER PRIMARY KEY CHECK (id=1), payload JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
   await pool.query('ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ');
   await pool.query("ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS image_url TEXT NOT NULL DEFAULT ''");
   await pool.query("CREATE TABLE IF NOT EXISTS featured_news (id INTEGER PRIMARY KEY CHECK (id = 1), article JSONB NOT NULL, pinned_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
@@ -173,6 +174,12 @@ async function initDatabase() {
   await pool.query('CREATE TABLE IF NOT EXISTS x_feed_cache (id INTEGER PRIMARY KEY CHECK (id = 1), item JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
   await pool.query("CREATE TABLE IF NOT EXISTS poll_settings (id INTEGER PRIMARY KEY CHECK (id = 1), question TEXT NOT NULL DEFAULT '', options JSONB NOT NULL DEFAULT '[]'::jsonb, starts_at TIMESTAMPTZ, ends_at TIMESTAMPTZ, enabled BOOLEAN NOT NULL DEFAULT FALSE, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
   await pool.query("CREATE TABLE IF NOT EXISTS poll_votes (id BIGSERIAL PRIMARY KEY, poll_id INTEGER NOT NULL DEFAULT 1, voter_hash TEXT NOT NULL, option_index INTEGER NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(poll_id,voter_hash))");
+  const savedFeeds = await pool.query('SELECT payload,updated_at FROM rss_cache WHERE id=1');
+  if (savedFeeds.rowCount && savedFeeds.rows[0].payload) {
+    cache.articles = Array.isArray(savedFeeds.rows[0].payload.articles) ? savedFeeds.rows[0].payload.articles : [];
+    cache.errors = Array.isArray(savedFeeds.rows[0].payload.errors) ? savedFeeds.rows[0].payload.errors : [];
+    cache.timestamp = new Date(savedFeeds.rows[0].updated_at).getTime() || 0;
+  }
   const savedX = await pool.query('SELECT item FROM x_feed_cache WHERE id=1');
   if (savedX.rowCount && savedX.rows[0].item) xPostCache.items = [savedX.rows[0].item];
 }
@@ -226,10 +233,10 @@ function normalizeItem(item, source) {
   return { title: (item.title || '').trim(), link: item.link || item.guid || '', pubDate: item.isoDate || item.pubDate || null, summary: rawSummary.replace(/\\s+/g, ' ').trim().slice(0, 280), source: source.name, category: source.category };
 }
 async function fetchAllFeeds() {
-  const settled = await mapWithConcurrency(FEEDS, 4, async source => {
+  const settled = await mapWithConcurrency(FEEDS, 10, async source => {
     if (source.name === '@giutrapani · X') return fetchXPosts(source);
     const feed = source.name === 'Il Riformista'
-      ? await new Parser({ timeout: 30000, headers: RSS_HEADERS }).parseURL(source.url)
+      ? await new Parser({ timeout: RSS_TIMEOUT_MS, headers: RSS_HEADERS }).parseURL(source.url)
       : await parseSourceFeed(source);
     const items = (feed.items || []).map(item => normalizeItem(item, source));
     if (source.name === 'Il Riformista') {
@@ -299,19 +306,35 @@ async function runFeedDiagnostics(force = false) {
 }
 
 let feedsPromise = null;
-async function getFeeds() {
-  if (Date.now() - cache.timestamp < CACHE_TTL_MS && cache.timestamp > 0) return cache;
-  // Condivide un unico aggiornamento tra tutte le richieste contemporanee.
+function refreshFeeds() {
   if (feedsPromise) return feedsPromise;
   feedsPromise = (async () => {
     const data = await fetchAllFeeds();
     cache.timestamp = Date.now();
     cache.articles = data.articles;
     cache.errors = data.errors;
+    if (pool) {
+      try {
+        await pool.query(
+          'INSERT INTO rss_cache (id,payload,updated_at) VALUES (1,$1::jsonb,NOW()) ON CONFLICT (id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=NOW()',
+          [JSON.stringify({ articles:cache.articles, errors:cache.errors })]
+        );
+      } catch (error) { console.warn('[RSS cache] Salvataggio persistente non riuscito:', error.message); }
+    }
     return cache;
   })();
-  try { return await feedsPromise; }
-  finally { feedsPromise = null; }
+  feedsPromise = feedsPromise.finally(() => { feedsPromise = null; });
+  return feedsPromise;
+}
+async function getFeeds() {
+  const fresh = cache.timestamp > 0 && Date.now() - cache.timestamp < CACHE_TTL_MS;
+  if (fresh) return { ...cache, refreshing:Boolean(feedsPromise) };
+  if (cache.articles.length) {
+    refreshFeeds().catch(error => console.warn('[RSS] Aggiornamento in background non riuscito:', error.message));
+    return { ...cache, refreshing:true };
+  }
+  refreshFeeds().catch(error => console.warn('[RSS] Primo aggiornamento non riuscito:', error.message));
+  return { ...cache, refreshing:true };
 }
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -517,7 +540,7 @@ app.delete('/api/redazione/featured', requireRedazione, async (req,res) => {
   } catch { res.status(500).json({ error:'Impossibile rimuovere la notizia in evidenza.' }); }
 });
 app.get('/api/feeds', async (req,res) => {
-  try { const data = await getFeeds(); res.json({ updatedAt:data.timestamp, count:data.articles.length, articles:data.articles, errors:data.errors }); }
+  try { const data = await getFeeds(); res.json({ updatedAt:data.timestamp, count:data.articles.length, articles:data.articles, errors:data.errors, refreshing:data.refreshing === true }); }
   catch { res.status(500).json({ error:'Impossibile recuperare i feed RSS.' }); }
 });
 // I contenuti pubblicati sono consultabili senza credenziali; le bozze restano private.
@@ -710,6 +733,9 @@ app.delete('/api/redazione/notes/:id', async (req,res) => {
 const PORT = process.env.PORT || 3000;
 async function start() {
   if (pool) await initDatabase();
-  app.listen(PORT, () => console.log('BREAKING in ascolto su http://localhost:' + PORT));
+  app.listen(PORT, () => {
+    console.log('BREAKING in ascolto su http://localhost:' + PORT);
+    refreshFeeds().catch(error => console.warn('[RSS] Aggiornamento iniziale non riuscito:', error.message));
+  });
 }
 start().catch(error => { console.error('Avvio database non riuscito:',error); process.exit(1); });
