@@ -1,4 +1,4 @@
-const AUTO_REFRESH_MS = 120000;
+const AUTO_REFRESH_MS = 15000;
 const PAGE_SIZE = 50;
 const headerDateEl = document.getElementById('header-date');
 const headerTimeEl = document.getElementById('header-time');
@@ -282,8 +282,11 @@ async function load() {
     render();
     renderTrends();
     renderErrors();
-    el.status.textContent = state.news.length + ' notizie · aggiornato '
-      + new Date().toLocaleTimeString('it-IT');
+    el.status.textContent = data.refreshing
+      ? (state.news.length
+          ? state.news.length + ' notizie · aggiornamento fonti in corso'
+          : 'Primo caricamento delle fonti in corso…')
+      : state.news.length + ' notizie · aggiornato ' + new Date().toLocaleTimeString('it-IT');
   } catch (error) {
     el.status.textContent = 'Servizio momentaneamente non raggiungibile.';
     console.error(error);
