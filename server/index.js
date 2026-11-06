@@ -160,6 +160,8 @@ async function initDatabase() {
   await pool.query('ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ');
   await pool.query("ALTER TABLE editorial_notes ADD COLUMN IF NOT EXISTS image_url TEXT NOT NULL DEFAULT ''");
   await pool.query("CREATE TABLE IF NOT EXISTS featured_news (id INTEGER PRIMARY KEY CHECK (id = 1), article JSONB NOT NULL, pinned_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
+  await pool.query("CREATE TABLE IF NOT EXISTS editorial_highlights (slot TEXT PRIMARY KEY CHECK (slot IN ('featured','urgent','developing')), article JSONB NOT NULL, pinned_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
+  await pool.query("INSERT INTO editorial_highlights (slot,article,pinned_at) SELECT 'featured',article,pinned_at FROM featured_news WHERE id=1 ON CONFLICT (slot) DO NOTHING");
   await pool.query("CREATE TABLE IF NOT EXISTS live_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, video_id TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
   await pool.query("INSERT INTO live_settings (id, enabled, video_id, title, description) VALUES (1, TRUE, 'WUTDiO_fXdE', 'Diretta di prova', 'Primo test del player YouTube di Breaking') ON CONFLICT (id) DO NOTHING");
   await pool.query("CREATE TABLE IF NOT EXISTS podcast_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, episode_id TEXT NOT NULL DEFAULT '', url TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', description TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
@@ -445,13 +447,45 @@ app.get('/api/diagnostics/feeds', async (req,res) => {
     res.json({ checkedAt: new Date(data.checkedAt).toISOString(), total: data.results.length, counts, results: data.results });
   } catch { res.status(500).json({ error: 'Diagnostica delle fonti non disponibile.' }); }
 });
-app.get('/api/featured', async (req,res) => {
+app.get('/api/highlights', async (req,res) => {
   try {
-    if (!pool) return res.json({ article:null, pinnedAt:null });
-    const result = await pool.query('SELECT article,pinned_at FROM featured_news WHERE id=1');
-    const row = result.rows[0];
-    res.json({ article:row?.article || null, pinnedAt:row?.pinned_at || null });
-  } catch { res.status(500).json({ error:'Notizia in evidenza non disponibile.' }); }
+    if (!pool) return res.json({ highlights:{} });
+    const result = await pool.query('SELECT slot,article,pinned_at FROM editorial_highlights');
+    const highlights = {};
+    for (const row of result.rows) highlights[row.slot] = { ...row.article, pinnedAt:row.pinned_at };
+    res.json({ highlights });
+  } catch { res.status(500).json({ error:'Notizie in primo piano non disponibili.' }); }
+});
+app.post('/api/redazione/highlights/:slot', requireRedazione, async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const slot = String(req.params.slot || '');
+    if (!['featured','urgent','developing'].includes(slot)) return res.status(400).json({ error:'Tipo di evidenza non valido.' });
+    const article = req.body?.article || {};
+    const title = String(article.title || '').trim().slice(0,500);
+    const link = String(article.link || '').trim();
+    let parsed;
+    try { parsed = new URL(link); } catch { return res.status(400).json({ error:'Il link della notizia non è valido.' }); }
+    if (!title || !['http:','https:'].includes(parsed.protocol) || !parsed.hostname)
+      return res.status(400).json({ error:'La notizia deve avere un titolo e un link web valido.' });
+    const safeArticle = {
+      title, link:parsed.href, source:String(article.source || '').slice(0,240),
+      pubDate:article.pubDate || new Date().toISOString(), category:String(article.category || '').slice(0,80),
+      summary:String(article.summary || '').slice(0,3000), image:String(article.image || '').slice(0,2000)
+    };
+    await pool.query('DELETE FROM editorial_highlights WHERE article->>\'link\'=$1 AND slot<>$2',[parsed.href,slot]);
+    await pool.query('INSERT INTO editorial_highlights (slot,article,pinned_at) VALUES ($1,$2::jsonb,NOW()) ON CONFLICT (slot) DO UPDATE SET article=EXCLUDED.article,pinned_at=NOW()',[slot,JSON.stringify(safeArticle)]);
+    res.json({ ok:true, slot, article:safeArticle, pinnedAt:new Date().toISOString() });
+  } catch { res.status(500).json({ error:'Impossibile aggiornare la notizia selezionata.' }); }
+});
+app.delete('/api/redazione/highlights/:slot', requireRedazione, async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
+    const slot = String(req.params.slot || '');
+    if (!['featured','urgent','developing'].includes(slot)) return res.status(400).json({ error:'Tipo di evidenza non valido.' });
+    await pool.query('DELETE FROM editorial_highlights WHERE slot=$1',[slot]);
+    res.json({ ok:true, slot });
+  } catch { res.status(500).json({ error:'Impossibile rimuovere la notizia selezionata.' }); }
 });
 app.post('/api/redazione/featured', requireRedazione, async (req,res) => {
   try {
