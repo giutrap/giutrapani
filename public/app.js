@@ -1,4 +1,4 @@
-const AUTO_REFRESH_MS = 15000;
+const AUTO_REFRESH_MS = 5 * 60 * 1000;
 const PAGE_SIZE = 50;
 const headerDateEl = document.getElementById('header-date');
 const headerTimeEl = document.getElementById('header-time');
@@ -260,11 +260,11 @@ function renderErrors() {
   el.newsErrorsDetails.hidden = state.newsErrors.length === 0;
 }
 
-async function load() {
+async function load(force = false) {
   el.status.textContent = 'Aggiornamento delle fonti…';
   el.refreshBtn.disabled = true;
   try {
-    const response = await fetch('/api/feeds');
+    const response = await fetch(force ? '/api/feeds?force=1' : '/api/feeds');
     if (!response.ok) throw new Error('News HTTP ' + response.status);
     const data = await response.json();
     const [editorialResponse, highlightsResponse] = await Promise.all([
@@ -354,7 +354,7 @@ el.articles.addEventListener('click', async event => {
   render();
 });
 
-el.refreshBtn.addEventListener('click', () => { sendInsight('manual_refresh'); load(); });
+el.refreshBtn.addEventListener('click', () => { sendInsight('manual_refresh'); load(true); });
 load();
 loadLivePublic();
 loadPodcastPublic();
