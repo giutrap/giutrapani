@@ -130,7 +130,7 @@ async function parseSourceFeed(source, timeout = RSS_TIMEOUT_MS) {
     throw new Error('Feed principale: ' + (primaryError.message || 'non disponibile') + '; alternative: ' + (fallbackError?.message || 'non disponibili'));
   }
 }
-const CACHE_TTL_MS = 60 * 1000;
+const CACHE_TTL_MS = 5 * 60 * 1000;
 const cache = { timestamp: 0, articles: [], errors: [] };
 const insightSessions = new Map();
 const INSIGHT_SESSION_TTL_MS = 2 * 60 * 1000;
@@ -551,7 +551,10 @@ app.delete('/api/redazione/featured', requireRedazione, async (req,res) => {
   } catch { res.status(500).json({ error:'Impossibile rimuovere la notizia in evidenza.' }); }
 });
 app.get('/api/feeds', async (req,res) => {
-  try { const data = await getFeeds(); res.json({ updatedAt:data.timestamp, count:data.articles.length, articles:data.articles, errors:data.errors, refreshing:data.refreshing === true }); }
+  try {
+    const data = req.query.force === '1' ? await refreshFeeds() : await getFeeds();
+    res.json({ updatedAt:data.timestamp, count:data.articles.length, articles:data.articles, errors:data.errors, refreshing:Boolean(feedsPromise) });
+  }
   catch { res.status(500).json({ error:'Impossibile recuperare i feed RSS.' }); }
 });
 // I contenuti pubblicati sono consultabili senza credenziali; le bozze restano private.
