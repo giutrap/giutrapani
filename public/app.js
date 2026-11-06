@@ -444,7 +444,7 @@ pollContent.addEventListener('click',async event=>{
 });
 
 // Area privata: la sessione resta attiva nella scheda del browser anche dopo un refresh.
-const redazione = { auth: (() => { try { return sessionStorage.getItem('breaking-redazione-session') || ''; } catch { return ''; } })(), notes: [] };
+const redazione = { auth: '', notes: [] };\ntry { sessionStorage.removeItem('breaking-redazione-session'); } catch {}\nconst loginDialog = document.getElementById('redazione-login');\nconst loginForm = document.getElementById('redazione-login-form');\nconst loginMessage = document.getElementById('redazione-login-message');\nlet pendingRedazioneItem = {};\nfunction showRedazioneLogin(item = {}) { pendingRedazioneItem = item || {}; loginMessage.textContent = ''; loginForm.reset(); loginDialog.hidden = false; loginDialog.setAttribute('aria-hidden','false'); document.body.classList.add('redazione-lock'); setTimeout(() => document.getElementById('redazione-username').focus(), 0); }\nfunction hideRedazioneLogin() { loginDialog.hidden = true; loginDialog.setAttribute('aria-hidden','true'); document.body.classList.remove('redazione-lock'); }\nloginDialog.querySelectorAll('[data-login-close]').forEach(node => node.addEventListener('click', hideRedazioneLogin));
 const redPanel = document.getElementById('redazione-panel');
 const redForm = document.getElementById('redazione-form');
 const redMessage = document.getElementById('redazione-message');
@@ -575,23 +575,30 @@ async function redRequest(url, options = {}) {
   if (options.body) headers['Content-Type'] = 'application/json';
   return fetch(url, { ...options, headers });
 }
-async function redLogin() {
-  if (!redazione.auth) {
-    const user = prompt('Utente REDAZIONE:');
-    if (user === null) return false;
-    const pass = prompt('Password REDAZIONE:');
-    if (pass === null) return false;
-    redazione.auth = 'Basic ' + btoa(unescape(encodeURIComponent(user + ':' + pass)));
-    try { sessionStorage.setItem('breaking-redazione-session', redazione.auth); } catch {}
-  }
-  const response = await redRequest('/api/redazione/notes');
-  if (response.status === 401 || response.status === 403) {
-    redazione.auth = ''; try { sessionStorage.removeItem('breaking-redazione-session'); } catch {} alert('Credenziali non valide. Riprova.'); return false;
-  }
+async function redLogin(user, pass) {
+  const candidate = 'Basic ' + btoa(unescape(encodeURIComponent(user + ':' + pass)));
+  const response = await fetch('/api/redazione/notes', { headers:{ Authorization:candidate } });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) { alert(data.error || 'Archivio non disponibile.'); return false; }
-  redazione.notes = data.notes || []; insightAudience = 'redazione'; sendInsight('heartbeat'); renderRedArchive(); await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); await loadPollAdmin(); await loadInsightsAdmin(); render(); return true;
+  if (response.status === 401 || response.status === 403) { loginMessage.textContent = 'Credenziali non corrette. Controlla nome utente e password.'; return false; }
+  if (!response.ok) { loginMessage.textContent = data.error || 'Area redazionale temporaneamente non disponibile.'; return false; }
+  redazione.auth = candidate;
+  redazione.notes = data.notes || [];
+  insightAudience = 'redazione';
+  sendInsight('heartbeat');
+  hideRedazioneLogin();
+  openRedPanel(pendingRedazioneItem, true);
+  renderRedArchive();
+  await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); await loadPollAdmin(); await loadInsightsAdmin(); render();
+  return true;
 }
+loginForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const submit = document.getElementById('redazione-login-submit');
+  submit.disabled = true; loginMessage.textContent = 'Verifica delle credenziali…';
+  try { await redLogin(document.getElementById('redazione-username').value.trim(), document.getElementById('redazione-password').value); }
+  catch { loginMessage.textContent = 'Errore di connessione. Riprova.'; }
+  finally { submit.disabled = false; }
+});
 function renderRedArchive() {
   if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
   redList.innerHTML = redazione.notes.map(note =>
@@ -602,11 +609,12 @@ async function refreshRedArchive() {
   const response = await redRequest('/api/redazione/notes');
   if (response.ok) { redazione.notes = (await response.json()).notes || []; renderRedArchive(); load(); }
 }
-function openRedPanel(item) {
+function openRedPanel(item, authenticated = false) {
+  if (!redazione.auth && !authenticated) { showRedazioneLogin(item); return; }
   redPanel.classList.add('is-open'); redPanel.setAttribute('aria-hidden','false');
   document.body.classList.add('redazione-lock'); redForm.reset(); rf.id.value = '';
   rf.title.value = item.title || ''; rf.source.value = item.source || ''; rf.url.value = item.url || ''; rf.image.value = ''; updateRedazioneImagePreview();
-  redMessage.textContent = ''; redLogin();
+  redMessage.textContent = '';
 }
 function closeRedPanel() {
   redPanel.classList.remove('is-open'); redPanel.setAttribute('aria-hidden','true');
@@ -621,7 +629,7 @@ el.pagination.addEventListener('click', event => {
     document.getElementById('articles').scrollIntoView({ behavior:'smooth', block:'start' });
     return;
   }
-  if (event.target.closest('#login-redazione')) openRedPanel({});
+  if (event.target.closest('#login-redazione')) showRedazioneLogin({});
 });
 document.addEventListener('click', async event => {
   const open = event.target.closest('.redazione-open');
