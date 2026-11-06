@@ -31,7 +31,7 @@
     <section class="top-feature-grid" aria-label="Live e trend del giorno">
       <section id="live-section" class="live-section" hidden aria-label="Diretta speciale">
         <div class="live-heading"><span class="live-pill">LIVE</span></div>
-        <div class="live-player-wrap"><iframe id="live-player" title="Diretta YouTube di Breaking" src="" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+        <div class="live-player-wrap"><button type="button" id="live-load-button" class="live-load-button">CARICA LA DIRETTA YOUTUBE</button><iframe hidden id="live-player" title="Diretta YouTube di Breaking" src="" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
         <h2 id="live-title"></h2><p id="live-description"></p>
       </section>
       <section id="trends-section" class="trends-section" aria-label="Trend del flusso">
@@ -76,7 +76,7 @@
     <p id="empty-state" class="empty-state" hidden>Nessuna notizia trovata.</p>
     <nav id="pagination" class="pagination" aria-label="Paginazione e strumenti redazione"></nav>
   </main>
-  <footer class="footer">BREAKING · Aggregatore di notizie da testate, agenzie e fonti informative. Ogni contenuto rimanda alla pubblicazione originale.<small class="analytics-notice">Il sito rileva in forma anonima e aggregata le sessioni e alcune interazioni con i contenuti, per finalità statistiche. Non vengono memorizzati indirizzi IP o dati identificativi nel database di Breaking.</small></footer>
+  <footer class="footer">BREAKING · Aggregatore di notizie da testate, agenzie e fonti informative. Ogni contenuto rimanda alla pubblicazione originale.<small class="analytics-notice">Le statistiche facoltative sono attivate soltanto previo consenso. <a href="/privacy-cookie.html">Privacy e cookie</a> · <a href="#" id="cookie-settings-link">Preferenze statistiche</a></small></footer>
   <aside id="redazione-panel" class="redazione-panel" aria-hidden="true">
     <div class="redazione-backdrop" data-redazione-close></div>
     <section class="redazione-drawer" role="dialog" aria-modal="true" aria-labelledby="redazione-heading">
@@ -157,6 +157,17 @@
       </div>
     </section>
   </aside>
+  <section id="cookie-notice" class="cookie-notice" aria-label="Preferenze privacy" hidden>
+    <div class="cookie-notice-copy">
+      <strong>La tua privacy, prima di tutto</strong>
+      <p>Breaking utilizza strumenti tecnici necessari al funzionamento. Con il tuo consenso possiamo raccogliere statistiche aggregate per capire come viene utilizzata la newsroom. Puoi rifiutare senza limitazioni alla lettura.</p>
+      <a href="/privacy-cookie.html">Leggi l'informativa privacy e cookie</a>
+    </div>
+    <div class="cookie-notice-actions">
+      <button type="button" id="cookie-reject" class="cookie-reject">Rifiuta statistiche</button>
+      <button type="button" id="cookie-accept" class="cookie-accept">Accetta statistiche</button>
+    </div>
+  </section>
   <script src="app.js"></script>
 </body>
 </html>
