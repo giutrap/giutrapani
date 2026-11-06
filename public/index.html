@@ -157,6 +157,21 @@
       </div>
     </section>
   </aside>
+  <section id="redazione-login" class="redazione-login" aria-hidden="true" hidden>
+    <div class="redazione-login-backdrop" data-login-close></div>
+    <form id="redazione-login-form" class="redazione-login-card" role="dialog" aria-modal="true" aria-labelledby="redazione-login-title">
+      <button type="button" class="redazione-login-close" data-login-close aria-label="Chiudi">×</button>
+      <span class="redazione-kicker">ACCESSO RISERVATO</span>
+      <h2 id="redazione-login-title">LOGIN REDAZIONE</h2>
+      <p>Inserisci le credenziali per accedere agli strumenti editoriali.</p>
+      <label for="redazione-username">Nome utente</label>
+      <input id="redazione-username" name="username" autocomplete="username" required>
+      <label for="redazione-password">Password</label>
+      <input id="redazione-password" name="password" type="password" autocomplete="current-password" required>
+      <p id="redazione-login-message" role="alert"></p>
+      <button type="submit" id="redazione-login-submit">ACCEDI</button>
+    </form>
+  </section>
   <section id="cookie-notice" class="cookie-notice" aria-label="Preferenze privacy" hidden>
     <div class="cookie-notice-copy">
       <strong>La tua privacy, prima di tutto</strong>
