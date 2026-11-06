@@ -202,6 +202,10 @@ function render() {
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   state.currentPage = Math.min(state.currentPage, pageCount);
   const visibleRows = rows.slice((state.currentPage - 1) * PAGE_SIZE, state.currentPage * PAGE_SIZE);
+  const podcastCard = state.podcast && state.podcast.enabled && state.podcast.url
+    ? '<aside class="feed-special-card feed-podcast-card"><a href="' + esc(state.podcast.url) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">PODCAST</span><strong>' + esc(state.podcast.title || 'Il Podcast') + '</strong>' + (state.podcast.description ? '<span class="feed-special-description">' + esc(state.podcast.description) + '</span>' : '') + '<span class="feed-special-action">ASCOLTA ORA ↗</span></a></aside>' : '';
+  const memeCard = state.media && state.media.enabled && state.media.postUrl
+    ? '<aside class="feed-special-card feed-meme-card"><a href="' + esc(state.media.postUrl) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">SOCIAL</span><strong>' + esc(state.media.title || 'Il Meme') + '</strong>' + (state.media.caption ? '<span class="feed-special-description">' + esc(state.media.caption) + '</span>' : '') + '<span class="feed-special-action">GUARDA ↗</span></a></aside>' : '';
   el.articles.innerHTML = visibleRows.map((item, index) => {
     const link = esc(item.link || '#');
     const category = newsCategory(item);
@@ -220,7 +224,9 @@ function render() {
       + (item.isEditorial ? '<a class="news-link" href="' + link + '" aria-label="Apri approfondimento">APRI ↗</a>' : '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Leggi la notizia">LEGGI ↗</a>')
       + (redazione.auth ? '<button type="button" class="redazione-open" data-title="' + esc(item.title || '') + '" data-source="' + esc(item.source || '') + '" data-url="' + link + '">REDAZIONE</button>' : '')
       + featureAction
-      + '</article>';
+      + '</article>'
+      + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 10 ? podcastCard : '')
+      + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 20 ? memeCard : '');
   }).join('');
 
   el.emptyState.hidden = rows.length > 0;
