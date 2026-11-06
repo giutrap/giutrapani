@@ -206,7 +206,7 @@ function render() {
     const link = esc(item.link || '#');
     const category = newsCategory(item);
     const isFeatured = Boolean(state.featured && item.link === state.featured.link);
-    const featureLabel = isFeatured ? '<span class="featured-news-label">IN EVIDENZA</span>' : '';
+    const featureLabel = isFeatured ? '<span class="featured-news-label">IN PRIMO PIANO</span>' : '';
     const featureAction = redazione.auth && !item.isEditorial
       ? '<button type="button" class="news-feature-toggle' + (isFeatured ? ' is-featured' : '') + '" data-feature-url="' + esc(item.link || '') + '">' + (isFeatured ? 'RIMUOVI EVIDENZA' : 'METTI IN EVIDENZA') + '</button>'
       : '';
