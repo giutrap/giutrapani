@@ -184,26 +184,8 @@ function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const eligible = state.news.filter(item => !isFutureDated(item));
   const byDate = (a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
-  // Gerarchia editoriale: una sola notizia per ciascuna evidenza, poi il flusso cronologico.
-  const latestUrgent = eligible
-    .filter(item => !item.isEditorial && !isXFeed(item) && urgency(item) === 'urgent')
-    .sort(byDate)[0] || null;
-  const latestDeveloping = eligible
-    .filter(item => !item.isEditorial && !isXFeed(item) && urgency(item) === 'developing')
-    .sort(byDate)[0] || null;
-  const latestFocus = eligible
-    .filter(item => item.isEditorial)
-    .sort(byDate)[0] || null;
-  const highlightedUrgentSet = new Set(latestUrgent ? [latestUrgent] : []);
-  const highlightedDevelopingSet = new Set(latestDeveloping ? [latestDeveloping] : []);
-  const prioritySet = new Set([latestUrgent, latestDeveloping, latestFocus].filter(Boolean));
-  const normalFlow = eligible
-    .filter(item => !prioritySet.has(item))
-    .sort(byDate);
-  const orderedRows = [
-    ...[latestUrgent, latestDeveloping, latestFocus].filter(Boolean),
-    ...normalFlow
-  ];
+  // Unico flusso: tutte le notizie, comprese quelle della redazione, in ordine cronologico.
+  const orderedRows = [...eligible].sort(byDate);
   const rows = orderedRows
     .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)
     .filter(item => !state.activeKeyword || KEYWORD_TOPICS.find(topic => topic.label === state.activeKeyword && topicMatches(item,topic)))
@@ -214,34 +196,19 @@ function render() {
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   state.currentPage = Math.min(state.currentPage, pageCount);
   const visibleRows = rows.slice((state.currentPage - 1) * PAGE_SIZE, state.currentPage * PAGE_SIZE);
-  const podcastCard = state.podcast && state.podcast.enabled && state.podcast.url
-    ? '<aside class="feed-special-card feed-podcast-card"><a href="' + esc(state.podcast.url) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">PODCAST</span><strong>' + esc(state.podcast.title || 'Il Podcast') + '</strong>' + (state.podcast.description ? '<span class="feed-special-description">' + esc(state.podcast.description) + '</span>' : '') + '<span class="feed-special-action">ASCOLTA ORA ↗</span></a></aside>' : '';
-  const memeCard = state.media && state.media.enabled && state.media.postUrl
-    ? '<aside class="feed-special-card feed-meme-card"><a href="' + esc(state.media.postUrl) + '" target="_blank" rel="noopener noreferrer"><span class="feed-special-kicker">SOCIAL</span><strong>' + esc(state.media.title || 'Il Meme') + '</strong>' + (state.media.caption ? '<span class="feed-special-description">' + esc(state.media.caption) + '</span>' : '') + '<span class="feed-special-action">GUARDA ↗</span></a></aside>' : '';
   el.articles.innerHTML = visibleRows.map((item, index) => {
     const link = esc(item.link || '#');
-    const itemUrgency = urgency(item);
-    const level = (itemUrgency === 'urgent' && !highlightedUrgentSet.has(item))
-      || (itemUrgency === 'developing' && !highlightedDevelopingSet.has(item))
-      ? 'normal' : itemUrgency;
-    const marker = level === 'urgent'
-      ? '<span class="urgency-label urgency-urgent">ULTIM’ORA</span>'
-      : level === 'developing'
-        ? '<span class="urgency-label urgency-developing" >IN AGGIORNAMENTO</span>'
-        : '';
     const category = newsCategory(item);
-    return '<article class="news-item urgency-' + level + '">'
+    return '<article class="news-item">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
       + '<button type="button" class="news-category news-category-tag' + (category === 'FOCUS' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : category === 'ISTITUZIONI' ? ' news-category-istituzioni' : category === 'RICERCHE' ? ' news-category-ricerche' : '') + (state.activeCategory === category ? ' is-active' : '') + '" data-category="' + esc(category) + '" aria-pressed="' + (state.activeCategory === category ? 'true' : 'false') + '" title="Filtra per ' + esc(category) + '">' + esc(category) + '</button>'
-      + '<div class="news-main">' + marker
+      + '<div class="news-main">'
       + '<h2 class="news-title"><a href="' + link + '" ' + (item.isEditorial ? '' : 'target="_blank" rel="noopener"') + '>'
       + esc(item.title || 'Senza titolo') + '</a></h2></div>'
       + '<div class="news-source">' + esc(item.source || '') + '</div>'
       + (item.isEditorial ? '<a class="news-link" href="' + link + '" aria-label="Apri approfondimento">APRI ↗</a>' : '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Leggi la notizia">LEGGI ↗</a>')
       + (redazione.auth ? '<button type="button" class="redazione-open" data-title="' + esc(item.title || '') + '" data-source="' + esc(item.source || '') + '" data-url="' + link + '">REDAZIONE</button>' : '')
-      + '</article>'
-      + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 10 ? podcastCard : '')
-      + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 20 ? memeCard : '');
+      + '</article>';
   }).join('');
 
   el.emptyState.hidden = rows.length > 0;
