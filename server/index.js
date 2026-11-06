@@ -174,6 +174,7 @@ async function initDatabase() {
   await pool.query('CREATE TABLE IF NOT EXISTS x_feed_cache (id INTEGER PRIMARY KEY CHECK (id = 1), item JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
   await pool.query("CREATE TABLE IF NOT EXISTS poll_settings (id INTEGER PRIMARY KEY CHECK (id = 1), question TEXT NOT NULL DEFAULT '', options JSONB NOT NULL DEFAULT '[]'::jsonb, starts_at TIMESTAMPTZ, ends_at TIMESTAMPTZ, enabled BOOLEAN NOT NULL DEFAULT FALSE, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
   await pool.query("CREATE TABLE IF NOT EXISTS poll_votes (id BIGSERIAL PRIMARY KEY, poll_id INTEGER NOT NULL DEFAULT 1, voter_hash TEXT NOT NULL, option_index INTEGER NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(poll_id,voter_hash))");
+  await pool.query('ALTER TABLE poll_settings ADD COLUMN IF NOT EXISTS visible BOOLEAN NOT NULL DEFAULT TRUE');
   const savedFeeds = await pool.query('SELECT payload,updated_at FROM rss_cache WHERE id=1');
   if (savedFeeds.rowCount && savedFeeds.rows[0].payload) {
     cache.articles = Array.isArray(savedFeeds.rows[0].payload.articles) ? savedFeeds.rows[0].payload.articles : [];
@@ -388,9 +389,9 @@ async function readPollResults() {
 app.get('/api/poll', async (req,res) => {
   try {
     if (!pool) return res.json({ visible:false });
-    const result = await pool.query('SELECT question,options,starts_at,ends_at,enabled FROM poll_settings WHERE id=1');
+    const result = await pool.query('SELECT question,options,starts_at,ends_at,enabled,visible FROM poll_settings WHERE id=1');
     const row = result.rows[0], status = pollState(row);
-    if (!row || status === 'empty' || status === 'scheduled') return res.json({ visible:false, status });
+    if (!row || row.visible === false || status === 'empty' || status === 'scheduled') return res.json({ visible:false, status });
     const counts = await readPollResults();
     const options = (row.options || []).map((label,index)=>({ label, votes:Number(counts.find(item=>item.option_index===index)?.votes || 0) }));
     const voterId = String(req.query.voterId || '');
@@ -416,10 +417,10 @@ app.post('/api/poll/vote', async (req,res) => {
 app.get('/api/redazione/poll', requireRedazione, async (req,res) => {
   try {
     if (!pool) return res.status(503).json({ error:'Archivio non configurato.' });
-    const result = await pool.query('SELECT question,options,starts_at,ends_at,enabled FROM poll_settings WHERE id=1');
+    const result = await pool.query('SELECT question,options,starts_at,ends_at,enabled,visible FROM poll_settings WHERE id=1');
     const row=result.rows[0] || {}, counts=await readPollResults();
     const options=(row.options || []).map((label,index)=>({label,votes:Number(counts.find(item=>item.option_index===index)?.votes || 0)}));
-    res.json({question:row.question || '',options,startsAt:row.starts_at || null,endsAt:row.ends_at || null,enabled:row.enabled === true,status:pollState(row),total:options.reduce((sum,item)=>sum+item.votes,0)});
+    res.json({question:row.question || '',options,startsAt:row.starts_at || null,endsAt:row.ends_at || null,enabled:row.enabled === true,visible:row.visible !== false,status:pollState(row),total:options.reduce((sum,item)=>sum+item.votes,0)});
   } catch { res.status(500).json({ error:'Impostazioni sondaggio non disponibili.' }); }
 });
 app.put('/api/redazione/poll', requireRedazione, async (req,res) => {
@@ -437,7 +438,7 @@ app.put('/api/redazione/poll', requireRedazione, async (req,res) => {
     const previous=await pool.query('SELECT question,options FROM poll_settings WHERE id=1'),old=previous.rows[0];
     const changed=old && (old.question!==safeQuestion || JSON.stringify(old.options)!==JSON.stringify(safeOptions));
     if (changed) await pool.query('DELETE FROM poll_votes WHERE poll_id=1');
-    await pool.query('INSERT INTO poll_settings (id,question,options,starts_at,ends_at,enabled,updated_at) VALUES (1,$1,$2::jsonb,$3,$4,$5,NOW()) ON CONFLICT (id) DO UPDATE SET question=EXCLUDED.question,options=EXCLUDED.options,starts_at=EXCLUDED.starts_at,ends_at=EXCLUDED.ends_at,enabled=EXCLUDED.enabled,updated_at=NOW()',[safeQuestion,JSON.stringify(safeOptions),start.toISOString(),end.toISOString(),enabled===true]);
+    await pool.query('INSERT INTO poll_settings (id,question,options,starts_at,ends_at,enabled,visible,updated_at) VALUES (1,$1,$2::jsonb,$3,$4,$5,TRUE,NOW()) ON CONFLICT (id) DO UPDATE SET question=EXCLUDED.question,options=EXCLUDED.options,starts_at=EXCLUDED.starts_at,ends_at=EXCLUDED.ends_at,enabled=EXCLUDED.enabled,visible=TRUE,updated_at=NOW()',[safeQuestion,JSON.stringify(safeOptions),start.toISOString(),end.toISOString(),enabled===true]);
     res.json({ok:true,status:pollState({question:safeQuestion,options:safeOptions,starts_at:start,ends_at:end,enabled:enabled===true})});
   } catch { res.status(500).json({error:'Salvataggio del sondaggio non riuscito.'}); }
 });
@@ -447,6 +448,14 @@ app.post('/api/redazione/poll/close', requireRedazione, async (req,res) => {
     await pool.query('UPDATE poll_settings SET enabled=FALSE,updated_at=NOW() WHERE id=1');
     res.json({ok:true});
   } catch { res.status(500).json({error:'Chiusura del sondaggio non riuscita.'}); }
+});
+
+app.post('/api/redazione/poll/hide', requireRedazione, async (req,res) => {
+  try {
+    if (!pool) return res.status(503).json({error:'Archivio non configurato.'});
+    await pool.query('UPDATE poll_settings SET visible=FALSE,enabled=FALSE,updated_at=NOW() WHERE id=1');
+    res.json({ok:true});
+  } catch { res.status(500).json({error:'Impossibile ritirare il sondaggio.'}); }
 });
 
 app.get('/api/live', async (req,res) => {
