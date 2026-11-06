@@ -251,7 +251,11 @@ async function fetchAllFeeds() {
     if (result.status === 'fulfilled') articles.push(...result.value);
     else errors.push({ source: source.name, message: result.reason?.message || 'errore sconosciuto' });
   });
+  // Se i feed editoriali falliscono tutti, non lasciare la homepage vuota:
+  // conserva almeno l'ultimo post X valido già raccolto.
+  if (!articles.length && xPostCache.items.length) articles.push(...xPostCache.items.slice(0,1));
   articles.sort((a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+  console.log('[RSS collection] fonti:', FEEDS.length, 'articoli:', articles.length, 'errori:', errors.length, 'cache X:', xPostCache.items.length);
   return { articles, errors };
 }
 const DIAGNOSTICS_CACHE_MS = 10 * 60 * 1000;
@@ -310,9 +314,16 @@ function refreshFeeds() {
   if (feedsPromise) return feedsPromise;
   feedsPromise = (async () => {
     const data = await fetchAllFeeds();
-    cache.timestamp = Date.now();
-    cache.articles = data.articles;
-    cache.errors = data.errors;
+    // Una raccolta vuota non deve mai cancellare l'ultima raccolta valida.
+    if (data.articles.length) {
+      cache.timestamp = Date.now();
+      cache.articles = data.articles;
+      cache.errors = data.errors;
+    } else {
+      cache.timestamp = Date.now();
+      cache.errors = data.errors;
+      console.warn('[RSS] Raccolta vuota: conservata la cache precedente.');
+    }
     if (pool) {
       try {
         await pool.query(
@@ -327,7 +338,7 @@ function refreshFeeds() {
   return feedsPromise;
 }
 async function getFeeds() {
-  const fresh = cache.timestamp > 0 && Date.now() - cache.timestamp < CACHE_TTL_MS;
+  const fresh = cache.timestamp > 0 && cache.articles.length > 0 && Date.now() - cache.timestamp < CACHE_TTL_MS;
   if (fresh) return { ...cache, refreshing:Boolean(feedsPromise) };
   if (cache.articles.length) {
     refreshFeeds().catch(error => console.warn('[RSS] Aggiornamento in background non riuscito:', error.message));
