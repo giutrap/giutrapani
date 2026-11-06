@@ -226,7 +226,7 @@ function render() {
           return '<button type="button" class="news-feature-toggle ' + type.className + (active ? ' is-featured' : '') + '" data-highlight-slot="' + type.slot + '" data-highlight-url="' + esc(item.link || '') + '">' + (active ? 'RIMUOVI' : type.action) + '</button>';
         }).join('') + '</div>'
       : '';
-    return '<article class="news-item' + (isFeatured ? ' is-featured' : '') + '">'
+    return '<article class="news-item' + (activeHighlight ? ' is-featured' : '') + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
       + '<button type="button" class="news-category news-category-tag' + (category === 'FOCUS' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : category === 'ISTITUZIONI' ? ' news-category-istituzioni' : category === 'RICERCHE' ? ' news-category-ricerche' : '') + (state.activeCategory === category ? ' is-active' : '') + '" data-category="' + esc(category) + '" aria-pressed="' + (state.activeCategory === category ? 'true' : 'false') + '" title="Filtra per ' + esc(category) + '">' + esc(category) + '</button>'
       + '<div class="news-main">' + featureLabel
