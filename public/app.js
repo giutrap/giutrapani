@@ -14,7 +14,7 @@ function renderHeaderClock() {
 }
 renderHeaderClock();
 setInterval(renderHeaderClock, 1000);
-const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', activeKeyword: '', currentPage: 1, podcast: null, media: null, featured: null };
+const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', activeKeyword: '', currentPage: 1, podcast: null, media: null, featured: null, highlights: {} };
 const trendEl = { list: document.getElementById('trends-list'), updated: document.getElementById('trends-updated') };
 const el = {
   search: document.getElementById('search'),
@@ -184,13 +184,16 @@ function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const eligible = state.news.filter(item => !isFutureDated(item));
   const byDate = (a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
-  // La notizia scelta dalla redazione apre il flusso; tutte le altre restano in ordine cronologico.
-  const featuredItem = state.featured
-    ? (eligible.find(item => item.link === state.featured.link) || state.featured)
-    : null;
+  // Le tre posizioni manuali precedono il flusso RSS, che resta ordinato cronologicamente.
+  const highlightSlots = ['featured','urgent','developing'];
+  const highlightedItems = highlightSlots.map(slot => {
+    const saved = state.highlights[slot];
+    return saved ? (eligible.find(item => item.link === saved.link) || saved) : null;
+  }).filter(Boolean);
+  const highlightedLinks = new Set(highlightedItems.map(item => item.link));
   const orderedRows = [
-    ...(featuredItem ? [featuredItem] : []),
-    ...eligible.filter(item => !featuredItem || item.link !== featuredItem.link).sort(byDate)
+    ...highlightedItems,
+    ...eligible.filter(item => !highlightedLinks.has(item.link)).sort(byDate)
   ];
   const rows = orderedRows
     .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)
@@ -209,10 +212,19 @@ function render() {
   el.articles.innerHTML = visibleRows.map((item, index) => {
     const link = esc(item.link || '#');
     const category = newsCategory(item);
-    const isFeatured = Boolean(state.featured && item.link === state.featured.link);
-    const featureLabel = isFeatured ? '<span class="featured-news-label">IN PRIMO PIANO</span>' : '';
+    const highlightTypes = [
+      { slot:'featured', label:'IN PRIMO PIANO', action:'METTI IN PRIMO PIANO', className:'highlight-featured' },
+      { slot:'urgent', label:'ULTIM’ORA', action:'METTI ULTIM’ORA', className:'highlight-urgent' },
+      { slot:'developing', label:'IN AGGIORNAMENTO', action:'METTI IN AGGIORNAMENTO', className:'highlight-developing' }
+    ];
+    const activeHighlight = highlightTypes.find(type => state.highlights[type.slot]?.link === item.link);
+    const featureLabel = activeHighlight
+      ? '<span class="featured-news-label ' + activeHighlight.className + '">' + activeHighlight.label + '</span>' : '';
     const featureAction = redazione.auth && !item.isEditorial
-      ? '<button type="button" class="news-feature-toggle' + (isFeatured ? ' is-featured' : '') + '" data-feature-url="' + esc(item.link || '') + '">' + (isFeatured ? 'RIMUOVI EVIDENZA' : 'METTI IN EVIDENZA') + '</button>'
+      ? '<div class="news-highlight-actions">' + highlightTypes.map(type => {
+          const active = state.highlights[type.slot]?.link === item.link;
+          return '<button type="button" class="news-feature-toggle ' + type.className + (active ? ' is-featured' : '') + '" data-highlight-slot="' + type.slot + '" data-highlight-url="' + esc(item.link || '') + '">' + (active ? 'RIMUOVI' : type.action) + '</button>';
+        }).join('') + '</div>'
       : '';
     return '<article class="news-item' + (isFeatured ? ' is-featured' : '') + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
@@ -255,13 +267,14 @@ async function load() {
     const response = await fetch('/api/feeds');
     if (!response.ok) throw new Error('News HTTP ' + response.status);
     const data = await response.json();
-    const [editorialResponse, featuredResponse] = await Promise.all([
+    const [editorialResponse, highlightsResponse] = await Promise.all([
       fetch('/api/redazione/published'),
-      fetch('/api/featured')
+      fetch('/api/highlights')
     ]);
     const editorialData = editorialResponse.ok ? await editorialResponse.json() : { notes:[] };
-    const featuredData = featuredResponse.ok ? await featuredResponse.json() : { article:null };
-    state.featured = featuredData.article || null;
+    const highlightsData = highlightsResponse.ok ? await highlightsResponse.json() : { highlights:{} };
+    state.highlights = highlightsData.highlights || {};
+    state.featured = state.highlights.featured || null;
     const editorialItems = (editorialData.notes || []).map(note => ({ id:note.id, title:note.title, source:'A cura della Redazione', pubDate:note.published_at, summary:note.notes || '', image:note.image_url || '', link:'/redazione.html?id=' + encodeURIComponent(note.id), category:'REDAZIONE', isEditorial:true }));
     state.news = [...(data.articles || []), ...editorialItems];
     state.newsErrors = data.errors || [];
@@ -301,25 +314,33 @@ trendEl.list.addEventListener('click', event => {
   el.articles.scrollIntoView({ behavior:'smooth', block:'start' });
 });
 el.articles.addEventListener('click', async event => {
-  const featureButton = event.target.closest('button[data-feature-url]');
-  if (featureButton) {
+  const highlightButton = event.target.closest('button[data-highlight-slot]');
+  if (highlightButton) {
     if (!redazione.auth) return;
-    const link = featureButton.dataset.featureUrl;
-    const removing = Boolean(state.featured && state.featured.link === link);
-    featureButton.disabled = true;
+    const slot = highlightButton.dataset.highlightSlot;
+    const link = highlightButton.dataset.highlightUrl;
+    const removing = Boolean(state.highlights[slot] && state.highlights[slot].link === link);
+    highlightButton.disabled = true;
     try {
       const response = removing
-        ? await redRequest('/api/redazione/featured', { method:'DELETE' })
-        : await redRequest('/api/redazione/featured', {
+        ? await redRequest('/api/redazione/highlights/' + slot, { method:'DELETE' })
+        : await redRequest('/api/redazione/highlights/' + slot, {
             method:'POST',
             body:JSON.stringify({ article:state.news.find(item => item.link === link) })
           });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) { alert(data.error || 'Operazione non riuscita.'); return; }
-      state.featured = removing ? null : data.article;
+      if (removing) delete state.highlights[slot];
+      else {
+        for (const key of Object.keys(state.highlights)) {
+          if (state.highlights[key]?.link === link) delete state.highlights[key];
+        }
+        state.highlights[slot] = data.article;
+      }
+      state.featured = state.highlights.featured || null;
       state.currentPage = 1;
       render();
-    } catch { alert('Errore di connessione durante l’aggiornamento della notizia in evidenza.'); }
+    } catch { alert('Errore di connessione durante l’aggiornamento della notizia.'); }
     return;
   }
   const button = event.target.closest('button[data-category]');
