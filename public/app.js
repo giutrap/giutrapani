@@ -26,24 +26,24 @@ const el = {
   emptyState: document.getElementById('empty-state'),
   pagination: document.getElementById('pagination'),
 };
-function getInsightSessionId() {
-  try {
-    let id = sessionStorage.getItem('breaking-insight-session');
-    if (!id) {
-      id = window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);});
-      sessionStorage.setItem('breaking-insight-session',id);
-    }
-    return id;
-  } catch { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);}); }
-}
-const insightSessionId = getInsightSessionId();
+// Statistiche facoltative: vengono attivate solo dopo una scelta esplicita.
+const ANALYTICS_CONSENT_KEY = 'breaking-analytics-consent';
+let analyticsConsent = (() => { try { return localStorage.getItem(ANALYTICS_CONSENT_KEY) || ''; } catch { return ''; } })();
+let insightSessionId = '';
 let insightAudience = 'pubblico';
+let insightHeartbeat = null;
+function getInsightSessionId() {
+  return window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);});
+}
 function sendInsight(event) {
+  if (analyticsConsent !== 'accepted' || !insightSessionId) return;
   fetch('/api/insight/collect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:insightSessionId,event,audience:insightAudience}),keepalive:true}).catch(()=>{});
 }
 function startInsightTracking() {
-  const today = new Date().toLocaleDateString('en-CA');
+  if (analyticsConsent !== 'accepted' || insightSessionId) return;
+  insightSessionId = getInsightSessionId();
   try {
+    const today = new Date().toLocaleDateString('en-CA');
     if (sessionStorage.getItem('breaking-insight-visit-day') !== today) {
       sendInsight('visit');
       sessionStorage.setItem('breaking-insight-visit-day',today);
@@ -51,9 +51,32 @@ function startInsightTracking() {
   } catch { sendInsight('visit'); }
   const heartbeat = () => sendInsight('heartbeat');
   heartbeat();
-  setInterval(heartbeat,30000);
+  insightHeartbeat = setInterval(heartbeat,30000);
 }
-startInsightTracking();
+function stopInsightTracking() {
+  if (insightHeartbeat) clearInterval(insightHeartbeat);
+  insightHeartbeat = null;
+  insightSessionId = '';
+}
+const cookieNotice = document.getElementById('cookie-notice');
+function renderCookieNotice() { if (cookieNotice) cookieNotice.hidden = Boolean(analyticsConsent); }
+function saveAnalyticsChoice(choice) {
+  analyticsConsent = choice;
+  try { localStorage.setItem(ANALYTICS_CONSENT_KEY,choice); } catch {}
+  if (choice === 'accepted') startInsightTracking(); else stopInsightTracking();
+  renderCookieNotice();
+}
+document.getElementById('cookie-accept')?.addEventListener('click',()=>saveAnalyticsChoice('accepted'));
+document.getElementById('cookie-reject')?.addEventListener('click',()=>saveAnalyticsChoice('rejected'));
+document.getElementById('cookie-settings-link')?.addEventListener('click',event=>{
+  event.preventDefault();
+  analyticsConsent = '';
+  try { localStorage.removeItem(ANALYTICS_CONSENT_KEY); } catch {}
+  stopInsightTracking();
+  renderCookieNotice();
+});
+renderCookieNotice();
+if (analyticsConsent === 'accepted') startInsightTracking();
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -372,8 +395,8 @@ const pollStatus=document.getElementById('poll-status');
 let pollSelected=-1;
 function getPollVoterId(){
   try{
-    let id=localStorage.getItem('breaking-poll-voter');
-    if(!id){id=crypto.randomUUID();localStorage.setItem('breaking-poll-voter',id);}
+    let id=sessionStorage.getItem('breaking-poll-voter');
+    if(!id){id=crypto.randomUUID();sessionStorage.setItem('breaking-poll-voter',id);}
     return id;
   }catch{return crypto.randomUUID();}
 }
@@ -646,6 +669,7 @@ document.addEventListener('keydown', event => { if (event.key === 'Escape') clos
 const liveEls = {
   section: document.getElementById('live-section'),
   player: document.getElementById('live-player'),
+  loadButton: document.getElementById('live-load-button'),
   title: document.getElementById('live-title'),
   description: document.getElementById('live-description'),
   url: document.getElementById('live-url'),
@@ -779,12 +803,22 @@ function youtubeWatchUrl(videoId) { return 'https://www.youtube.com/watch?v=' + 
 function renderLive(data) {
   const enabled = Boolean(data && data.enabled && data.videoId);
   liveEls.section.hidden = !enabled;
-  if (!enabled) { liveEls.player.src = ''; return; }
-  const embed = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(data.videoId);
-  if (liveEls.player.src !== embed) liveEls.player.src = embed;
+  if (!enabled) { liveEls.player.src = ''; liveEls.player.hidden = true; liveEls.loadButton.hidden = false; return; }
+  liveEls.player.dataset.embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(data.videoId);
+  liveEls.player.src = '';
+  liveEls.player.hidden = true;
+  liveEls.loadButton.hidden = false;
   liveEls.title.textContent = data.title || 'Diretta speciale';
   liveEls.description.textContent = data.description || '';
 }
+liveEls.loadButton.addEventListener('click',()=>{
+  const url=liveEls.player.dataset.embedUrl;
+  if(!url)return;
+  liveEls.player.src=url;
+  liveEls.player.hidden=false;
+  liveEls.loadButton.hidden=true;
+  sendInsight('live_open');
+});
 async function loadLivePublic() {
   try {
     const response = await fetch('/api/live');
