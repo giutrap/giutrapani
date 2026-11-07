@@ -447,7 +447,8 @@ pollContent.addEventListener('click',async event=>{
 
 // Area privata: la sessione resta attiva nella scheda del browser anche dopo un refresh.
 const redazione = { auth: '', notes: [] };
-try { sessionStorage.removeItem('breaking-redazione-session'); } catch {}
+const REDAZIONE_SESSION_KEY = 'breaking-redazione-session';
+try { redazione.auth = sessionStorage.getItem(REDAZIONE_SESSION_KEY) || ''; } catch { redazione.auth = ''; }
 const loginDialog = document.getElementById('redazione-login');
 const loginForm = document.getElementById('redazione-login-form');
 const loginMessage = document.getElementById('redazione-login-message');
@@ -605,6 +606,7 @@ async function redLogin(user, pass) {
   if (response.status === 401 || response.status === 403) { loginMessage.textContent = 'Credenziali non corrette. Controlla nome utente e password.'; return false; }
   if (!response.ok) { loginMessage.textContent = data.error || 'Area redazionale temporaneamente non disponibile.'; return false; }
   redazione.auth = candidate;
+  try { sessionStorage.setItem(REDAZIONE_SESSION_KEY, candidate); } catch {}
   redazione.notes = data.notes || [];
   insightAudience = 'redazione';
   sendInsight('heartbeat');
@@ -614,6 +616,28 @@ async function redLogin(user, pass) {
   await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); await loadPollAdmin(); await loadInsightsAdmin(); render();
   return true;
 }
+async function restoreRedazioneSession() {
+  if (!redazione.auth) return;
+  try {
+    const response = await fetch('/api/redazione/notes', { headers:{ Authorization:redazione.auth } });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      redazione.auth = '';
+      try { sessionStorage.removeItem(REDAZIONE_SESSION_KEY); } catch {}
+      if (response.status !== 401 && response.status !== 403) console.warn('Sessione redazione non verificabile:', data.error || response.status);
+      return;
+    }
+    redazione.notes = data.notes || [];
+    insightAudience = 'redazione';
+    renderRedArchive();
+    render();
+    await loadLiveAdmin(); await loadPodcastAdmin(); await loadMediaAdmin(); await loadPollAdmin(); await loadInsightsAdmin();
+  } catch (error) {
+    console.warn('Ripristino sessione redazione non riuscito:', error);
+  }
+}
+restoreRedazioneSession();
+
 loginForm.addEventListener('submit', async event => {
   event.preventDefault();
   const submit = document.getElementById('redazione-login-submit');
