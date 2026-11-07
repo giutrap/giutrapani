@@ -23,10 +23,21 @@
   if(!response.ok)throw new Error(data.error||'Contenuto non disponibile.');
   const n=data.note, date=new Date(n.published_at);
   const stamp=date.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})+' · '+date.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const linkifyText=value=>{
+    const text=String(value||''),pattern=new RegExp("https?://[^\\s<>\\\"']+","gi");
+    let html='',last=0,match;
+    while((match=pattern.exec(text))){
+      let url=match[0];while(/[.,;:!?)]$/.test(url))url=url.slice(0,-1);
+      html+=esc(text.slice(last,match.index)).replace(/\\r?\\n/g,'<br>');
+      const safe=esc(url);html+='<a href="'+safe+'" target="_blank" rel="noopener noreferrer">'+safe+'</a>'+esc(match[0].slice(url.length));
+      last=match.index+match[0].length;
+    }
+    return html+esc(text.slice(last)).replace(/\\r?\\n/g,'<br>');
+  };
   const safeUrl=value=>/^https?:\/\//i.test(value||'')?value:'';
   const original=safeUrl(n.original_url);
   const links=String(n.extra_links||'').split(/\r?\n/).filter(Boolean).map(value=>{const url=safeUrl(value.trim());return url?'<p><a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(url)+'</a></p>':''}).join('');
-  root.innerHTML='<div class="editorial-meta"><time>'+stamp+'</time><span class="news-category news-category-redazione">FOCUS</span></div><h1 class="editorial-title">'+esc(n.title)+'</h1><div class="editorial-byline">'+esc(n.source||'A cura della Redazione')+'</div>'+(n.image_url?'<img class="editorial-cover" src="'+esc(n.image_url)+'" alt="'+esc(n.title)+'">':'')+'<div class="editorial-body">'+esc(n.notes).replace(/\n/g,'<br>')+'</div><div class="editorial-links">'+(original?'<p><a href="'+esc(original)+'" target="_blank" rel="noopener noreferrer">Apri la fonte originale ↗</a></p>':'')+links+'</div>';
+  root.innerHTML='<div class="editorial-meta"><time>'+stamp+'</time><span class="news-category news-category-redazione">FOCUS</span></div><h1 class="editorial-title">'+esc(n.title)+'</h1><div class="editorial-byline">'+esc(n.source||'A cura della Redazione')+'</div>'+(n.image_url?'<img class="editorial-cover" src="'+esc(n.image_url)+'" alt="'+esc(n.title)+'">':'')+'<div class="editorial-body">'+linkifyText(n.notes)</div><div class="editorial-links">'+(original?'<p><a href="'+esc(original)+'" target="_blank" rel="noopener noreferrer">Apri la fonte originale ↗</a></p>':'')+links+'</div>';
  }catch(error){root.textContent=error.message||'Contenuto non disponibile.';}
 })();
 </script>
