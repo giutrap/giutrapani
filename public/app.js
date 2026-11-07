@@ -509,17 +509,6 @@ async function loadInsightsAdmin() {
 }
 document.getElementById('insight-refresh').addEventListener('click',loadInsightsAdmin);
 setInterval(()=>{if(redazione.auth && redPanel.classList.contains('is-open')) loadInsightsAdmin();},30000);
-function linkifyRedazionePreview(value){
-  const text=String(value||''),pattern=new RegExp("https?://[^\\s<>\\\"']+","gi");
-  let html='',last=0,match;
-  while((match=pattern.exec(text))){
-    let url=match[0];while(/[.,;:!?)]$/.test(url))url=url.slice(0,-1);
-    html+=esc(text.slice(last,match.index)).replace(/\\r?\\n/g,'<br>');
-    const safe=esc(url);html+='<a href="'+safe+'" target="_blank" rel="noopener noreferrer">'+safe+'</a>'+esc(match[0].slice(url.length));
-    last=match.index+match[0].length;
-  }
-  return html+esc(text.slice(last)).replace(/\\r?\\n/g,'<br>');
-}
 const rf = {
   id: document.getElementById('redazione-id'),
   title: document.getElementById('redazione-title'),
@@ -527,17 +516,7 @@ const rf = {
   url: document.getElementById('redazione-url'),
   image: document.getElementById('redazione-image'),
   notes: document.getElementById('redazione-notes'),
-  links: document.getElementById('redazione-links')
 };
-
-const notesPreview=document.getElementById('redazione-notes-preview');
-function updateNotesPreview(){
-  if(!notesPreview)return;
-  const value=rf.notes.value.trim();
-  notesPreview.innerHTML=value?linkifyRedazionePreview(value):'<span class="redazione-preview-empty">L’anteprima dei tuoi appunti apparirà qui. Gli indirizzi web saranno cliccabili.</span>';
-}
-rf.notes.addEventListener('input',updateNotesPreview);
-updateNotesPreview();
 
 const pollAdmin={
  question:document.getElementById('poll-admin-question'),
@@ -707,7 +686,7 @@ document.addEventListener('click', async event => {
     const note = redazione.notes.find(item => String(item.id) === edit.dataset.editNote);
     if (!note) return;
     rf.id.value = note.id; rf.title.value = note.title; rf.source.value = note.source;
-    rf.url.value = note.original_url; rf.image.value = note.image_url || ''; updateRedazioneImagePreview(); rf.notes.value = note.notes; rf.links.value = note.extra_links; updateNotesPreview();
+    rf.url.value = note.original_url; rf.image.value = note.image_url || ''; updateRedazioneImagePreview(); rf.notes.value = note.notes;
     redMessage.textContent = 'Nota caricata: puoi modificarla e salvarla.';
     document.querySelector('.redazione-content').scrollTop = 0;
   }
@@ -727,11 +706,11 @@ document.addEventListener('click', async event => {
   }
 });
 document.getElementById('redazione-new').addEventListener('click', () => {
-  redForm.reset(); rf.id.value = ''; updateRedazioneImagePreview(); updateNotesPreview(); redMessage.textContent = 'Nuova nota pronta.';
+  redForm.reset(); rf.id.value = ''; updateRedazioneImagePreview(); redMessage.textContent = 'Nuova nota pronta.';
 });
 redForm.addEventListener('submit', async event => {
   event.preventDefault();
-  const payload = { title:rf.title.value.trim(), source:rf.source.value.trim(), original_url:rf.url.value.trim(), image_url:rf.image.value.trim(), notes:rf.notes.value, extra_links:rf.links.value };
+  const payload = { title:rf.title.value.trim(), source:rf.source.value.trim(), original_url:rf.url.value.trim(), image_url:rf.image.value.trim(), notes:rf.notes.value, extra_links:'' };
   const id = rf.id.value;
   const response = await redRequest('/api/redazione/notes' + (id ? '/' + id : ''), { method:id ? 'PUT' : 'POST', body:JSON.stringify(payload) });
   const data = await response.json().catch(() => ({}));
