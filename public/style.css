@@ -1522,3 +1522,5 @@ body{font-size:18px;line-height:1.4}
 .redazione-login-close{position:absolute;right:12px;top:8px;border:0;background:transparent;color:#596574;font-size:28px}
 
 .redazione-preview-wrap{margin:10px 0 16px;padding:12px;border:1px solid #e1e4e8;border-radius:3px;background:#f8f9fa}.redazione-preview-label{display:block;margin-bottom:7px;color:#7a818b;font-size:11px;font-weight:700;letter-spacing:1px}.redazione-notes-preview{font:14px/1.55 Arial,sans-serif;overflow-wrap:anywhere;min-height:24px;color:#30343a}.redazione-notes-preview a{color:#176b3b;text-decoration:underline}.redazione-preview-empty{color:#89919b;font-style:italic}
+
+.redazione-note-tools .redazione-edit{border:1px solid #315f8b;color:#315f8b;background:#fff}.redazione-note-tools .redazione-edit:hover{background:#eef4fa}
