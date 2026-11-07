@@ -648,7 +648,7 @@ loginForm.addEventListener('submit', async event => {
 function renderRedArchive() {
   if (!redazione.notes.length) { redList.textContent = 'Nessuna nota salvata.'; return; }
   redList.innerHTML = redazione.notes.map(note =>
-    '<article class="redazione-note"><button type="button" class="redazione-note-title" data-edit-note="' + note.id + '">' + esc(note.title || 'Senza titolo') + '</button><span>' + esc(note.source || '') + (note.published_at ? ' · PUBBLICATA' : ' · BOZZA') + '</span><div class="redazione-note-tools">' + (note.published_at ? '<button type="button" data-unpublish-note="' + note.id + '">RITIRA</button>' : '<button type="button" data-publish-note="' + note.id + '">PUBBLICA</button>') + '<button type="button" class="redazione-delete" data-delete-note="' + note.id + '">ELIMINA</button></div></article>'
+    '<article class="redazione-note"><button type="button" class="redazione-note-title" data-edit-note="' + note.id + '">' + esc(note.title || 'Senza titolo') + '</button><span>' + esc(note.source || '') + (note.published_at ? ' · PUBBLICATA' : ' · BOZZA') + '</span><div class="redazione-note-tools"><button type="button" class="redazione-edit" data-edit-note="' + note.id + '">MODIFICA</button>' + (note.published_at ? '<button type="button" data-unpublish-note="' + note.id + '">RITIRA</button>' : '<button type="button" data-publish-note="' + note.id + '">PUBBLICA</button>') + '<button type="button" class="redazione-delete" data-delete-note="' + note.id + '">ELIMINA</button></div></article>'
   ).join('');
 }
 async function refreshRedArchive() {
@@ -685,9 +685,10 @@ document.addEventListener('click', async event => {
   if (edit) {
     const note = redazione.notes.find(item => String(item.id) === edit.dataset.editNote);
     if (!note) return;
-    rf.id.value = note.id; rf.title.value = note.title; rf.source.value = note.source;
-    rf.url.value = note.original_url; rf.image.value = note.image_url || ''; updateRedazioneImagePreview(); rf.notes.value = note.notes;
-    redMessage.textContent = 'Nota caricata: puoi modificarla e salvarla.';
+    rf.id.value = note.id; rf.title.value = note.title || ''; rf.source.value = note.source || '';
+    rf.url.value = note.original_url || ''; rf.image.value = note.image_url || ''; updateRedazioneImagePreview(); rf.notes.value = note.notes || '';
+    redForm.querySelector('button[type="submit"]').textContent = 'SALVA MODIFICHE';
+    redMessage.textContent = 'Stai modificando una nota esistente. Le modifiche aggiorneranno la stessa nota, senza crearne una nuova.';
     document.querySelector('.redazione-content').scrollTop = 0;
   }
   const publish = event.target.closest('[data-publish-note]');
@@ -706,7 +707,7 @@ document.addEventListener('click', async event => {
   }
 });
 document.getElementById('redazione-new').addEventListener('click', () => {
-  redForm.reset(); rf.id.value = ''; updateRedazioneImagePreview(); redMessage.textContent = 'Nuova nota pronta.';
+  redForm.reset(); rf.id.value = ''; redForm.querySelector('button[type="submit"]').textContent = 'SALVA NELL’ARCHIVIO'; updateRedazioneImagePreview(); redMessage.textContent = 'Nuova nota pronta.';
 });
 redForm.addEventListener('submit', async event => {
   event.preventDefault();
@@ -715,7 +716,7 @@ redForm.addEventListener('submit', async event => {
   const response = await redRequest('/api/redazione/notes' + (id ? '/' + id : ''), { method:id ? 'PUT' : 'POST', body:JSON.stringify(payload) });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) { redMessage.textContent = data.error || 'Salvataggio non riuscito.'; return; }
-  redMessage.textContent = 'Nota salvata nell’archivio.'; rf.id.value = ''; await refreshRedArchive();
+  redMessage.textContent = id ? 'Modifiche salvate: la nota esistente è stata aggiornata.' : 'Nota salvata nell’archivio.'; rf.id.value = ''; redForm.querySelector('button[type="submit"]').textContent = 'SALVA NELL’ARCHIVIO'; await refreshRedArchive();
 });
 document.addEventListener('keydown', event => { if (event.key === 'Escape') closeRedPanel(); });
 
