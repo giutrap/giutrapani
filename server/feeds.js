@@ -158,7 +158,7 @@ const FEEDS = [
   // --- Istituzioni: flussi ufficiali italiani ed europei ---
   { name: 'Camera dei Deputati - Notizie ufficiali', url: 'https://news.google.com/rss/search?q=site%3Acamera.it%2Fleg19%2Fcomunicati+OR+site%3Acamera.it%2Fleg19%2Fattivita&hl=it&gl=IT&ceid=IT%3Ait', category: 'Istituzioni' },
   { name: 'Senato - Notizie e lavori parlamentari', url: 'https://news.google.com/rss/search?q=site%3Asenato.it%2Flavori+OR+site%3Asenato.it%2Fcomunicati&hl=it&gl=IT&ceid=IT%3Ait', category: 'Istituzioni' },
-  { name: 'Commissione europea - Presscorner', url: 'https://ec.europa.eu/commission/presscorner/api/rss?language=it', category: 'Istituzioni' },
+  { name: 'Commissione europea - Presscorner', url: 'https://ec.europa.eu/commission/presscorner/api/rss?language=en', category: 'Istituzioni' },
   { name: 'Consiglio dell’Unione europea - Comunicati stampa', url: 'https://www.consilium.europa.eu/en/rss/pressreleases.ashx', category: 'Istituzioni' },
   { name: 'Banca centrale europea - Comunicati', url: 'https://www.ecb.europa.eu/rss/press.html', category: 'Istituzioni' },
   { name: 'Corte di giustizia UE - Comunicati stampa', url: 'https://curia.europa.eu/site/rss.jsp?lang=it&secondLang=en', category: 'Istituzioni' },
