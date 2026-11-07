@@ -859,10 +859,12 @@ function renderLive(data) {
   const enabled = Boolean(data && data.enabled && data.videoId);
   liveEls.section.hidden = !enabled;
   if (!enabled) { liveEls.player.src = ''; liveEls.player.hidden = true; liveEls.loadButton.hidden = false; return; }
-  liveEls.player.dataset.embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(data.videoId);
+  const videoId = encodeURIComponent(data.videoId);
+  liveEls.player.dataset.embedUrl = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0';
   liveEls.player.src = '';
   liveEls.player.hidden = true;
   liveEls.loadButton.hidden = false;
+  liveEls.loadButton.style.backgroundImage = 'linear-gradient(0deg,rgba(8,18,30,.48),rgba(8,18,30,.12)),url("https://i.ytimg.com/vi/' + videoId + '/hqdefault.jpg")';
   liveEls.title.textContent = data.title || 'Diretta speciale';
   liveEls.description.textContent = data.description || '';
 }
