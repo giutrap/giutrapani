@@ -5,7 +5,7 @@ const Parser = require('rss-parser');
 const { Pool } = require('pg');
 const { FEEDS } = require('./feeds');
 const app = express();
-const RSS_TIMEOUT_MS = 8000;
+const RSS_TIMEOUT_MS = 12000;
 const RSS_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (compatible; BreakingNewsRSS/1.0; +https://breakingnewsognigiorno.onrender.com)',
   'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*'
@@ -86,14 +86,17 @@ function isTransientFeedError(error) {
 
 async function parseFeedUrl(url, timeout) {
   let lastError;
-  for (let attempt = 0; attempt < 2; attempt++) {
+  // Le risposte 429/5xx sono spesso temporanee: tre tentativi distanziati
+  // evitano di dichiarare guasto un feed per un singolo errore del provider.
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const parsed = await new Parser({ timeout, headers: RSS_HEADERS }).parseURL(url);
       return parsed;
     } catch (error) {
       lastError = error;
-      if (attempt === 0 && isTransientFeedError(error)) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+      if (attempt < 2 && isTransientFeedError(error)) {
+        const delay = attempt === 0 ? 900 : 1800;
+        await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
       throw error;
