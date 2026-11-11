@@ -145,7 +145,7 @@ function urgency(item) {
 }
 
 function isXFeed(item) {
-  return /@giutrapani|\\bX\\b|twitter/i.test(String(item.source || ''));
+  return /@giutrapani|\bX\b|twitter/i.test(String(item.source || ''));
 }
 
 
@@ -216,9 +216,13 @@ function render() {
     return saved ? (eligible.find(item => item.link === saved.link) || saved) : null;
   }).filter(Boolean);
   const highlightedLinks = new Set(highlightedItems.map(item => item.link));
+  // Il flusso conserva un solo contenuto X: il post/repost più recente.
+  // Viene mostrato subito dopo le eventuali priorità editoriali e prima delle altre NEWS.
+  const latestXPost = eligible.filter(isXFeed).sort(byDate)[0] || null;
   const orderedRows = [
     ...highlightedItems,
-    ...eligible.filter(item => !highlightedLinks.has(item.link)).sort(byDate)
+    ...(latestXPost && !highlightedLinks.has(latestXPost.link) ? [latestXPost] : []),
+    ...eligible.filter(item => !highlightedLinks.has(item.link) && item.link !== latestXPost?.link).sort(byDate)
   ];
   const rows = orderedRows
     .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)
