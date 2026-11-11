@@ -119,7 +119,7 @@ const FEEDS = [
 
   // --- Cultura, scienza e società ---
   { name: 'Rinnovabili.it', url: 'https://www.rinnovabili.it/feed/', category: 'Ambiente' },
-  { name: 'LifeGate', url: 'https://www.lifegate.it/feed', category: 'Ambiente' },
+  { name: 'LifeGate', url: 'https://www.lifegate.it/feed-rss', category: 'Ambiente' },
   { name: 'Focus', url: 'https://www.focus.it/rss', category: 'Scienza' },
   { name: 'Le Scienze', url: 'https://www.lescienze.it/news/rss', category: 'Scienza' },
   { name: 'Vatican News', url: 'https://www.vaticannews.va/it.rss.xml', category: 'Chiesa' },
