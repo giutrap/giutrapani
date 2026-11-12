@@ -1573,3 +1573,76 @@ body{font-size:18px;line-height:1.4}
 .live-blog-page .brand-wordmark{font-size:48px}
 .live-back-home{color:#285b89;text-decoration:none;font-size:16px}
 @media(max-width:650px){.live-blog-promo-link,.live-blog-promo-placeholder{min-height:220px}.live-blog-promo-copy{min-height:220px;padding:20px}.live-blog-promo-copy b{font-size:17px;padding:10px 13px}.live-blog-shell{padding:20px 14px 35px}.live-blog-update{grid-template-columns:55px minmax(0,1fr);gap:10px;padding:17px 0}.live-blog-update>time{font-size:16px}.live-blog-update-content h2{font-size:22px}.live-blog-update-content>p{font-size:18px}.live-blog-admin-row{align-items:flex-start;flex-direction:column}.live-blog-admin-row>div:last-child{display:flex;flex-wrap:wrap}.live-blog-page .topbar{align-items:flex-start}.live-blog-page .brand-wordmark{font-size:38px}}
+
+
+/* Testata della pagina Live Blog: marchio e payoff affiancati, come nella homepage */
+.live-blog-page .topbar{
+  min-height:135px!important;
+  padding:12px max(28px,calc((100% - 1400px)/2))!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:24px!important;
+}
+.live-blog-page .brand-block{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:24px!important;
+  min-width:0;
+}
+.live-blog-page .brand-wordmark{
+  display:inline-block!important;
+  flex:0 0 auto;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  color:#17191d!important;
+  font:400 clamp(38px,3.5vw,54px)/.95 'Economica',Arial,sans-serif!important;
+  letter-spacing:-.6px!important;
+  white-space:nowrap!important;
+  text-decoration:none!important;
+}
+.live-blog-page .brand-credit{
+  display:block!important;
+  margin:0!important;
+  max-width:none!important;
+  color:#17191d!important;
+  font:700 clamp(16px,1.45vw,21px)/1.1 'Economica',Arial,sans-serif!important;
+  white-space:nowrap;
+}
+.live-blog-page .live-back-home{
+  color:#285b89;
+  font-size:16px;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.live-blog-page .live-back-home:hover{text-decoration:underline}
+@media(max-width:760px){
+  .live-blog-page .topbar{
+    min-height:90px!important;
+    padding:10px 16px!important;
+    gap:12px!important;
+  }
+  .live-blog-page .brand-block{
+    flex-wrap:wrap;
+    align-items:flex-start!important;
+    gap:3px 12px!important;
+  }
+  .live-blog-page .brand-wordmark{
+    font-size:clamp(34px,7vw,43px)!important;
+  }
+  .live-blog-page .brand-credit{
+    font-size:clamp(12px,2.4vw,15px)!important;
+    white-space:normal;
+  }
+  .live-blog-page .live-back-home{font-size:13px}
+}
+@media(max-width:420px){
+  .live-blog-page .topbar{padding:9px 12px!important;min-height:78px!important}
+  .live-blog-page .brand-block{gap:2px 8px!important}
+  .live-blog-page .brand-wordmark{font-size:32px!important}
+  .live-blog-page .brand-credit{font-size:11px!important;max-width:210px!important}
+  .live-blog-page .live-back-home{font-size:11px}
+}
