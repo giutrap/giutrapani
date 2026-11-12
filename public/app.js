@@ -14,7 +14,7 @@ function renderHeaderClock() {
 }
 renderHeaderClock();
 setInterval(renderHeaderClock, 1000);
-const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', activeKeyword: '', currentPage: 1, podcast: null, media: null, featured: null, highlights: {} };
+const state = { news: [], newsErrors: [], activeCategory: 'TUTTE', activeKeyword: '', currentPage: 1, podcast: null, media: null, featured: null, highlights: {}, openAgencyLink: '' };
 const trendEl = { list: document.getElementById('trends-list'), updated: document.getElementById('trends-updated') };
 const el = {
   search: document.getElementById('search'),
@@ -148,6 +148,17 @@ function isXFeed(item) {
   return /@giutrapani|\bX\b|twitter/i.test(String(item.source || ''));
 }
 
+function isAgencyFeed(item) {
+  return item.isAgency === true || /^(ANSA|AGI\\b|AskaNews|Adnkronos)/i.test(String(item.source || ''));
+}
+
+function plainFeedText(value) {
+  const html = String(value || '').replace(/<br\\s*\\/?\\s*>/gi, '\\n').replace(/<\\/(?:p|div|li|h[1-6])\\s*>/gi, '\\n');
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.querySelectorAll('script,style,noscript,iframe,object').forEach(node => node.remove());
+  return String(doc.body.textContent || '').replace(/\\u00a0/g, ' ').replace(/[ \\t]+\\n/g, '\\n').replace(/\\n{3,}/g, '\\n\\n').trim();
+}
+
 
 
 const KEYWORD_TOPICS = [
@@ -219,10 +230,13 @@ function render() {
   // Il flusso conserva un solo contenuto X: il post/repost più recente.
   // Viene mostrato subito dopo le eventuali priorità editoriali e prima delle altre NEWS.
   const latestXPost = eligible.filter(isXFeed).sort(byDate)[0] || null;
+  // Dopo le priorità editoriali, prima le agenzie; poi X e tutte le altre testate.
+  const agencyRows = eligible.filter(item => isAgencyFeed(item) && !highlightedLinks.has(item.link)).sort(byDate);
   const orderedRows = [
     ...highlightedItems,
-    ...(latestXPost && !highlightedLinks.has(latestXPost.link) ? [latestXPost] : []),
-    ...eligible.filter(item => !highlightedLinks.has(item.link) && item.link !== latestXPost?.link).sort(byDate)
+    ...agencyRows,
+    ...(latestXPost && !highlightedLinks.has(latestXPost.link) && !isAgencyFeed(latestXPost) ? [latestXPost] : []),
+    ...eligible.filter(item => !highlightedLinks.has(item.link) && !isAgencyFeed(item) && item.link !== latestXPost?.link).sort(byDate)
   ];
   const rows = orderedRows
     .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)
@@ -247,6 +261,9 @@ function render() {
       { slot:'developing', label:'IN AGGIORNAMENTO', action:'METTI IN AGGIORNAMENTO', className:'highlight-developing' }
     ];
     const activeHighlight = highlightTypes.find(type => state.highlights[type.slot]?.link === item.link);
+    const isAgency = isAgencyFeed(item);
+    const agencyOpen = isAgency && state.openAgencyLink === item.link;
+    const agencyText = plainFeedText(item.fullText || item.summary || '');
     const featureLabel = activeHighlight
       ? '<span class="featured-news-label ' + activeHighlight.className + '">' + activeHighlight.label + '</span>' : '';
     const featureAction = redazione.auth && !item.isEditorial
@@ -255,16 +272,21 @@ function render() {
           return '<button type="button" class="news-feature-toggle ' + type.className + (active ? ' is-featured' : '') + '" data-highlight-slot="' + type.slot + '" data-highlight-url="' + esc(item.link || '') + '">' + (active ? 'RIMUOVI' : type.action) + '</button>';
         }).join('') + '</div>'
       : '';
-    return '<article class="news-item' + (activeHighlight ? ' is-featured' : '') + '">'
+    const titleMarkup = isAgency
+      ? '<button type="button" class="news-agency-toggle" data-agency-link="' + esc(item.link || '') + '" aria-expanded="' + (agencyOpen ? 'true' : 'false') + '"><span>' + esc(item.title || 'Senza titolo') + '</span><span class="agency-chevron" aria-hidden="true">' + (agencyOpen ? '⌃' : '⌄') + '</span></button>'
+      : '<a href="' + link + '" ' + (item.isEditorial ? '' : 'target="_blank" rel="noopener"') + '>' + esc(item.title || 'Senza titolo') + '</a>';
+    const agencyPanel = agencyOpen
+      ? '<div class="news-agency-expanded"><div class="news-agency-copy">' + (agencyText ? esc(agencyText).replace(/\\n/g, '<br>') : 'Il feed non fornisce il testo del lancio.') + '</div>' + (!item.fullTextAvailable ? '<p class="news-agency-note">Il feed non rende disponibile il testo integrale del lancio; è mostrato il testo ricevuto.</p>' : '') + (item.link ? '<a class="news-agency-source-link" href="' + link + '" target="_blank" rel="noopener noreferrer">APRI LA FONTE ORIGINALE ↗</a>' : '') + '</div>' : '';
+    return '<article class="news-item' + (activeHighlight ? ' is-featured' : '') + (isAgency ? ' is-agency' : '') + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
       + '<button type="button" class="news-category news-category-tag' + (category === 'FOCUS' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : category === 'ISTITUZIONI' ? ' news-category-istituzioni' : category === 'RICERCHE' ? ' news-category-ricerche' : '') + (state.activeCategory === category ? ' is-active' : '') + '" data-category="' + esc(category) + '" aria-pressed="' + (state.activeCategory === category ? 'true' : 'false') + '" title="Filtra per ' + esc(category) + '">' + esc(category) + '</button>'
-      + '<div class="news-main">' + featureLabel
-      + '<h2 class="news-title"><a href="' + link + '" ' + (item.isEditorial ? '' : 'target="_blank" rel="noopener"') + '>'
-      + esc(item.title || 'Senza titolo') + '</a></h2></div>'
+      + '<div class="news-main">' + featureLabel + (isAgency ? '<span class="agency-kicker">LANCIO DI AGENZIA</span>' : '')
+      + '<h2 class="news-title">' + titleMarkup + '</h2></div>'
       + '<div class="news-source">' + esc(item.source || '') + '</div>'
-      + (item.isEditorial ? '<a class="news-link" href="' + link + '" aria-label="Apri approfondimento">APRI ↗</a>' : '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Leggi la notizia">LEGGI ↗</a>')
+      + (item.isEditorial ? '<a class="news-link" href="' + link + '" aria-label="Apri approfondimento">APRI ↗</a>' : '<a class="news-link" href="' + link + '" target="_blank" rel="noopener" aria-label="Apri la fonte">FONTE ↗</a>')
       + (redazione.auth ? '<button type="button" class="redazione-open" data-title="' + esc(item.title || '') + '" data-source="' + esc(item.source || '') + '" data-url="' + link + '">REDAZIONE</button>' : '')
       + featureAction
+      + agencyPanel
       + '</article>'
       + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 10 ? podcastCard : '')
       + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 20 ? memeCard : '');
@@ -346,6 +368,13 @@ trendEl.list.addEventListener('click', event => {
   el.articles.scrollIntoView({ behavior:'smooth', block:'start' });
 });
 el.articles.addEventListener('click', async event => {
+  const agencyToggle = event.target.closest('button[data-agency-link]');
+  if (agencyToggle) {
+    const link = agencyToggle.dataset.agencyLink;
+    state.openAgencyLink = state.openAgencyLink === link ? '' : link;
+    render();
+    return;
+  }
   const highlightButton = event.target.closest('button[data-highlight-slot]');
   if (highlightButton) {
     if (!redazione.auth) return;
