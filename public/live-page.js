@@ -1,4 +1,16 @@
 (() => {
+const headerDateEl=document.getElementById('header-date');
+const headerTimeEl=document.getElementById('header-time');
+function renderHeaderClock(){
+ const now=new Date();
+ if(headerDateEl){
+  const label=now.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  headerDateEl.textContent=label.charAt(0).toLocaleUpperCase('it-IT')+label.slice(1);
+ }
+ if(headerTimeEl)headerTimeEl.textContent=now.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+}
+renderHeaderClock();
+setInterval(renderHeaderClock,1000);
 const slug=decodeURIComponent(location.pathname.split('/').filter(Boolean).pop()||'');
 const root=document.getElementById('live-blog-public'),updatesEl=document.getElementById('live-blog-public-updates');
 let latest='';
