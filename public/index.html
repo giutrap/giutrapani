@@ -28,6 +28,7 @@
     </div>
   </header>
   <main class="container">
+    <section id="live-blog-promo" class="live-blog-promo" hidden aria-label="Live Blog della redazione"></section>
     <section class="top-feature-grid" aria-label="Live e trend del giorno">
       <section id="live-section" class="live-section" hidden aria-label="Diretta speciale">
         <div class="live-heading"><span class="live-pill">LIVE</span></div>
@@ -137,6 +138,29 @@
           <div class="redazione-actions"><button type="button" id="live-save">SALVA E ATTIVA</button><button type="button" id="live-disable">DISATTIVA LIVE</button></div>
           <p id="live-admin-message" role="status"></p>
         </section>
+        <section class="live-blog-admin">
+          <h3>LIVE BLOGGING · DIRETTE REDAZIONALI</h3>
+          <p>Crea una pagina dedicata a un evento, pubblica gli aggiornamenti e scegli quale diretta promuovere in homepage. Puoi gestire più dirette contemporaneamente.</p>
+          <input type="hidden" id="live-blog-id">
+          <label for="live-blog-title">Titolo dell'evento</label><input id="live-blog-title" maxlength="180" placeholder="Es. Elezioni, lo spoglio in diretta">
+          <label for="live-blog-slug">Indirizzo della pagina (facoltativo)</label><input id="live-blog-slug" maxlength="90" placeholder="elezioni-spoglio">
+          <label for="live-blog-subtitle">Sottotitolo</label><input id="live-blog-subtitle" maxlength="300" placeholder="Tutti gli aggiornamenti, minuto per minuto">
+          <label for="live-blog-cover">Link immagine cover (URL pubblico)</label><input id="live-blog-cover" type="url" placeholder="https://...">
+          <div class="redazione-actions"><button type="button" id="live-blog-save">CREA / SALVA DIRETTA</button><button type="button" id="live-blog-new">NUOVA DIRETTA</button></div>
+          <p id="live-blog-message" role="status"></p>
+          <div id="live-blog-list" class="live-blog-admin-list">Accedi per visualizzare le dirette.</div>
+          <div id="live-blog-update-editor" hidden>
+            <h3 id="live-blog-editor-heading">AGGIORNAMENTI DELLA DIRETTA</h3>
+            <label for="live-update-title">Titolo aggiornamento</label><input id="live-update-title" maxlength="220" placeholder="Titolo breve">
+            <label for="live-update-body">Testo / commento della redazione</label><textarea id="live-update-body" rows="5" maxlength="12000" placeholder="Scrivi il testo dell'aggiornamento..."></textarea>
+            <label for="live-update-source">Fonte / autore (facoltativo)</label><input id="live-update-source" maxlength="120" placeholder="Es. X · Presidenza del Consiglio">
+            <label for="live-update-source-url">Link alla fonte (facoltativo)</label><input id="live-update-source-url" type="url" placeholder="https://...">
+            <label for="live-update-embed">Link al post social / video da incorporare</label><input id="live-update-embed" type="url" placeholder="Incolla il link X, YouTube o altro contenuto pubblico">
+            <div class="redazione-actions"><button type="button" id="live-update-publish">PUBBLICA AGGIORNAMENTO</button><button type="button" id="live-update-clear">SVUOTA CAMPI</button></div>
+            <p id="live-update-message" role="status"></p>
+            <div id="live-update-list" class="live-blog-admin-list"></div>
+          </div>
+        </section>
         <section class="insight-admin" aria-labelledby="insight-heading">
           <div class="insight-admin-head"><div><span class="redazione-kicker">DATI DI UTILIZZO</span><h3 id="insight-heading">INSIGHT · AUDIENCE</h3></div><button type="button" id="insight-refresh">AGGIORNA</button></div>
           <p class="insight-intro">Qui puoi capire quante persone stanno leggendo BreakingNEWS, quante visite hai ricevuto e quali contenuti vengono aperti. I dati sono anonimi e aggiornati automaticamente.</p>
@@ -183,5 +207,6 @@
     </div>
   </section>
   <script src="app.js"></script>
+  <script src="live.js"></script>
 </body>
 </html>
