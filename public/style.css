@@ -1646,3 +1646,35 @@ body{font-size:18px;line-height:1.4}
   .live-blog-page .brand-credit{font-size:11px!important;max-width:210px!important}
   .live-blog-page .live-back-home{font-size:11px}
 }
+
+
+/* Rifinitura finale testata Live Blog: proporzioni uguali al riferimento homepage */
+.live-blog-page .topbar{min-height:128px!important;padding:12px max(28px,calc((100% - 1400px)/2))!important}
+.live-blog-page .brand-block{gap:20px!important}
+.live-blog-page .brand-wordmark{
+  font-size:48px!important;
+  letter-spacing:-.45px!important;
+}
+.live-blog-page .brand-credit{
+  font-size:20px!important;
+  letter-spacing:0!important;
+}
+.live-blog-page .header-meta-group{
+  display:flex!important;
+  flex:0 0 auto!important;
+  align-items:flex-end!important;
+  justify-content:center!important;
+  margin-left:auto!important;
+}
+@media(max-width:760px){
+  .live-blog-page .topbar{min-height:88px!important}
+  .live-blog-page .brand-block{gap:4px 12px!important}
+  .live-blog-page .brand-wordmark{font-size:40px!important}
+  .live-blog-page .brand-credit{font-size:14px!important}
+  .live-blog-page .header-meta-group{max-width:125px!important}
+}
+@media(max-width:420px){
+  .live-blog-page .brand-wordmark{font-size:32px!important}
+  .live-blog-page .brand-credit{font-size:11px!important}
+  .live-blog-page .header-meta-group{max-width:94px!important}
+}
