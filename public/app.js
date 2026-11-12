@@ -149,14 +149,14 @@ function isXFeed(item) {
 }
 
 function isAgencyFeed(item) {
-  return item.isAgency === true || /^(ANSA|AGI\\b|AskaNews|Adnkronos)/i.test(String(item.source || ''));
+  return item.isAgency === true || /^(ANSA|AGI\b|AskaNews|Adnkronos)/i.test(String(item.source || ''));
 }
 
 function plainFeedText(value) {
-  const html = String(value || '').replace(/<br\\s*\\/?\\s*>/gi, '\\n').replace(/<\\/(?:p|div|li|h[1-6])\\s*>/gi, '\\n');
+  const html = String(value || '').replace(/<br\s*\/?\s*>/gi, '\n').replace(/<\/(?:p|div|li|h[1-6])\s*>/gi, '\n');
   const doc = new DOMParser().parseFromString(html, 'text/html');
   doc.querySelectorAll('script,style,noscript,iframe,object').forEach(node => node.remove());
-  return String(doc.body.textContent || '').replace(/\\u00a0/g, ' ').replace(/[ \\t]+\\n/g, '\\n').replace(/\\n{3,}/g, '\\n\\n').trim();
+  return String(doc.body.textContent || '').replace(/\u00a0/g, ' ').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 
@@ -276,7 +276,7 @@ function render() {
       ? '<button type="button" class="news-agency-toggle" data-agency-link="' + esc(item.link || '') + '" aria-expanded="' + (agencyOpen ? 'true' : 'false') + '"><span>' + esc(item.title || 'Senza titolo') + '</span><span class="agency-chevron" aria-hidden="true">' + (agencyOpen ? '⌃' : '⌄') + '</span></button>'
       : '<a href="' + link + '" ' + (item.isEditorial ? '' : 'target="_blank" rel="noopener"') + '>' + esc(item.title || 'Senza titolo') + '</a>';
     const agencyPanel = agencyOpen
-      ? '<div class="news-agency-expanded"><div class="news-agency-copy">' + (agencyText ? esc(agencyText).replace(/\\n/g, '<br>') : 'Il feed non fornisce il testo del lancio.') + '</div>' + (!item.fullTextAvailable ? '<p class="news-agency-note">Il feed non rende disponibile il testo integrale del lancio; è mostrato il testo ricevuto.</p>' : '') + (item.link ? '<a class="news-agency-source-link" href="' + link + '" target="_blank" rel="noopener noreferrer">APRI LA FONTE ORIGINALE ↗</a>' : '') + '</div>' : '';
+      ? '<div class="news-agency-expanded"><div class="news-agency-copy">' + (agencyText ? esc(agencyText).replace(/\n/g, '<br>') : 'Il feed non fornisce il testo del lancio.') + '</div>' + (!item.fullTextAvailable ? '<p class="news-agency-note">Il feed non rende disponibile il testo integrale del lancio; è mostrato il testo ricevuto.</p>' : '') + (item.link ? '<a class="news-agency-source-link" href="' + link + '" target="_blank" rel="noopener noreferrer">APRI LA FONTE ORIGINALE ↗</a>' : '') + '</div>' : '';
     return '<article class="news-item' + (activeHighlight ? ' is-featured' : '') + (isAgency ? ' is-agency' : '') + '">'
       + '<time class="news-time">' + tm(item.pubDate) + '</time>'
       + '<button type="button" class="news-category news-category-tag' + (category === 'FOCUS' ? ' news-category-redazione' : category === 'IL RIFORMISTA' ? ' news-category-riformista' : category === '@giutrapani' ? ' news-category-x' : category === 'ISTITUZIONI' ? ' news-category-istituzioni' : category === 'RICERCHE' ? ' news-category-ricerche' : '') + (state.activeCategory === category ? ' is-active' : '') + '" data-category="' + esc(category) + '" aria-pressed="' + (state.activeCategory === category ? 'true' : 'false') + '" title="Filtra per ' + esc(category) + '">' + esc(category) + '</button>'
