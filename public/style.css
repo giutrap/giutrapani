@@ -1524,20 +1524,3 @@ body{font-size:18px;line-height:1.4}
 .redazione-preview-wrap{margin:10px 0 16px;padding:12px;border:1px solid #e1e4e8;border-radius:3px;background:#f8f9fa}.redazione-preview-label{display:block;margin-bottom:7px;color:#7a818b;font-size:11px;font-weight:700;letter-spacing:1px}.redazione-notes-preview{font:14px/1.55 Arial,sans-serif;overflow-wrap:anywhere;min-height:24px;color:#30343a}.redazione-notes-preview a{color:#176b3b;text-decoration:underline}.redazione-preview-empty{color:#89919b;font-style:italic}
 
 .redazione-note-tools .redazione-edit{border:1px solid #315f8b;color:#315f8b;background:#fff}.redazione-note-tools .redazione-edit:hover{background:#eef4fa}
-
-
-/* Lanci di agenzia: titolo compatto con testo espandibile in homepage */
-.news-item.is-agency{grid-template-rows:auto auto}
-.news-main{flex-wrap:wrap}
-.agency-kicker{flex:none;color:#b3262d;font-size:10px;line-height:1.1;font-weight:700;letter-spacing:.8px}
-.news-agency-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-width:0;padding:0;border:0;background:transparent;color:var(--ink);text-align:left;font:inherit;font-weight:700}
-.news-agency-toggle>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
-.news-agency-toggle:hover>span:first-child{text-decoration:underline}
-.agency-chevron{flex:none;color:#b3262d;font-size:22px;line-height:1}
-.news-agency-expanded{grid-column:1/-1;min-width:0;padding:14px 18px 15px;margin:4px 0 5px;background:#f7f8f9;border-left:3px solid #b3262d;border-top:1px solid #e6e8eb}
-.news-agency-copy{font:18px/1.48 'Economica',Arial,sans-serif;color:#252930;overflow-wrap:anywhere;white-space:normal}
-.news-agency-note{margin:12px 0 0;color:var(--muted);font-size:13px}
-.news-agency-source-link{display:inline-block;margin-top:13px;color:#a51f2b;text-decoration:none;font-size:13px;font-weight:700;letter-spacing:.45px}
-.news-agency-source-link:hover{text-decoration:underline}
-.news-agency-toggle:focus-visible{outline:2px solid #b3262d;outline-offset:3px}
-@media(max-width:760px){.news-item.is-agency{grid-template-rows:auto auto}.news-agency-expanded{padding:12px}.news-agency-copy{font-size:16px;line-height:1.42}.agency-kicker{font-size:9px}}
