@@ -234,7 +234,19 @@ async function fetchXPosts(source) {
 }
 function normalizeItem(item, source) {
   const rawSummary = item.contentSnippet || item.summary || item.content || '';
-  return { title: (item.title || '').trim(), link: item.link || item.guid || '', pubDate: item.isoDate || item.pubDate || null, summary: rawSummary.replace(/\\s+/g, ' ').trim().slice(0, 280), source: source.name, category: source.category };
+  const isAgency = /^(ANSA|AGI\\b|AskaNews|Adnkronos)/i.test(String(source.name || ''));
+  const rawFullText = item.content || item['content:encoded'] || item.summary || item.contentSnippet || '';
+  return {
+    title: (item.title || '').trim(),
+    link: item.link || item.guid || '',
+    pubDate: item.isoDate || item.pubDate || null,
+    summary: String(rawSummary).replace(/\\s+/g, ' ').trim().slice(0, 280),
+    fullText: isAgency ? String(rawFullText).trim().slice(0, 16000) : '',
+    fullTextAvailable: isAgency && Boolean(item.content || item['content:encoded']),
+    isAgency,
+    source: source.name,
+    category: source.category
+  };
 }
 async function fetchAllFeeds() {
   const settled = await mapWithConcurrency(FEEDS, 10, async source => {
