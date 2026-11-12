@@ -774,7 +774,7 @@ app.delete('/api/redazione/notes/:id', async (req,res) => {
 });
 
 function liveBlogSlug(value) {
-  return String(value || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,90);
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,90);
 }
 function liveBlogUrl(value) {
   const raw=String(value||'').trim();
