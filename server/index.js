@@ -173,6 +173,22 @@ async function initDatabase() {
   await pool.query("CREATE TABLE IF NOT EXISTS media_settings (id INTEGER PRIMARY KEY CHECK (id = 1), enabled BOOLEAN NOT NULL DEFAULT FALSE, post_id TEXT NOT NULL DEFAULT '', url TEXT NOT NULL DEFAULT '', title TEXT NOT NULL DEFAULT '', caption TEXT NOT NULL DEFAULT '', updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
   await pool.query("INSERT INTO media_settings (id,enabled,post_id,url,title,caption) VALUES (1,TRUE,'2117852081189216309','https://x.com/Iran_in_India/status/2117852081189216309/video/1','','') ON CONFLICT (id) DO NOTHING");
   await pool.query("UPDATE media_settings SET enabled=TRUE, post_id='2116057861448966355', url='https://x.com/sarrah_bellus/status/2116057861448966355/video/1', title='', caption='', updated_at=NOW() WHERE id=1 AND post_id='2117852081189216309'");
+
+  await pool.query(`CREATE TABLE IF NOT EXISTS live_blogs (
+    id BIGSERIAL PRIMARY KEY, slug TEXT UNIQUE NOT NULL, title TEXT NOT NULL,
+    subtitle TEXT NOT NULL DEFAULT '', cover_url TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','live','closed')),
+    featured BOOLEAN NOT NULL DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), closed_at TIMESTAMPTZ
+  )`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS live_blog_updates (
+    id BIGSERIAL PRIMARY KEY, blog_id BIGINT NOT NULL REFERENCES live_blogs(id) ON DELETE CASCADE,
+    title TEXT NOT NULL DEFAULT '', body TEXT NOT NULL DEFAULT '', source TEXT NOT NULL DEFAULT '',
+    source_url TEXT NOT NULL DEFAULT '', embed_url TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`);
+  await pool.query('CREATE INDEX IF NOT EXISTS live_blog_updates_order_idx ON live_blog_updates(blog_id,created_at DESC)');
+
   await pool.query('CREATE TABLE IF NOT EXISTS insight_daily (day DATE NOT NULL, event TEXT NOT NULL, count INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(day,event))');
   await pool.query('CREATE TABLE IF NOT EXISTS x_feed_cache (id INTEGER PRIMARY KEY CHECK (id = 1), item JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())');
   await pool.query("CREATE TABLE IF NOT EXISTS poll_settings (id INTEGER PRIMARY KEY CHECK (id = 1), question TEXT NOT NULL DEFAULT '', options JSONB NOT NULL DEFAULT '[]'::jsonb, starts_at TIMESTAMPTZ, ends_at TIMESTAMPTZ, enabled BOOLEAN NOT NULL DEFAULT FALSE, updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW())");
@@ -756,6 +772,106 @@ app.delete('/api/redazione/notes/:id', async (req,res) => {
     await pool.query('DELETE FROM editorial_notes WHERE id=$1',[req.params.id]); res.json({ ok:true });
   } catch { res.status(500).json({ error:'Errore nella cancellazione.' }); }
 });
+
+function liveBlogSlug(value) {
+  return String(value || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,90);
+}
+function liveBlogUrl(value) {
+  const raw=String(value||'').trim();
+  if(!raw)return '';
+  try { const u=new URL(raw); return ['http:','https:'].includes(u.protocol) && !u.username && !u.password ? u.href : ''; } catch { return ''; }
+}
+function liveBlogPublic(row) {
+  return {id:row.id,slug:row.slug,title:row.title,subtitle:row.subtitle||'',coverUrl:row.cover_url||'',status:row.status,featured:row.featured===true,createdAt:row.created_at,updatedAt:row.updated_at,closedAt:row.closed_at||null};
+}
+app.get('/api/live-blogs/featured', async (req,res) => {
+  try {
+    if(!pool)return res.json({blog:null});
+    const q=await pool.query("SELECT * FROM live_blogs WHERE status='live' AND featured=TRUE ORDER BY updated_at DESC LIMIT 1");
+    res.json({blog:q.rowCount?liveBlogPublic(q.rows[0]):null});
+  } catch {res.status(500).json({error:'Live Blog non disponibile.'});}
+});
+app.get('/api/live-blogs/:slug', async (req,res) => {
+  try {
+    if(!pool)return res.status(503).json({error:'Archivio non disponibile.'});
+    const q=await pool.query("SELECT * FROM live_blogs WHERE slug=$1 AND status IN ('live','closed')",[req.params.slug]);
+    if(!q.rowCount)return res.status(404).json({error:'Live Blog non trovato.'});
+    const blog=q.rows[0];
+    const updates=await pool.query('SELECT id,title,body,source,source_url,embed_url,created_at,updated_at FROM live_blog_updates WHERE blog_id=$1 ORDER BY created_at DESC,id DESC',[blog.id]);
+    res.json({blog:liveBlogPublic(blog),updates:updates.rows});
+  } catch {res.status(500).json({error:'Impossibile caricare la diretta.'});}
+});
+app.get('/api/redazione/live-blogs', requireRedazione, async (req,res) => {
+  try {
+    if(!pool)return res.status(503).json({error:'Archivio non configurato.'});
+    const q=await pool.query('SELECT * FROM live_blogs ORDER BY CASE status WHEN \'live\' THEN 0 WHEN \'draft\' THEN 1 ELSE 2 END,updated_at DESC');
+    res.json({blogs:q.rows.map(liveBlogPublic)});
+  } catch {res.status(500).json({error:'Impossibile caricare i Live Blog.'});}
+});
+app.post('/api/redazione/live-blogs', requireRedazione, async (req,res) => {
+  try {
+    if(!pool)return res.status(503).json({error:'Archivio non configurato.'});
+    const {title='',subtitle='',coverUrl='',status='draft',featured=false}=req.body||{};
+    const safeTitle=String(title).trim().slice(0,180), slug=liveBlogSlug(req.body?.slug||safeTitle);
+    if(!safeTitle||!slug)return res.status(400).json({error:'Inserisci un titolo per la diretta.'});
+    const cover=liveBlogUrl(coverUrl); if(coverUrl&&!cover)return res.status(400).json({error:'Il link della copertina non è valido.'});
+    const safeStatus=['draft','live','closed'].includes(status)?status:'draft';
+    if(featured&&safeStatus!=='live')return res.status(400).json({error:'Solo una diretta attiva può essere messa in homepage.'});
+    const q=await pool.query('INSERT INTO live_blogs(slug,title,subtitle,cover_url,status,featured,closed_at) VALUES($1,$2,$3,$4,$5,$6,CASE WHEN $5=\'closed\' THEN NOW() ELSE NULL END) RETURNING *',[slug,safeTitle,String(subtitle).trim().slice(0,300),cover,safeStatus,Boolean(featured)]);
+    if(featured)await pool.query('UPDATE live_blogs SET featured=FALSE WHERE id<>$1',[q.rows[0].id]);
+    res.status(201).json({blog:liveBlogPublic(q.rows[0])});
+  } catch(error) {res.status(error.code==='23505'?409:500).json({error:error.code==='23505'?'Esiste già una diretta con questo indirizzo.':'Creazione del Live Blog non riuscita.'});}
+});
+app.put('/api/redazione/live-blogs/:id', requireRedazione, async (req,res) => {
+  try {
+    if(!pool)return res.status(503).json({error:'Archivio non configurato.'});
+    const {title='',subtitle='',coverUrl='',status='draft',featured=false}=req.body||{};
+    const safeTitle=String(title).trim().slice(0,180), slug=liveBlogSlug(req.body?.slug||safeTitle);
+    if(!safeTitle||!slug)return res.status(400).json({error:'Inserisci un titolo per la diretta.'});
+    const cover=liveBlogUrl(coverUrl);if(coverUrl&&!cover)return res.status(400).json({error:'Il link della copertina non è valido.'});
+    const safeStatus=['draft','live','closed'].includes(status)?status:'draft';
+    if(featured&&safeStatus!=='live')return res.status(400).json({error:'Solo una diretta attiva può essere messa in homepage.'});
+    const q=await pool.query("UPDATE live_blogs SET slug=$1,title=$2,subtitle=$3,cover_url=$4,status=$5,featured=$6,closed_at=CASE WHEN $5='closed' THEN COALESCE(closed_at,NOW()) ELSE NULL END,updated_at=NOW() WHERE id=$7 RETURNING *",[slug,safeTitle,String(subtitle).trim().slice(0,300),cover,safeStatus,Boolean(featured),req.params.id]);
+    if(!q.rowCount)return res.status(404).json({error:'Live Blog non trovato.'});
+    if(featured)await pool.query('UPDATE live_blogs SET featured=FALSE WHERE id<>$1',[req.params.id]);
+    res.json({blog:liveBlogPublic(q.rows[0])});
+  } catch(error) {res.status(error.code==='23505'?409:500).json({error:error.code==='23505'?'Esiste già una diretta con questo indirizzo.':'Modifica del Live Blog non riuscita.'});}
+});
+app.delete('/api/redazione/live-blogs/:id', requireRedazione, async (req,res) => {
+  try {if(!pool)return res.status(503).json({error:'Archivio non configurato.'});const q=await pool.query('DELETE FROM live_blogs WHERE id=$1',[req.params.id]);if(!q.rowCount)return res.status(404).json({error:'Live Blog non trovato.'});res.json({ok:true});}
+  catch {res.status(500).json({error:'Eliminazione non riuscita.'});}
+});
+app.post('/api/redazione/live-blogs/:id/updates', requireRedazione, async (req,res) => {
+  try {
+    if(!pool)return res.status(503).json({error:'Archivio non configurato.'});
+    const {title='',body='',source='',sourceUrl='',embedUrl=''}=req.body||{};
+    const safeTitle=String(title).trim().slice(0,220),safeBody=String(body).trim().slice(0,12000);
+    if(!safeTitle&&!safeBody&&!embedUrl)return res.status(400).json({error:'Inserisci un testo o un contenuto da pubblicare.'});
+    const sourceLink=liveBlogUrl(sourceUrl),embed=liveBlogUrl(embedUrl);
+    if(sourceUrl&&!sourceLink||embedUrl&&!embed)return res.status(400).json({error:'Uno dei collegamenti inseriti non è valido.'});
+    const q=await pool.query('INSERT INTO live_blog_updates(blog_id,title,body,source,source_url,embed_url) SELECT id,$2,$3,$4,$5,$6 FROM live_blogs WHERE id=$1 AND status=\'live\' RETURNING id,title,body,source,source_url,embed_url,created_at,updated_at',[req.params.id,safeTitle,safeBody,String(source).trim().slice(0,120),sourceLink,embed]);
+    if(!q.rowCount)return res.status(404).json({error:'Diretta non trovata o non attiva.'});
+    await pool.query('UPDATE live_blogs SET updated_at=NOW() WHERE id=$1',[req.params.id]);
+    res.status(201).json({update:q.rows[0]});
+  } catch {res.status(500).json({error:'Pubblicazione dell’aggiornamento non riuscita.'});}
+});
+app.put('/api/redazione/live-blogs/:id/updates/:updateId', requireRedazione, async (req,res) => {
+  try {
+    if(!pool)return res.status(503).json({error:'Archivio non configurato.'});
+    const {title='',body='',source='',sourceUrl='',embedUrl=''}=req.body||{};
+    const sourceLink=liveBlogUrl(sourceUrl),embed=liveBlogUrl(embedUrl);
+    if(sourceUrl&&!sourceLink||embedUrl&&!embed)return res.status(400).json({error:'Uno dei collegamenti inseriti non è valido.'});
+    const q=await pool.query('UPDATE live_blog_updates SET title=$1,body=$2,source=$3,source_url=$4,embed_url=$5,updated_at=NOW() WHERE id=$6 AND blog_id=$7 RETURNING id,title,body,source,source_url,embed_url,created_at,updated_at',[String(title).trim().slice(0,220),String(body).trim().slice(0,12000),String(source).trim().slice(0,120),sourceLink,embed,req.params.updateId,req.params.id]);
+    if(!q.rowCount)return res.status(404).json({error:'Aggiornamento non trovato.'});
+    await pool.query('UPDATE live_blogs SET updated_at=NOW() WHERE id=$1',[req.params.id]);res.json({update:q.rows[0]});
+  } catch {res.status(500).json({error:'Modifica non riuscita.'});}
+});
+app.delete('/api/redazione/live-blogs/:id/updates/:updateId', requireRedazione, async (req,res) => {
+  try {if(!pool)return res.status(503).json({error:'Archivio non configurato.'});const q=await pool.query('DELETE FROM live_blog_updates WHERE id=$1 AND blog_id=$2',[req.params.updateId,req.params.id]);if(!q.rowCount)return res.status(404).json({error:'Aggiornamento non trovato.'});await pool.query('UPDATE live_blogs SET updated_at=NOW() WHERE id=$1',[req.params.id]);res.json({ok:true});}
+  catch {res.status(500).json({error:'Cancellazione non riuscita.'});}
+});
+app.get('/live/:slug', (req,res) => res.sendFile(path.join(__dirname,'..','public','live.html')));
+
 const PORT = process.env.PORT || 3000;
 async function start() {
   if (pool) await initDatabase();
