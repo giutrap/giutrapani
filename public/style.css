@@ -1583,3 +1583,140 @@ body{font-size:18px;line-height:1.4}
   .live-blog-page .topbar{align-items:center}
   .live-blog-page .header-meta-group{max-width:48%}
 }
+
+
+/* AREA REDAZIONE · gerarchia e leggibilità dei moduli */
+.redazione-intro{
+  margin:0 0 20px;
+  padding:0 0 15px;
+  border-bottom:2px solid #17191d;
+}
+.redazione-intro>span,.redazione-step{
+  display:block;
+  color:#285b89;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1.15px;
+}
+.redazione-intro p{margin:5px 0 0;color:#69727e;font-size:14px;line-height:1.45}
+#redazione-form{
+  margin:0 0 22px;
+  padding:0 0 20px;
+  border-bottom:2px solid #17191d;
+}
+.redazione-section-heading{margin:0 0 14px}
+.redazione-section-heading>span{display:block;color:#285b89;font-size:11px;font-weight:700;letter-spacing:1.1px}
+.redazione-section-heading h3{margin:4px 0 3px;font:700 25px/1.05 'Economica',Arial,sans-serif;color:#17191d}
+.redazione-section-heading p{margin:0;color:#69727e;font-size:13px;line-height:1.4}
+.redazione-content>.live-blog-admin,
+.redazione-content>.live-admin,
+.redazione-content>.poll-admin,
+.redazione-content>.media-admin,
+.redazione-content>.podcast-admin{
+  margin:0!important;
+  padding:19px 0 21px!important;
+  border-top:0!important;
+  border-bottom:1px solid #dfe3e7!important;
+}
+.redazione-content>.live-blog-admin{border-bottom:2px solid #17191d!important}
+.redazione-content>.live-blog-admin h3,
+.redazione-content>.live-admin h3,
+.redazione-content>.poll-admin h3,
+.redazione-content>.media-admin h3,
+.redazione-content>.podcast-admin h3{
+  margin:4px 0 6px!important;
+  font:700 24px/1.05 'Economica',Arial,sans-serif!important;
+  color:#17191d;
+}
+.redazione-content>.live-blog-admin>p,
+.redazione-content>.live-admin>p,
+.redazione-content>.poll-admin>p,
+.redazione-content>.media-admin>p,
+.redazione-content>.podcast-admin>p{
+  max-width:680px;
+  margin:5px 0 13px!important;
+  color:#69727e;
+  font-size:13px!important;
+  line-height:1.45;
+}
+.redazione-content>.live-blog-admin label,
+.redazione-content>.live-admin label,
+.redazione-content>.poll-admin label,
+.redazione-content>.media-admin label,
+.redazione-content>.podcast-admin label{
+  margin:11px 0 5px!important;
+  font-size:13px!important;
+  color:#3f4853!important;
+}
+.redazione-content>.live-blog-admin input,
+.redazione-content>.live-blog-admin textarea,
+.redazione-content>.live-admin input,
+.redazione-content>.live-admin textarea,
+.redazione-content>.poll-admin input,
+.redazione-content>.poll-admin textarea,
+.redazione-content>.media-admin input,
+.redazione-content>.media-admin textarea,
+.redazione-content>.podcast-admin input,
+.redazione-content>.podcast-admin textarea{
+  min-height:40px;
+  border:1px solid #d4dae1!important;
+  border-radius:4px!important;
+  background:#fff;
+  font:15px Arial,sans-serif!important;
+}
+.redazione-content .redazione-actions{margin-top:14px!important}
+.redazione-content .redazione-actions button{
+  min-height:38px;
+  padding:9px 14px!important;
+  border-radius:4px!important;
+  font-size:12px!important;
+  letter-spacing:.25px;
+}
+.redazione-step{margin-bottom:4px}
+.live-blog-admin-row{
+  align-items:center!important;
+  padding:13px 0!important;
+  gap:14px!important;
+}
+.live-blog-admin-row>div:first-child{gap:5px!important}
+.live-blog-admin-row>div:first-child strong{font-size:17px;line-height:1.15}
+.live-blog-admin-row small{font-size:11px!important;letter-spacing:.35px;text-transform:uppercase}
+.live-blog-row-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}
+.live-blog-row-actions button{
+  margin:0!important;
+  min-height:30px;
+  padding:6px 9px!important;
+  border:1px solid #cbd2da!important;
+  border-radius:3px!important;
+  background:#fff!important;
+  color:#285b89!important;
+  font-size:10px!important;
+  font-weight:700;
+  letter-spacing:.3px;
+}
+.live-blog-row-actions button:hover{background:#eef4f9!important;border-color:#285b89!important}
+.live-blog-row-actions .live-blog-delete{
+  color:#b3262d!important;
+  border-color:#e0a4a7!important;
+}
+.live-blog-row-actions .live-blog-delete:hover{background:#fff0f0!important;border-color:#b3262d!important}
+#live-blog-list{margin-top:17px!important}
+#live-blog-update-editor{
+  margin-top:18px;
+  padding:16px;
+  background:#f7f8fa;
+  border:1px solid #e2e6eb;
+  border-radius:4px;
+}
+#live-blog-editor-heading{font-size:20px!important}
+@media(max-width:600px){
+  .redazione-content{padding:16px 16px 28px}
+  .live-blog-admin-row{align-items:flex-start!important;flex-direction:column}
+  .live-blog-row-actions{justify-content:flex-start}
+  .redazione-content>.live-blog-admin h3,
+  .redazione-content>.live-admin h3,
+  .redazione-content>.poll-admin h3,
+  .redazione-content>.media-admin h3,
+  .redazione-content>.podcast-admin h3{font-size:22px!important}
+  .redazione-content .redazione-actions button{flex:0 0 auto}
+}
