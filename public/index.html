@@ -110,7 +110,7 @@
           <div class="redazione-actions"><button type="submit">SALVA NELL’ARCHIVIO</button><button type="button" id="redazione-new">NUOVA NOTA</button></div><p id="redazione-message" role="status"></p>
         </form>
 <section class="live-blog-admin">
-          <h3>LIVE BLOGGING · DIRETTE REDAZIONALI</h3>
+          <div class="redazione-step">02 · DIRETTE E AGGIORNAMENTI</div><h3>LIVE BLOGGING · DIRETTE REDAZIONALI</h3>
           <p>Crea una pagina dedicata a un evento, pubblica gli aggiornamenti e scegli quale diretta promuovere in homepage. Puoi gestire più dirette contemporaneamente.</p>
           <input type="hidden" id="live-blog-id">
           <label for="live-blog-title">Titolo dell'evento</label><input id="live-blog-title" maxlength="180" placeholder="Es. Elezioni, lo spoglio in diretta">
@@ -133,7 +133,7 @@
           </div>
         </section>
 <section class="live-admin">
-          <h3>GESTIONE LIVE YOUTUBE</h3>
+          <div class="redazione-step">03 · VIDEO IN DIRETTA</div><h3>GESTIONE LIVE YOUTUBE</h3>
           <p>Attiva una diretta speciale nella homepage, subito sotto la testata.</p>
           <label for="live-url">Link della diretta YouTube</label><input id="live-url" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="url">
           <label for="live-admin-title">Titolo dello speciale (facoltativo)</label><input id="live-admin-title" maxlength="140" placeholder="Es. Elezioni americane: speciale Breaking">
@@ -142,7 +142,7 @@
           <p id="live-admin-message" role="status"></p>
         </section>
 <section class="poll-admin">
-          <h3>GESTIONE SONDAGGIO</h3>
+          <div class="redazione-step">04 · INTERAZIONE CON I LETTORI</div><h3>GESTIONE SONDAGGIO</h3>
           <p>Imposta una domanda e tre o quattro risposte. Il sondaggio si attiva e si chiude automaticamente in base al periodo scelto; puoi anche chiuderlo in anticipo.</p>
           <label for="poll-admin-question">Domanda</label><textarea id="poll-admin-question" rows="2" maxlength="240" placeholder="Scrivi la domanda del sondaggio…"></textarea>
           <label>Risposte (inseriscine tre o quattro)</label>
@@ -159,7 +159,7 @@
           <div id="poll-admin-results" class="poll-admin-results"></div>
         </section>
 <section class="media-admin">
-          <h3>GESTIONE SCHEDA SOCIAL</h3>
+          <div class="redazione-step">05 · CONTENUTI SOCIAL</div><h3>GESTIONE SCHEDA SOCIAL</h3>
           <p>Pubblica una scheda editoriale che rimanda a un post, video, meme o immagine social. La scheda apparirà accanto al Podcast.</p>
           <label for="media-url">Link al contenuto social</label><input id="media-url" type="url" placeholder="https://x.com/...">
           <label for="media-admin-title">Titolo (facoltativo)</label><input id="media-admin-title" maxlength="180" placeholder="Titolo del contenuto">
@@ -168,7 +168,7 @@
           <p id="media-admin-message" role="status"></p>
         </section>
 <section class="podcast-admin">
-          <h3>GESTIONE SCHEDA PODCAST</h3>
+          <div class="redazione-step">06 · CONTENUTI AUDIO</div><h3>GESTIONE SCHEDA PODCAST</h3>
           <p>Pubblica una scheda editoriale con titolo e collegamento a una puntata o a un contenuto audio. Sono accettati link da Spotify, YouTube, Spreaker e altre piattaforme; la scheda apparirà sotto LIVE e TREND.</p>
           <label for="podcast-url">Link del contenuto audio</label><input id="podcast-url" type="url" placeholder="Incolla un link Spotify, YouTube, Spreaker o altro…">
           <label for="podcast-admin-title">Titolo del podcast</label><input id="podcast-admin-title" maxlength="180" placeholder="Titolo della puntata">
