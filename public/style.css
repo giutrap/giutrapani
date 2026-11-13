@@ -1733,8 +1733,8 @@ body{font-size:18px;line-height:1.4}
 }
 .topbar .brand-full-logo{
   display:block!important;
-  flex:0 1 760px!important;
-  width:min(760px,68vw)!important;
+  flex:0 1 900px!important;
+  width:min(900px,70vw)!important;
   max-width:100%!important;
   line-height:0;
   text-decoration:none!important;
@@ -1743,20 +1743,20 @@ body{font-size:18px;line-height:1.4}
   display:block!important;
   width:100%!important;
   height:auto!important;
-  max-height:150px!important;
+  max-height:230px!important;
   object-fit:contain!important;
   object-position:left center!important;
 }
 .topbar .header-meta-group{flex:0 0 auto!important}
 @media(max-width:760px){
  .topbar{gap:12px!important;align-items:center!important}
- .topbar .brand-full-logo{width:min(520px,62vw)!important;flex-basis:auto!important}
- .topbar .brand-full-logo img{max-height:100px!important}
+ .topbar .brand-full-logo{width:min(520px,64vw)!important;flex-basis:auto!important}
+ .topbar .brand-full-logo img{max-height:120px!important}
  .topbar .header-meta-group{max-width:38%!important}
 }
 @media(max-width:480px){
  .topbar{padding:9px 10px!important;gap:7px!important}
- .topbar .brand-full-logo{width:min(360px,64vw)!important}
+ .topbar .brand-full-logo{width:min(360px,66vw)!important}
  .topbar .brand-full-logo img{max-height:74px!important}
  .topbar .header-meta-group{max-width:34%!important}
  .topbar .header-date{font-size:11px!important;white-space:normal!important}
