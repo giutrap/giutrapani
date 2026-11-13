@@ -1825,3 +1825,39 @@ body{font-size:18px;line-height:1.4}
  .topbar .header-meta-group{font-size:12px!important}
 }
 .privacy-site-header .brand-wordmark img{aspect-ratio:799 / 248;width:100%;height:auto}
+
+/* Ripristino testata BreakingNEWS della versione del 12 novembre */
+.topbar{height:auto!important;min-height:136px!important;border-bottom:1px solid var(--line)!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:8px max(28px,calc((100% - 1440px)/2))!important;gap:20px!important}
+.topbar .brand-block{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;flex:0 1 auto!important;width:auto!important;max-width:none!important;min-width:0!important;height:auto!important}
+.topbar .brand-avatar{display:block!important;flex:0 0 auto!important;width:82px!important;height:82px!important;overflow:hidden!important;border-radius:50%!important;background:#fff!important}
+.topbar .brand-avatar img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
+.topbar .brand-title-group{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;min-width:0!important}
+.topbar .brand-title-group .brand-wordmark{display:flex!important;align-items:center!important;font:700 48px/.95 'Economica',Arial,sans-serif!important;letter-spacing:-.7px!important;color:#17191d!important;text-decoration:none!important;padding:0 0 5px!important;margin:0!important;border-bottom:3px solid #285b89!important;white-space:nowrap!important}
+.topbar .brand-title-group .brand-news{color:#285b89!important}
+.topbar .brand-credit{display:block!important;font:700 16px/1.1 'Economica',Arial,sans-serif!important;color:#17191d!important;margin-top:5px!important}
+.topbar .header-meta-group{display:flex!important;flex-direction:column!important;align-items:flex-end!important;justify-content:center!important;gap:6px!important;text-align:right!important;max-width:none!important;width:auto!important}
+.topbar .header-date-line{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-end!important;gap:9px!important;flex-wrap:wrap!important}
+.topbar .header-date{font-size:19px!important;line-height:1.1!important;white-space:nowrap!important}
+.topbar .header-time{font-size:18px!important;padding:5px 9px!important}
+.topbar .header-meta{font-size:14px!important;letter-spacing:1.1px!important;white-space:nowrap!important}
+@media(max-width:760px){
+ .topbar{min-height:100px!important;padding:10px 14px!important;gap:10px!important;align-items:center!important}
+ .topbar .brand-block{gap:9px!important;flex:1 1 auto!important;min-width:0!important}
+ .topbar .brand-avatar{width:66px!important;height:66px!important}
+ .topbar .brand-title-group .brand-wordmark{font-size:42px!important;letter-spacing:-.7px!important;padding-bottom:4px!important;border-bottom-width:3px!important}
+ .topbar .brand-credit{font-size:12px!important}
+ .topbar .header-meta-group{max-width:48%!important;gap:4px!important}
+ .topbar .header-date{font-size:15px!important;white-space:normal!important}
+ .topbar .header-time{font-size:15px!important;padding:4px 7px!important}
+ .topbar .header-meta{font-size:9px!important;letter-spacing:.3px!important;white-space:normal!important}
+}
+@media(max-width:420px){
+ .topbar{padding:9px 10px!important;gap:7px!important}
+ .topbar .brand-block{gap:7px!important}
+ .topbar .brand-avatar{width:56px!important;height:56px!important}
+ .topbar .brand-title-group .brand-wordmark{font-size:36px!important}
+ .topbar .brand-credit{font-size:10px!important}
+ .topbar .header-meta-group{max-width:49%!important}
+ .topbar .header-date{font-size:13px!important}
+ .topbar .header-time{font-size:13px!important;padding:4px 6px!important}
+}
