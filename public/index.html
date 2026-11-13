@@ -94,51 +94,22 @@
           <div class="redazione-actions"><button type="submit">SALVA NELL’ARCHIVIO</button><button type="button" id="redazione-new">NUOVA NOTA</button></div><p id="redazione-message" role="status"></p>
         </form>
 
-        <section class="poll-admin">
-          <h3>GESTIONE SONDAGGIO</h3>
-          <p>Imposta una domanda e tre o quattro risposte. Il sondaggio si attiva e si chiude automaticamente in base al periodo scelto; puoi anche chiuderlo in anticipo.</p>
-          <label for="poll-admin-question">Domanda</label><textarea id="poll-admin-question" rows="2" maxlength="240" placeholder="Scrivi la domanda del sondaggio…"></textarea>
-          <label>Risposte (inseriscine tre o quattro)</label>
-          <input id="poll-admin-option-0" maxlength="120" placeholder="Risposta 1">
-          <input id="poll-admin-option-1" maxlength="120" placeholder="Risposta 2">
-          <input id="poll-admin-option-2" maxlength="120" placeholder="Risposta 3">
-          <input id="poll-admin-option-3" maxlength="120" placeholder="Risposta 4 (facoltativa)">
-          <div class="poll-admin-dates">
-            <div><label for="poll-admin-start">Data e ora di inizio</label><input id="poll-admin-start" type="datetime-local"></div>
-            <div><label for="poll-admin-end">Data e ora di fine</label><input id="poll-admin-end" type="datetime-local"></div>
-          </div>
-          <div class="redazione-actions"><button type="button" id="poll-save">SALVA / PUBBLICA</button><button type="button" id="poll-close">CHIUDI SONDAGGIO</button><button type="button" id="poll-hide">RITIRA DALLA HOMEPAGE</button></div>
-          <p id="poll-admin-message" role="status"></p>
-          <div id="poll-admin-results" class="poll-admin-results"></div>
-        </section>
-        <section class="podcast-admin">
-          <h3>GESTIONE SCHEDA PODCAST</h3>
-          <p>Pubblica una scheda editoriale con titolo e collegamento a una puntata o a un contenuto audio. Sono accettati link da Spotify, YouTube, Spreaker e altre piattaforme; la scheda apparirà sotto LIVE e TREND.</p>
-          <label for="podcast-url">Link del contenuto audio</label><input id="podcast-url" type="url" placeholder="Incolla un link Spotify, YouTube, Spreaker o altro…">
-          <label for="podcast-admin-title">Titolo del podcast</label><input id="podcast-admin-title" maxlength="180" placeholder="Titolo della puntata">
-          <label for="podcast-admin-description">Descrizione (facoltativa)</label><textarea id="podcast-admin-description" rows="3" maxlength="500" placeholder="Una breve presentazione…"></textarea>
-          <div class="redazione-actions"><button type="button" id="podcast-save">PUBBLICA / SOSTITUISCI</button><button type="button" id="podcast-disable">RITIRA PODCAST</button></div>
-          <p id="podcast-admin-message" role="status"></p>
-        </section>
-        <section class="media-admin">
-          <h3>GESTIONE SCHEDA SOCIAL</h3>
-          <p>Pubblica una scheda editoriale che rimanda a un post, video, meme o immagine social. La scheda apparirà accanto al Podcast.</p>
-          <label for="media-url">Link al contenuto social</label><input id="media-url" type="url" placeholder="https://x.com/...">
-          <label for="media-admin-title">Titolo (facoltativo)</label><input id="media-admin-title" maxlength="180" placeholder="Titolo del contenuto">
-          <label for="media-admin-caption">Didascalia (facoltativa)</label><textarea id="media-admin-caption" rows="2" maxlength="500" placeholder="Una breve nota editoriale…"></textarea>
-          <div class="redazione-actions"><button type="button" id="media-save">PUBBLICA / SOSTITUISCI</button><button type="button" id="media-disable">RITIRA SOCIAL</button></div>
-          <p id="media-admin-message" role="status"></p>
-        </section>
-        <section class="live-admin">
-          <h3>GESTIONE LIVE YOUTUBE</h3>
-          <p>Attiva una diretta speciale nella homepage, subito sotto la testata.</p>
-          <label for="live-url">Link della diretta YouTube</label><input id="live-url" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="url">
-          <label for="live-admin-title">Titolo dello speciale (facoltativo)</label><input id="live-admin-title" maxlength="140" placeholder="Es. Elezioni americane: speciale Breaking">
-          <label for="live-admin-description">Descrizione (facoltativa)</label><textarea id="live-admin-description" rows="3" maxlength="400" placeholder="Una breve presentazione della diretta…"></textarea>
-          <div class="redazione-actions"><button type="button" id="live-save">SALVA E ATTIVA</button><button type="button" id="live-disable">DISATTIVA LIVE</button></div>
-          <p id="live-admin-message" role="status"></p>
-        </section>
-        <section class="live-blog-admin">
+        <!-- moved poll-admin -->
+        <!-- moved podcast-admin -->
+        <!-- moved media-admin -->
+        <!-- moved live-admin -->
+        <div class="redazione-intro"><span>STRUMENTI EDITORIALI</span><p>Gestisci i contenuti della homepage e le dirette. Le sezioni seguono l’ordine di pubblicazione e di priorità redazionale.</p></div>
+<form id="redazione-form"><input type="hidden" id="redazione-id">
+          <label for="redazione-title">Titolo</label><input id="redazione-title" required>
+          <label for="redazione-source">Fonte</label><input id="redazione-source">
+          <label for="redazione-url">Link alla notizia originale (facoltativo)</label><input id="redazione-url" type="url" placeholder="https://… incolla il link, se disponibile">
+          <label for="redazione-notes">Testo</label><textarea id="redazione-notes" rows="12" placeholder="Scrivi il testo della nota…"></textarea>
+          <label for="redazione-image">Link immagine (facoltativo)</label><input id="redazione-image" type="url" placeholder="https://… incolla il link diretto all’immagine">
+          <div id="redazione-image-preview" class="redazione-image-preview" hidden><img id="redazione-image-preview-img" alt="Anteprima copertina"><span>Anteprima della copertina</span></div>
+          <small class="redazione-field-help">Incolla, se necessario, l’indirizzo diretto di un’immagine pubblica (JPG, PNG o WebP).</small>
+          <div class="redazione-actions"><button type="submit">SALVA NELL’ARCHIVIO</button><button type="button" id="redazione-new">NUOVA NOTA</button></div><p id="redazione-message" role="status"></p>
+        </form>
+<section class="live-blog-admin">
           <h3>LIVE BLOGGING · DIRETTE REDAZIONALI</h3>
           <p>Crea una pagina dedicata a un evento, pubblica gli aggiornamenti e scegli quale diretta promuovere in homepage. Puoi gestire più dirette contemporaneamente.</p>
           <input type="hidden" id="live-blog-id">
@@ -161,6 +132,53 @@
             <div id="live-update-list" class="live-blog-admin-list"></div>
           </div>
         </section>
+<section class="live-admin">
+          <h3>GESTIONE LIVE YOUTUBE</h3>
+          <p>Attiva una diretta speciale nella homepage, subito sotto la testata.</p>
+          <label for="live-url">Link della diretta YouTube</label><input id="live-url" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="url">
+          <label for="live-admin-title">Titolo dello speciale (facoltativo)</label><input id="live-admin-title" maxlength="140" placeholder="Es. Elezioni americane: speciale Breaking">
+          <label for="live-admin-description">Descrizione (facoltativa)</label><textarea id="live-admin-description" rows="3" maxlength="400" placeholder="Una breve presentazione della diretta…"></textarea>
+          <div class="redazione-actions"><button type="button" id="live-save">SALVA E ATTIVA</button><button type="button" id="live-disable">DISATTIVA LIVE</button></div>
+          <p id="live-admin-message" role="status"></p>
+        </section>
+<section class="poll-admin">
+          <h3>GESTIONE SONDAGGIO</h3>
+          <p>Imposta una domanda e tre o quattro risposte. Il sondaggio si attiva e si chiude automaticamente in base al periodo scelto; puoi anche chiuderlo in anticipo.</p>
+          <label for="poll-admin-question">Domanda</label><textarea id="poll-admin-question" rows="2" maxlength="240" placeholder="Scrivi la domanda del sondaggio…"></textarea>
+          <label>Risposte (inseriscine tre o quattro)</label>
+          <input id="poll-admin-option-0" maxlength="120" placeholder="Risposta 1">
+          <input id="poll-admin-option-1" maxlength="120" placeholder="Risposta 2">
+          <input id="poll-admin-option-2" maxlength="120" placeholder="Risposta 3">
+          <input id="poll-admin-option-3" maxlength="120" placeholder="Risposta 4 (facoltativa)">
+          <div class="poll-admin-dates">
+            <div><label for="poll-admin-start">Data e ora di inizio</label><input id="poll-admin-start" type="datetime-local"></div>
+            <div><label for="poll-admin-end">Data e ora di fine</label><input id="poll-admin-end" type="datetime-local"></div>
+          </div>
+          <div class="redazione-actions"><button type="button" id="poll-save">SALVA / PUBBLICA</button><button type="button" id="poll-close">CHIUDI SONDAGGIO</button><button type="button" id="poll-hide">RITIRA DALLA HOMEPAGE</button></div>
+          <p id="poll-admin-message" role="status"></p>
+          <div id="poll-admin-results" class="poll-admin-results"></div>
+        </section>
+<section class="media-admin">
+          <h3>GESTIONE SCHEDA SOCIAL</h3>
+          <p>Pubblica una scheda editoriale che rimanda a un post, video, meme o immagine social. La scheda apparirà accanto al Podcast.</p>
+          <label for="media-url">Link al contenuto social</label><input id="media-url" type="url" placeholder="https://x.com/...">
+          <label for="media-admin-title">Titolo (facoltativo)</label><input id="media-admin-title" maxlength="180" placeholder="Titolo del contenuto">
+          <label for="media-admin-caption">Didascalia (facoltativa)</label><textarea id="media-admin-caption" rows="2" maxlength="500" placeholder="Una breve nota editoriale…"></textarea>
+          <div class="redazione-actions"><button type="button" id="media-save">PUBBLICA / SOSTITUISCI</button><button type="button" id="media-disable">RITIRA SOCIAL</button></div>
+          <p id="media-admin-message" role="status"></p>
+        </section>
+<section class="podcast-admin">
+          <h3>GESTIONE SCHEDA PODCAST</h3>
+          <p>Pubblica una scheda editoriale con titolo e collegamento a una puntata o a un contenuto audio. Sono accettati link da Spotify, YouTube, Spreaker e altre piattaforme; la scheda apparirà sotto LIVE e TREND.</p>
+          <label for="podcast-url">Link del contenuto audio</label><input id="podcast-url" type="url" placeholder="Incolla un link Spotify, YouTube, Spreaker o altro…">
+          <label for="podcast-admin-title">Titolo del podcast</label><input id="podcast-admin-title" maxlength="180" placeholder="Titolo della puntata">
+          <label for="podcast-admin-description">Descrizione (facoltativa)</label><textarea id="podcast-admin-description" rows="3" maxlength="500" placeholder="Una breve presentazione…"></textarea>
+          <div class="redazione-actions"><button type="button" id="podcast-save">PUBBLICA / SOSTITUISCI</button><button type="button" id="podcast-disable">RITIRA PODCAST</button></div>
+          <p id="podcast-admin-message" role="status"></p>
+        </section>
+        <!-- moved media-admin -->
+        <!-- moved live-admin -->
+        <!-- moved live-blog-admin -->
         <section class="insight-admin" aria-labelledby="insight-heading">
           <div class="insight-admin-head"><div><span class="redazione-kicker">DATI DI UTILIZZO</span><h3 id="insight-heading">INSIGHT · AUDIENCE</h3></div><button type="button" id="insight-refresh">AGGIORNA</button></div>
           <p class="insight-intro">Qui puoi capire quante persone stanno leggendo BreakingNEWS, quante visite hai ricevuto e quali contenuti vengono aperti. I dati sono anonimi e aggiornati automaticamente.</p>
