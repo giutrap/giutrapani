@@ -1809,3 +1809,19 @@ body{font-size:18px;line-height:1.4}
 .topbar .header-meta-group{flex:0 0 auto!important}
 @media(max-width:760px){.topbar{min-height:auto!important;padding:14px 16px!important;gap:12px!important;align-items:center!important}.topbar .brand-block{flex:1 1 68%!important;width:68%!important;max-width:68%!important}.topbar .brand-full-logo.brand-wordmark{width:100%!important;flex:1 1 auto!important}.topbar .brand-full-logo.brand-wordmark img{max-height:none!important}}
 @media(max-width:480px){.topbar{min-height:0!important}.topbar .brand-block{flex-basis:68%!important;width:68%!important;max-width:68%!important}}
+
+/* Responsive refinement for the supplied 799×248 wordmark */
+.topbar .brand-full-logo.brand-wordmark img{aspect-ratio:799 / 248;width:100%;height:auto}
+@media(max-width:760px){
+ .topbar{min-height:0!important;height:auto!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;gap:10px!important;padding:14px 18px!important}
+ .topbar .brand-block{display:block!important;flex:0 1 auto!important;width:100%!important;max-width:100%!important;min-width:0!important}
+ .topbar .brand-full-logo.brand-wordmark{display:block!important;width:min(100%,560px)!important;max-width:560px!important;flex:none!important;margin:0 auto!important}
+ .topbar .brand-full-logo.brand-wordmark img{display:block!important;width:100%!important;max-width:560px!important;max-height:none!important;height:auto!important;object-fit:contain!important}
+ .topbar .header-meta-group{display:flex!important;flex:0 0 auto!important;width:100%!important;align-items:flex-end!important;justify-content:flex-end!important;text-align:right!important}
+}
+@media(max-width:420px){
+ .topbar{padding:12px 14px!important;gap:8px!important}
+ .topbar .brand-full-logo.brand-wordmark{width:100%!important;max-width:100%!important}
+ .topbar .header-meta-group{font-size:12px!important}
+}
+.privacy-site-header .brand-wordmark img{aspect-ratio:799 / 248;width:100%;height:auto}
