@@ -5,7 +5,8 @@ const Parser = require('rss-parser');
 const { Pool } = require('pg');
 const { FEEDS } = require('./feeds');
 const app = express();
-const RSS_TIMEOUT_MS = 12000;
+const RSS_TIMEOUT_MS = 9000;
+const MAX_ITEMS_PER_SOURCE = 10;
 const RSS_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (compatible; BreakingNewsRSS/1.0; +https://breakingnewsognigiorno.onrender.com)',
   'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*'
@@ -88,14 +89,14 @@ async function parseFeedUrl(url, timeout) {
   let lastError;
   // Le risposte 429/5xx sono spesso temporanee: tre tentativi distanziati
   // evitano di dichiarare guasto un feed per un singolo errore del provider.
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const parsed = await new Parser({ timeout, headers: RSS_HEADERS }).parseURL(url);
       return parsed;
     } catch (error) {
       lastError = error;
-      if (attempt < 2 && isTransientFeedError(error)) {
-        const delay = attempt === 0 ? 900 : 1800;
+      if (attempt < 1 && isTransientFeedError(error)) {
+        const delay = 500;
         await new Promise(resolve => setTimeout(resolve, delay));
         continue;
       }
@@ -222,7 +223,7 @@ async function fetchXPosts(source) {
   // Evita quattro download XML simultanei per una sezione che mostra un solo elemento.
   for (const url of X_FEED_URLS) {
     try {
-      const feed = await new Parser({ timeout: 25000, headers: RSS_HEADERS }).parseURL(url);
+      const feed = await new Parser({ timeout: 8000, headers: RSS_HEADERS }).parseURL(url);
       const items = (feed.items || [])
         .map(item => normalizeItem(item, source))
         .filter(item => item.title && item.link)
@@ -253,23 +254,35 @@ function normalizeItem(item, source) {
   return { title: (item.title || '').trim(), link: item.link || item.guid || '', pubDate: item.isoDate || item.pubDate || null, summary: rawSummary.replace(/\\s+/g, ' ').trim().slice(0, 280), source: source.name, category: source.category };
 }
 async function fetchAllFeeds() {
-  const settled = await mapWithConcurrency(FEEDS, 10, async source => {
+  const settled = await mapWithConcurrency(FEEDS, 16, async source => {
     if (source.name === '@giutrapani · X') return fetchXPosts(source);
     const feed = source.name === 'Il Riformista'
       ? await new Parser({ timeout: RSS_TIMEOUT_MS, headers: RSS_HEADERS }).parseURL(source.url)
       : await parseSourceFeed(source);
-    const items = (feed.items || []).map(item => normalizeItem(item, source));
-    if (source.name === 'Il Riformista') {
-      items.sort((a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
-      return items.slice(0, 2);
-    }
-    return items;
+    const items = (feed.items || [])
+      .map(item => normalizeItem(item, source))
+      .filter(item => item.title && item.link)
+      .sort((a,b) => (Date.parse(b.pubDate || '') || 0) - (Date.parse(a.pubDate || '') || 0));
+    if (source.name === 'Il Riformista') return items.slice(0, 2);
+    return items.slice(0, MAX_ITEMS_PER_SOURCE);
   });
-  const articles = [], errors = [];
+  const articles = [], errors = [], seenLinks = new Set();
   settled.forEach((result,index) => {
     const source = FEEDS[index];
-    if (result.status === 'fulfilled') articles.push(...result.value);
-    else errors.push({ source: source.name, message: result.reason?.message || 'errore sconosciuto' });
+    if (result.status === 'fulfilled') {
+      for (const item of result.value) {
+        let key = item.link;
+        try {
+          const url = new URL(item.link);
+          url.hash = '';
+          for (const param of [...url.searchParams.keys()]) if (/^(utm_|fbclid|gclid)/i.test(param)) url.searchParams.delete(param);
+          key = url.toString();
+        } catch {}
+        if (key && seenLinks.has(key)) continue;
+        if (key) seenLinks.add(key);
+        articles.push(item);
+      }
+    } else errors.push({ source: source.name, message: result.reason?.message || 'errore sconosciuto' });
   });
   // Se i feed editoriali falliscono tutti, non lasciare la homepage vuota:
   // conserva almeno l'ultimo post X valido già raccolto.

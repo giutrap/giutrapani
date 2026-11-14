@@ -1,4 +1,5 @@
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
+let refreshFollowupTimer = null;
 const PAGE_SIZE = 50;
 const headerDateEl = document.getElementById('header-date');
 const headerTimeEl = document.getElementById('header-time');
@@ -316,6 +317,11 @@ async function load(force = false) {
           ? state.news.length + ' notizie · aggiornamento fonti in corso'
           : 'Primo caricamento delle fonti in corso…')
       : state.news.length + ' notizie · aggiornato ' + new Date().toLocaleTimeString('it-IT');
+    if (refreshFollowupTimer) clearTimeout(refreshFollowupTimer);
+    refreshFollowupTimer = null;
+    // Se il server sta aggiornando in background, ricontrolla in breve:
+    // evita di mostrare la raccolta precedente per altri cinque minuti.
+    if (data.refreshing) refreshFollowupTimer = setTimeout(() => load(false), 15000);
   } catch (error) {
     el.status.textContent = 'Servizio momentaneamente non raggiungibile.';
     console.error(error);
