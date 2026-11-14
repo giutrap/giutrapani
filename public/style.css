@@ -2010,3 +2010,7 @@ body{font-size:18px;line-height:1.4}
  .topbar.text-only-header .text-wordmark{font-size:clamp(42px,9vw,52px)!important;letter-spacing:-1px!important}
  .topbar.text-only-header .brand-everyday{font-size:13px!important;letter-spacing:1.6px!important;margin-top:4px!important;padding:3px 6px!important}
 }
+
+/* Colore definitivo del marchio: Breaking nero, NEWS blu */
+.topbar.text-only-header .text-wordmark .word-breaking{color:#17191d!important}
+.topbar.text-only-header .text-wordmark .word-news{color:#285b89!important}
