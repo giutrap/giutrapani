@@ -254,7 +254,7 @@ function normalizeItem(item, source) {
   return { title: (item.title || '').trim(), link: item.link || item.guid || '', pubDate: item.isoDate || item.pubDate || null, summary: rawSummary.replace(/\\s+/g, ' ').trim().slice(0, 280), source: source.name, category: source.category };
 }
 async function fetchAllFeeds() {
-  const settled = await mapWithConcurrency(FEEDS, 16, async source => {
+  const settled = await mapWithConcurrency(FEEDS, 12, async source => {
     if (source.name === '@giutrapani · X') return fetchXPosts(source);
     const feed = source.name === 'Il Riformista'
       ? await new Parser({ timeout: RSS_TIMEOUT_MS, headers: RSS_HEADERS }).parseURL(source.url)
