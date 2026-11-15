@@ -2091,3 +2091,20 @@ body{font-size:18px;line-height:1.4}
   .top-feature-grid #trends-section .keyword-tag{font-size:17px!important;overflow-wrap:normal!important;word-break:normal!important}
   .top-feature-grid #trends-section .keyword-description{-webkit-line-clamp:2!important}
 }
+
+
+/* Allineamento definitivo TREND / diretta YouTube su desktop */
+@media(min-width:761px){
+  .top-feature-grid .live-section,
+  .top-feature-grid #trends-section{
+    align-self:stretch!important;
+    box-sizing:border-box!important;
+    min-height:0!important;
+  }
+  .top-feature-grid .live-section{
+    height:100%!important;
+  }
+  .top-feature-grid #trends-section{
+    height:100%!important;
+  }
+}
