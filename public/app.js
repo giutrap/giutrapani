@@ -171,7 +171,13 @@ function normalizeForMatch(value) {
     .replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 }
 function trendTokens(value) {
-  return normalizeForMatch(value).split(' ').filter(word => word.length >= 4 && !TREND_STOPWORDS.has(word) && !/^\d+$/.test(word));
+  // Mantiene le parole nella loro sequenza originale: non si devono creare
+  // accostamenti artificiali eliminando le parole di raccordo.
+  return normalizeForMatch(value).split(' ');
+}
+function isUsefulTrendPhrase(words) {
+  return words.length >= 2 && words.length <= 3 &&
+    words.every(word => word.length >= 4 && !TREND_STOPWORDS.has(word) && !/^\d+$/.test(word));
 }
 function trendCategoryWeight(item) {
   const category = newsCategory(item);
@@ -185,9 +191,10 @@ function buildTrends(items) {
     const words = trendTokens(item.title || '');
     const phrases = new Set();
     for (let i=0;i<words.length;i++) {
-      phrases.add(words[i]);
-      if (i+1<words.length) phrases.add(words[i]+' '+words[i+1]);
-      if (i+2<words.length) phrases.add(words[i]+' '+words[i+1]+' '+words[i+2]);
+      const pair = words.slice(i,i+2);
+      const triple = words.slice(i,i+3);
+      if (isUsefulTrendPhrase(pair)) phrases.add(pair.join(' '));
+      if (isUsefulTrendPhrase(triple)) phrases.add(triple.join(' '));
     }
     phrases.forEach(phrase => {
       if (!candidates.has(phrase)) candidates.set(phrase,[]);
@@ -200,9 +207,9 @@ function buildTrends(items) {
     if (seedUnique.length < 3 || new Set(seedUnique.map(item=>item.source).filter(Boolean)).size < 2) return;
     const phrase = key.split(' ');
     const matches = eligible.filter(item => {
-      const title = trendTokens(item.title || '').join(' ');
-      const body = trendTokens(item.summary || '').join(' ');
-      return title.includes(key) || body.includes(key) || (phrase.length===1 && (title.split(' ').includes(key) || body.split(' ').includes(key)));
+      const title = ' ' + normalizeForMatch(item.title || '') + ' ';
+      const body = ' ' + normalizeForMatch(item.summary || '') + ' ';
+      return title.includes(' ' + key + ' ') || body.includes(' ' + key + ' ');
     });
     const uniqueMatches = [...new Map(matches.map(item => [item.link || item.title,item])).values()];
     const sources = new Set(uniqueMatches.map(item=>item.source).filter(Boolean)).size;
@@ -212,8 +219,11 @@ function buildTrends(items) {
     const growth = recent-previous;
     const weight = uniqueMatches.reduce((sum,item)=>sum+trendCategoryWeight(item),0)/uniqueMatches.length;
     const score = (recent*2 + uniqueMatches.length + sources*2 + Math.max(0,growth)*1.5)*weight;
-    const label = key.split(' ').map(word=>word.charAt(0).toLocaleUpperCase('it')+word.slice(1)).join(' ');
-    ranked.push({key,label,matches:uniqueMatches,sources,recent,previous,growth,score,links:uniqueMatches.map(item=>item.link).filter(Boolean)});
+    // Premia le espressioni di due/tre parole: i trend devono essere temi,
+    // non parole isolate o frammenti casuali dei titoli.
+    const phraseBonus = phrase.length === 3 ? 1.12 : 1;
+    const label = phrase.map(word=>word.charAt(0).toLocaleUpperCase('it')+word.slice(1)).join(' ');
+    ranked.push({key,label,matches:uniqueMatches,sources,recent,previous,growth,score:score*phraseBonus,links:uniqueMatches.map(item=>item.link).filter(Boolean)});
   });
   ranked.sort((a,b)=>b.score-a.score||b.sources-a.sources||b.matches.length-a.matches.length);
   const selected=[];
