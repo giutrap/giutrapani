@@ -163,8 +163,20 @@ const TREND_STOPWORDS = new Set((`
   presidente premier ministro ministri una uno un il lo la i gli le e o ma
   se che di a da in su non si è ed al ai questo questa questi quelle come
   parte nuovo nuova nuovi nuove torna news notizie notizia aggiornamento
-  aggiornamenti diretta live
+  aggiornamenti diretta live stati uniti
 `).trim().split(/\s+/));
+
+// Espressioni geografiche o istituzionali troppo ampie per essere un trend autonomo.
+// Il box deve indicare un fatto, un protagonista o una vicenda, non un'area generica.
+const TREND_GENERIC_PHRASES = new Set([
+  'stati uniti',
+  'unione europea',
+  'medio oriente',
+  'mercati finanziari',
+  'forze armate',
+  'comunita internazionale',
+  'paesi europei'
+]);
 const TREND_HARD_NEWS_WEIGHT = { POLITICA:1.18, GEOPOLITICA:1.2, ECONOMIA:1.12, CRONACA:1.08, ISTITUZIONI:1.12, EUROPA:1.08, TECNOLOGIA:1.02, AMBIENTE:1, SCIENZA:1, CHIESA:0.96 };
 function normalizeForMatch(value) {
   return String(value || '').toLocaleLowerCase('it').normalize('NFD')
@@ -176,7 +188,9 @@ function trendTokens(value) {
   return normalizeForMatch(value).split(' ');
 }
 function isUsefulTrendPhrase(words) {
+  const phrase = words.join(' ');
   return words.length >= 2 && words.length <= 3 &&
+    !TREND_GENERIC_PHRASES.has(phrase) &&
     words.every(word => word.length >= 4 && !TREND_STOPWORDS.has(word) && !/^\d+$/.test(word));
 }
 function trendCategoryWeight(item) {
