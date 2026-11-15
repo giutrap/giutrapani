@@ -151,7 +151,7 @@ function isXFeed(item) {
 
 
 
-const TREND_STOPWORDS = new Set(('
+const TREND_STOPWORDS = new Set((`
   oggi ieri domani adesso ancora anche altro altri altra altre dopo prima
   secondo seconda mentre quando come dove perché quindi dunque sulla sulle
   sullo nella nelle nello dagli delle della dello degli dei del dal dalla
@@ -164,7 +164,7 @@ const TREND_STOPWORDS = new Set(('
   se che di a da in su non si è ed al ai questo questa questi quelle come
   parte nuovo nuova nuovi nuove torna news notizie notizia aggiornamento
   aggiornamenti diretta live
-').trim().split(/\s+/));
+`).trim().split(/\s+/));
 const TREND_HARD_NEWS_WEIGHT = { POLITICA:1.18, GEOPOLITICA:1.2, ECONOMIA:1.12, CRONACA:1.08, ISTITUZIONI:1.12, EUROPA:1.08, TECNOLOGIA:1.02, AMBIENTE:1, SCIENZA:1, CHIESA:0.96 };
 function normalizeForMatch(value) {
   return String(value || '').toLocaleLowerCase('it').normalize('NFD')
