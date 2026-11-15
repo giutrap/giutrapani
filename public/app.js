@@ -220,10 +220,35 @@ function render() {
   // Il flusso conserva un solo contenuto X: il post/repost più recente.
   // Viene mostrato subito dopo le eventuali priorità editoriali e prima delle altre NEWS.
   const latestXPost = eligible.filter(isXFeed).sort(byDate)[0] || null;
+  const chronologicalRows = eligible
+    .filter(item => !highlightedLinks.has(item.link) && item.link !== latestXPost?.link)
+    .sort(byDate);
+
+  // Prima schermata più equilibrata: le hard news mantengono la precedenza
+  // editoriale senza alterare l'ordine cronologico tra le notizie ammesse.
+  // Tetto sport: 2 nei primi 20 articoli, 5 nei primi 50; gli altri
+  // restano nel flusso completo, subito dopo il blocco iniziale.
+  const frontPageRows = [], deferredRows = [];
+  let sportInFront = 0;
+  for (const item of chronologicalRows) {
+    const isSport = newsCategory(item) === 'SPORT';
+    const limit = frontPageRows.length < 20 ? 2 : 5;
+    if (isSport && sportInFront >= limit) {
+      deferredRows.push(item);
+      continue;
+    }
+    if (frontPageRows.length < PAGE_SIZE) {
+      frontPageRows.push(item);
+      if (isSport) sportInFront++;
+    } else {
+      deferredRows.push(item);
+    }
+  }
   const orderedRows = [
     ...highlightedItems,
     ...(latestXPost && !highlightedLinks.has(latestXPost.link) ? [latestXPost] : []),
-    ...eligible.filter(item => !highlightedLinks.has(item.link) && item.link !== latestXPost?.link).sort(byDate)
+    ...frontPageRows,
+    ...deferredRows
   ];
   const rows = orderedRows
     .filter(item => state.activeCategory === 'TUTTE' || newsCategory(item) === state.activeCategory)
