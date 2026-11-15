@@ -2039,3 +2039,55 @@ body{font-size:18px;line-height:1.4}
 #trends-section .keyword-card.is-active .keyword-tag{color:#a51f2b}
 @media(max-width:980px){#trends-section .trends-list{grid-template-columns:repeat(2,minmax(0,1fr))}#trends-section .keyword-card-lead{grid-column:1/-1;min-height:112px}}
 @media(max-width:760px){#trends-section.trends-section{padding:14px 12px 15px;margin:16px 0 18px}#trends-section .trends-list{grid-template-columns:1fr;gap:8px}#trends-section .keyword-card,#trends-section .keyword-card-lead{min-height:0;padding:11px 12px;align-items:center}#trends-section .keyword-tag,#trends-section .keyword-card:not(.keyword-card-lead) .keyword-tag{font-size:19px}#trends-section .keyword-description{-webkit-line-clamp:2}#trends-section .trends-heading{align-items:flex-start;flex-direction:column}#trends-section .trends-updated{text-align:left}}
+
+
+/* TREND: pannello compatto, coordinato con il box YouTube */
+@media(min-width:761px){
+  .top-feature-grid #trends-section{
+    box-sizing:border-box!important; height:100%!important; min-height:0!important;
+    padding:0 0 0 0!important; margin:0!important; border:0!important;
+    display:flex!important; flex-direction:column!important; justify-content:stretch!important;
+    background:transparent!important;
+  }
+  .top-feature-grid #trends-section .trends-heading{
+    min-height:33px!important; margin:0 0 7px!important; padding:0!important;
+    display:flex!important; align-items:center!important;
+  }
+  .top-feature-grid #trends-section .trends-list{
+    box-sizing:border-box!important; flex:1 1 auto!important; min-height:0!important;
+    display:grid!important; grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:repeat(4,minmax(0,1fr))!important; gap:7px!important;
+  }
+  .top-feature-grid #trends-section .keyword-card{
+    box-sizing:border-box!important; width:100%!important; height:100%!important; min-height:0!important;
+    display:grid!important; grid-template-columns:26px minmax(0,1fr) 16px!important;
+    align-items:center!important; gap:10px!important; padding:8px 11px!important;
+    background:#fff!important; border:1px solid #dce3e9!important; border-radius:4px!important;
+    box-shadow:none!important; transform:none!important;
+  }
+  .top-feature-grid #trends-section .keyword-card-lead{border-left:3px solid #c62828!important;border-top:1px solid #dce3e9!important;padding-left:9px!important}
+  .top-feature-grid #trends-section .keyword-card:hover,
+  .top-feature-grid #trends-section .keyword-card:focus-visible,
+  .top-feature-grid #trends-section .keyword-card.is-active{border-color:#285b89!important;background:#f8fafc!important;box-shadow:inset 0 0 0 1px #285b89!important}
+  .top-feature-grid #trends-section .keyword-number{font:700 19px/1 'Economica',Arial,sans-serif!important;color:#9aa8b5!important}
+  .top-feature-grid #trends-section .keyword-content{gap:3px!important;min-width:0!important}
+  .top-feature-grid #trends-section .keyword-kicker{font:700 9px/1.1 Arial,sans-serif!important;letter-spacing:.7px!important;color:#b3262d!important}
+  .top-feature-grid #trends-section .keyword-tag,
+  .top-feature-grid #trends-section .keyword-card:not(.keyword-card-lead) .keyword-tag{
+    font:700 clamp(16px,1.35vw,19px)/1.05 'Economica',Arial,sans-serif!important;
+    color:#172b40!important;overflow-wrap:normal!important;word-break:normal!important;
+  }
+  .top-feature-grid #trends-section .keyword-description{
+    font:400 12px/1.25 'Economica',Arial,sans-serif!important;color:#526477!important;
+    display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;overflow:hidden!important;
+  }
+  .top-feature-grid #trends-section .keyword-count{font:400 11px/1.15 'Economica',Arial,sans-serif!important;color:#758292!important;margin:0!important;padding:0!important}
+  .top-feature-grid #trends-section .keyword-arrow{font-size:17px!important;color:#285b89!important}
+}
+@media(max-width:760px){
+  .top-feature-grid #trends-section{padding:0!important;background:transparent!important;border:0!important}
+  .top-feature-grid #trends-section .trends-list{display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:none!important;gap:7px!important}
+  .top-feature-grid #trends-section .keyword-card{min-height:72px!important;height:auto!important;padding:9px 10px!important;border-radius:4px!important}
+  .top-feature-grid #trends-section .keyword-tag{font-size:17px!important;overflow-wrap:normal!important;word-break:normal!important}
+  .top-feature-grid #trends-section .keyword-description{-webkit-line-clamp:2!important}
+}
