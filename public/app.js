@@ -104,8 +104,6 @@ function tm(value) {
 // Classificazione editoriale della singola notizia: prima il contenuto, poi la categoria RSS come ripiego.
 function newsCategory(item) {
   if (item.isEditorial) return 'FOCUS';
-  // Etichetta editoriale dedicata: identifica sempre gli articoli della testata.
-  if (/giutrapani.*x|@giutrapani/i.test(String(item.source || ''))) return '@giutrapani';
   if (/il riformista/i.test(String(item.source || ''))) return 'IL RIFORMISTA';
   // Le fonti istituzionali ufficiali prevalgono sulla classificazione tematica del titolo.
   if (/camera dei deputati|senato -|governo italiano|quirinale|corte costituzionale|commissione europea|presscorner|consiglio dell.?unione europea|consilium|banca centrale europea|corte di giustizia ue|curia|parlamento europeo|european parliament|gazzetta ufficiale|eur-lex/i.test(String(item.source || ''))) return 'ISTITUZIONI';
@@ -143,10 +141,6 @@ function urgency(item) {
   if (/\b(ultim['’ ]ora|breaking|flash news|notizia urgente)\b/.test(title)) return 'urgent';
   if (/\b(in aggiornamento|aggiornamento|diretta|live|sviluppi)\b/.test(title)) return 'developing';
   return 'normal';
-}
-
-function isXFeed(item) {
-  return /@giutrapani|\bX\b|twitter/i.test(String(item.source || ''));
 }
 
 
@@ -280,11 +274,10 @@ function render() {
     return saved ? (eligible.find(item => item.link === saved.link) || saved) : null;
   }).filter(Boolean);
   const highlightedLinks = new Set(highlightedItems.map(item => item.link));
-  // Il flusso conserva un solo contenuto X: il post/repost più recente.
-  // Viene mostrato subito dopo le eventuali priorità editoriali e prima delle altre NEWS.
-  const latestXPost = eligible.filter(isXFeed).sort(byDate)[0] || null;
+  // Il flusso RSS resta cronologico; i contenuti social vengono inseriti
+  // manualmente dalla Redazione tramite la scheda dedicata.
   const chronologicalRows = eligible
-    .filter(item => !highlightedLinks.has(item.link) && item.link !== latestXPost?.link)
+    .filter(item => !highlightedLinks.has(item.link))
     .sort(byDate);
 
   // Prima schermata più equilibrata: le hard news mantengono la precedenza
@@ -309,7 +302,6 @@ function render() {
   }
   const orderedRows = [
     ...highlightedItems,
-    ...(latestXPost && !highlightedLinks.has(latestXPost.link) ? [latestXPost] : []),
     ...frontPageRows,
     ...deferredRows
   ];
