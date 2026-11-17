@@ -347,8 +347,8 @@ function render() {
       + (redazione.auth ? '<button type="button" class="redazione-open" data-title="' + esc(item.title || '') + '" data-source="' + esc(item.source || '') + '" data-url="' + link + '">REDAZIONE</button>' : '')
       + featureAction
       + '</article>'
-      + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 10 ? podcastCard : '')
-      + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 20 ? memeCard : '');
+      + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 5 ? podcastCard : '')
+      + (((state.currentPage - 1) * PAGE_SIZE + index + 1) === 10 ? memeCard : '');
   }).join('');
 
   el.emptyState.hidden = rows.length > 0;
