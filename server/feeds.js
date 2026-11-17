@@ -163,8 +163,6 @@ const FEEDS = [
   { name: 'Banca centrale europea - Comunicati', url: 'https://www.ecb.europa.eu/rss/press.html', category: 'Istituzioni' },
   { name: 'Corte di giustizia UE - Comunicati stampa', url: 'https://curia.europa.eu/site/rss.jsp?lang=it&secondLang=en', category: 'Istituzioni' },
 
-  // Profilo X pubblico di @giutrapani tramite route RSSHub; fonte indipendente dalle NEWS.
-  { name: '@giutrapani · X', url: 'https://rss.app/feeds/OvP3XcTYa2zjZUcZ.xml', category: 'Social' },
 ];
 
 module.exports = { FEEDS };
