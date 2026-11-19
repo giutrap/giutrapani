@@ -263,6 +263,58 @@ function renderTrends() {
   }).join('');
 }
 
+// Punteggio editoriale automatico: riconosce la convergenza di fonti indipendenti
+// su protagonisti e vicende, senza alterare le priorità manuali della Redazione.
+const HARD_NEWS_STOPWORDS = new Set((`
+  vertice incontro incontri incontra incontrano visita oggi ieri domani
+  dopo prima durante sulla sulle nella nelle dello della delle degli
+  questo questa quello quella anche come dove quando perché mentre
+  ancora nuovo nuova nuovi nuove governo presidente premier ministro
+  ministri paese paesi mondo italia europa internazionale ultime notizie
+  diretta aggiornamento aggiornamenti live news cosa tutte tutti
+  degli delle della dello alle dalla nella nelle con per tra fra
+  sono era essere avere hanno ha più meno tutto tutta
+`).trim().split(/\\s+/));
+const HARD_NEWS_ACTORS = new Set([
+  'trump','putin','xi','zelensky','netanyahu','meloni','macron','merz',
+  'erdogan','starmer','modi',' von der leyen','scholz','biden','harris',
+  'cremlino','nato','onu','iran','ucraina','israele','gaza','taiwan'
+].map(value=>value.trim()));
+function hardNewsPriority(item, corpus, sourceCounts) {
+  const category = newsCategory(item);
+  if (category === 'SPORT' || item.isEditorial || item.source === '@giutrapani · X') return 0;
+  const categoryWeight = ({GEOPOLITICA:2.4,ISTITUZIONI:2.1,POLITICA:2,ECONOMIA:1.8,FINANZA:1.6,CRONACA:1.5,SALUTE:1.3,AMBIENTE:1.2,TECNOLOGIA:1.1})[category] || 0.65;
+  const tokens = [...new Set(trendTokens(item.title || '').filter(token => token.length >= 3 && !HARD_NEWS_STOPWORDS.has(token)))];
+  let convergence = 0, actorBoost = 0;
+  for (const token of tokens) {
+    const sources = sourceCounts.get(token) || 0;
+    if (sources >= 2) convergence += Math.min(3, sources - 1) * (HARD_NEWS_ACTORS.has(token) ? 1.8 : 0.75);
+    if (HARD_NEWS_ACTORS.has(token)) actorBoost += 1.2;
+  }
+  const age = Date.now() - Date.parse(item.pubDate || '');
+  const freshness = Number.isFinite(age) && age >= 0 ? Math.max(0, 1 - age / (12 * 60 * 60 * 1000)) : 0;
+  return categoryWeight + Math.min(8, convergence) + Math.min(4, actorBoost) + freshness * 1.5;
+}
+function rankFrontPageHardNews(items) {
+  const corpus = items.filter(item => !item.isEditorial && newsCategory(item) !== 'SPORT');
+  const tokenSources = new Map();
+  for (const item of corpus) {
+    const source = item.source || item.link || item.title;
+    for (const token of new Set(trendTokens(item.title || '').filter(word => word.length >= 3 && !HARD_NEWS_STOPWORDS.has(word)))) {
+      if (!tokenSources.has(token)) tokenSources.set(token, new Set());
+      tokenSources.get(token).add(source);
+    }
+  }
+  const sourceCounts = new Map([...tokenSources].map(([token,sources]) => [token,sources.size]));
+  const chronological = [...items].sort((a,b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+  const recentWindow = chronological.slice(0, 30);
+  const ranked = recentWindow.map((item,index) => ({item,index,score:hardNewsPriority(item,corpus,sourceCounts)}))
+    .sort((a,b) => b.score-a.score || a.index-b.index);
+  const promoted = ranked.slice(0,20).filter(entry => entry.score >= 2.8).map(entry => entry.item);
+  const promotedLinks = new Set(promoted.map(item => item.link));
+  return [...promoted, ...chronological.filter(item => !promotedLinks.has(item.link))];
+}
+
 function render() {
   const query = el.search.value.trim().toLocaleLowerCase('it');
   const eligible = state.news.filter(item => !isFutureDated(item));
@@ -276,14 +328,13 @@ function render() {
   const highlightedLinks = new Set(highlightedItems.map(item => item.link));
   // Il flusso RSS resta cronologico; i contenuti social vengono inseriti
   // manualmente dalla Redazione tramite la scheda dedicata.
-  const chronologicalRows = eligible
-    .filter(item => !highlightedLinks.has(item.link))
-    .sort(byDate);
+  const chronologicalRows = rankFrontPageHardNews(
+    eligible.filter(item => !highlightedLinks.has(item.link))
+  );
 
-  // Prima schermata più equilibrata: le hard news mantengono la precedenza
-  // editoriale senza alterare l'ordine cronologico tra le notizie ammesse.
-  // Tetto sport: 2 nei primi 20 articoli, 5 nei primi 50; gli altri
-  // restano nel flusso completo, subito dopo il blocco iniziale.
+  // Le prime 20 posizioni valorizzano la convergenza su hard news e grandi
+  // protagonisti; dopo questo blocco il flusso torna integralmente cronologico.
+  // Tetto sport: 2 nei primi 20 articoli, 5 nei primi 50.
   const frontPageRows = [], deferredRows = [];
   let sportInFront = 0;
   for (const item of chronologicalRows) {
